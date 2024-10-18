@@ -15,13 +15,62 @@
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  /* color: var(--foreground); */
+  /* background: var(--background); */
   font-family: Arial, Helvetica, sans-serif;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+}
+
+@layer components {
+  .menu-sm {
+    @apply px-2 py-1 gap-2 text-sm;
+    border-radius: 1rem;
+    & + .menu-items-wrapper {
+      @apply group-aria-expanded:mt-2;
+      border-radius: 1rem;
+    }
+    & + .menu-items-wrapper .menu-item {
+      @apply px-2 py-1 text-sm;
+    }
+    & svg {
+      @apply w-4;
+    }
+  }
+  .menu-md {
+    @apply px-3 py-2 gap-3 text-base;
+    border-radius: 1.25rem;
+    & + .menu-items-wrapper {
+      @apply group-aria-expanded:mt-2;
+      border-radius: 1.25rem;
+    }
+    & + .menu-items-wrapper .menu-item {
+      @apply px-3 py-2 text-base;
+    }
+    & svg {
+      @apply w-5;
+    }
+  }
+  .menu-lg {
+    @apply px-4 py-3 gap-4 text-lg;
+    border-radius: 1.5rem;
+    & + .menu-items-wrapper {
+      @apply group-aria-expanded:mt-2;
+      border-radius: 1.5rem;
+    }
+    & + .menu-items-wrapper .menu-item {
+      @apply px-4 py-3 text-lg;
+    }
+    & svg {
+      @apply w-6;
+    }
+  }
+  .menu-items-wrapper {
+    @apply grid grid-rows-[0fr] duration-150 group-aria-expanded:grid-rows-[1fr] z-10 group-aria-expanded:opacity-100 opacity-0 relative w-full overflow-hidden;
+    transition-property: grid, opacity, margin;
   }
 }

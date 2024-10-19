@@ -38,15 +38,13 @@ export default function Menu(props: MenuProps) {
   }
   return (
     <div
-      className="w-full group"
+      className={"menu " + props.className}
       aria-expanded={expanded}
       onClick={ExpansionHandler}
     >
-      <button
-        className={
-          " flex justify-center items-center w-full text-left " +
-          props.className
-        }
+      <motion.button
+        whileTap={{ backgroundColor: "var(--fm-clr,inherit)" }}
+        className="menu-button"
         aria-invalid
         onClick={ClickHandler}
       >
@@ -58,9 +56,9 @@ export default function Menu(props: MenuProps) {
         >
           <Icon label="ChevronDown" />
         </motion.span>
-      </button>
-      <div aria-invalid className="menu-items-wrapper">
-        <ol className="max-h-48 overflow-y-auto">{props.children}</ol>
+      </motion.button>
+      <div aria-invalid className="menu-list-wrapper">
+        <ol className="menu-list">{props.children}</ol>
       </div>
       <div className={`overlay ${expanded ? "" : "hidden"}`}></div>
     </div>
@@ -108,18 +106,22 @@ export function MenuItem(
 ) {
   if ("value" in props)
     return (
-      <li
+      <motion.li
+        whileTap={{ backgroundColor: "var(--fm-clr,inherit)" }}
         aria-valuetext={props.children}
         aria-label={props.children}
         onClick={() => props.onSelect(props.value)}
         className={"menu-item " + props.className}
       >
         {props.children}
-      </li>
+      </motion.li>
     );
   if ("searchbar" in props) {
     return (
-      <li aria-disabled className={props.className + " sticky top-0"}>
+      <li
+        aria-disabled
+        className={props.className + " menu-item sticky top-0 bg-inherit"}
+      >
         {props.children}
       </li>
     );

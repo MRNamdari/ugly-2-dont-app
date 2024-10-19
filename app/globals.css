@@ -5,6 +5,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  box-sizing: border-box;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -27,50 +28,53 @@ body {
 }
 
 @layer components {
-  .menu-sm {
-    @apply px-2 py-1 gap-2 text-sm;
-    border-radius: 1rem;
-    & + .menu-items-wrapper {
-      @apply group-aria-expanded:mt-2;
-      border-radius: 1rem;
+  .menu {
+    @apply w-full;
+    & .menu-button {
+      @apply flex justify-center items-center w-full text-left;
     }
-    & + .menu-items-wrapper .menu-item {
-      @apply px-2 py-1 text-sm;
+    & .menu-list {
+      @apply max-h-48 overflow-y-auto bg-inherit;
     }
-    & svg {
-      @apply w-4;
+    & .menu-item {
+      @apply flex items-center;
     }
-  }
-  .menu-md {
-    @apply px-3 py-2 gap-3 text-base;
-    border-radius: 1.25rem;
-    & + .menu-items-wrapper {
-      @apply group-aria-expanded:mt-2;
-      border-radius: 1.25rem;
+    &[aria-expanded="true"] .menu-list-wrapper {
+      @apply grid-rows-[1fr] opacity-100;
     }
-    & + .menu-items-wrapper .menu-item {
-      @apply px-3 py-2 text-base;
-    }
-    & svg {
-      @apply w-5;
+    & .menu-list-wrapper {
+      @apply grid grid-rows-[0fr] duration-150 z-10 opacity-0 relative w-full overflow-hidden;
+      transition-property: grid, opacity, margin;
     }
   }
-  .menu-lg {
-    @apply px-4 py-3 gap-4 text-lg;
-    border-radius: 1.5rem;
-    & + .menu-items-wrapper {
-      @apply group-aria-expanded:mt-2;
-      border-radius: 1.5rem;
+
+  .icon {
+    &.filled {
+      background-color: var(--ug-clr);
     }
-    & + .menu-items-wrapper .menu-item {
-      @apply px-4 py-3 text-lg;
-    }
-    & svg {
-      @apply w-6;
+    &.outlined {
+      @apply border-solid border-2 border-[--ug-clr];
     }
   }
-  .menu-items-wrapper {
-    @apply grid grid-rows-[0fr] duration-150 group-aria-expanded:grid-rows-[1fr] z-10 group-aria-expanded:opacity-100 opacity-0 relative w-full overflow-hidden;
-    transition-property: grid, opacity, margin;
+  .icon-sm {
+    @apply inline-block rounded-full aspect-square p-2;
+    & svg {
+      @apply w-4 h-4;
+    }
+  }
+  .icon-md {
+    @apply inline-block rounded-full aspect-square p-2;
+    & svg {
+      @apply w-6 h-6;
+    }
+  }
+  .icon-lg {
+    @apply inline-block rounded-full aspect-square p-3;
+    & svg {
+      @apply w-6 h-6;
+    }
+  }
+  .icon-xl {
+    @apply inline-block rounded-full aspect-square p-4;
   }
 }

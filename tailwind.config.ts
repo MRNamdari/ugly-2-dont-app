@@ -61,32 +61,29 @@ const config: Config = {
           900: "#111008",
         },
       },
+      menuStyles: { filled: 0, outlined: 1 },
+      menuSizes: {
+        sm: { height: "2rem", radius: "1rem", gap: ".5rem", fontSize: "sm" },
+        md: {
+          height: "2.5rem",
+          radius: "1.25rem",
+          gap: ".75rem",
+          fontSize: "base",
+        },
+        lg: { height: "3rem", radius: "1.5rem", gap: "1rem", fontSize: "lg" },
+      },
     },
   },
   plugins: [
-    plugin(function ({ addComponents, theme }) {
-      const sizes = ["sm", "md", "lg", "xl"];
-      const styles = ["solid", "outline", "text"];
-      const colors = theme("colors") as any;
-      const menu = {};
-      Object.keys(colors).forEach((name) => {
-        if (typeof colors[name] == "string") {
-          Object.assign(menu, {
-            [`.menu-item-${name}`]: { backgroundColor: colors[name] },
-            [`.menu-${name}`]: {
-              backgroundColor: colors[name],
-            },
-          });
+    plugin(function ({ addComponents, matchComponents, theme }) {
+      const clr = theme("colors") as any;
+      const color: Record<string, string> = {};
+      Object.keys(clr).forEach((name) => {
+        if (typeof clr[name] == "string") {
+          color[name] = clr[name];
         } else {
-          Object.keys(colors[name]).forEach((code) => {
-            Object.assign(menu, {
-              [`.menu-item-${name}-${code}`]: {
-                backgroundColor: colors[name][code],
-              },
-              [`.menu-${name}-${code}`]: {
-                backgroundColor: colors[name][code],
-              },
-            });
+          Object.keys(clr[name]).forEach((code) => {
+            color[`${name}-${code}`] = clr[name][code];
           });
         }
       });
@@ -100,7 +97,68 @@ const config: Config = {
         },
       };
 
-      addComponents({ ...overlay, ...menu });
+      addComponents({ ...overlay });
+      // menu, menu-item colors
+      matchComponents(
+        {
+          menu: (value) => ({
+            "--ug-clr": value,
+          }),
+          "menu-item": (value) => ({
+            "--ug-clr": value,
+          }),
+          tap: (value) => ({
+            "--fm-clr": value,
+          }),
+        },
+        { values: color }
+      );
+      // menu sizes
+      matchComponents(
+        {
+          menu: (value) => ({
+            fontSize: theme("fontSize." + value.fontSize),
+            "& .menu-button,& .menu-item": {
+              height: value.height,
+              paddingInline: value.gap,
+              gap: value.gap,
+            },
+            "& .menu-button,& .menu-list-wrapper": {
+              borderRadius: value.radius,
+            },
+            "&[aria-expanded=true] .menu-list-wrapper": {
+              marginTop: value.gap,
+            },
+          }),
+        },
+        { values: theme("menuSizes") }
+      );
+      // menu styles
+      matchComponents(
+        {
+          menu: (value) => {
+            switch (value) {
+              case 0:
+                return {
+                  "& .menu-button, & .menu-item": {
+                    backgroundColor: "var(--ug-clr)",
+                  },
+                };
+              case 1:
+                return {
+                  "& .menu-button,& .menu-list-wrapper": {
+                    border: "2px solid var(--ug-clr)",
+                  },
+                  "& .menu-item:not(:last-child)": {
+                    borderBottom: "2px solid var(--ug-clr)",
+                  },
+                };
+            }
+            return {} as any;
+          },
+        },
+        { values: theme("menuStyles") }
+      );
     }),
   ],
 };

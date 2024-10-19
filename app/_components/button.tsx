@@ -1,36 +1,41 @@
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, HTMLMotionProps } from "framer-motion";
 import Icon from "./icon";
 import { IconLable } from "./icon";
 
-import { HTMLAttributes, forwardRef } from "react";
+import { forwardRef } from "react";
 import { Url, UrlObject } from "url";
-type NextLink = Partial<typeof Link>;
-export interface ButtonProps
-  extends NextLink,
-    HTMLAttributes<HTMLAnchorElement> {
+// type NextLink = Partial<typeof Link>;
+export type ButtonProps = HTMLMotionProps<"a"> & {
   href?: UrlObject | Url | string;
   leadingIcon?: IconLable;
   trailingIcon?: IconLable;
   disabled?: boolean;
-}
-export default forwardRef<HTMLElement, any>(function Button(
+  children: React.ReactNode;
+};
+export default forwardRef<HTMLAnchorElement, ButtonProps>(function Button(
   props: ButtonProps,
   ref
 ): JSX.Element {
   const { children, leadingIcon, trailingIcon, className, disabled, ...rest } =
     props;
-  const MotionLink: any = motion(Link);
-
+  const MotionLink = motion.create(Link);
   const whileTap = !disabled
     ? {
-        backgroundColor: "var(--btn-bg-hov)",
-        color: "var(--btn-txt-hov, var(--btn-txt))",
+        scale: 0.9,
+        backgroundColor: "var(--fm-clr)",
       }
     : {};
 
   return (
-    <MotionLink ref={ref} href={props.href} whileTap={whileTap}>
+    <MotionLink
+      ref={ref}
+      href={props.href}
+      whileTap={whileTap}
+      className={className}
+      aria-disabled={disabled}
+      {...rest}
+    >
       {leadingIcon ? <Icon label={leadingIcon} /> : null}
       {children}
       {trailingIcon ? <Icon label={trailingIcon} /> : null}

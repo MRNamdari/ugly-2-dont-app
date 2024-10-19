@@ -78,6 +78,11 @@ const config: Config = {
         lg: "3rem",
         xl: "3.5rem",
       },
+      buttonSizes: {
+        sm: { height: "2rem", fontSize: "sm", gap: ".5rem" },
+        md: { height: "2.5rem", fontSize: "base", gap: ".75rem" },
+        lg: { height: "3rem", fontSize: "lg", gap: "1rem" },
+      },
     },
   },
   plugins: [
@@ -176,6 +181,27 @@ const config: Config = {
           }),
         },
         { values: theme("fabSizes") }
+      );
+      // button sizes
+      matchComponents(
+        {
+          btn: (value) => ({
+            width: "100%",
+            height: value.height,
+            fontSize: theme("fontSize." + value.fontSize),
+            lineHeight: value.height,
+            borderRadius: parseFloat(value.height) / 2 + "rem",
+            display: "flex",
+            placeItems: "center",
+            gap: value.gap,
+            paddingInline: value.gap,
+            "& svg": {
+              width: theme("fontSize." + value.fontSize),
+              height: theme("fontSize." + value.fontSize),
+            },
+          }),
+        },
+        { values: theme("buttonSizes") }
       );
     }),
   ],

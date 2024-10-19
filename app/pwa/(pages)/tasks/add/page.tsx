@@ -1,6 +1,7 @@
 "use client";
 import Menu, { MenuItem } from "@/app/_components/menu";
 import IconButton from "@/app/_components/icon-button";
+import Button from "@/app/_components/button";
 
 export default function AddTaskPage() {
   const ops = [
@@ -27,9 +28,19 @@ export default function AddTaskPage() {
   return (
     <>
       <header className="grid grid-cols-[3rem_1fr_3rem] justify-center items-center">
-        <div></div>
-        <h1 className="text-3xl text-center">New Task</h1>
-        <div></div>
+        <div>
+          <IconButton
+            className="fab-lg tap-zinc-100 text-primary-900"
+            icon="ArrowLeft"
+          ></IconButton>
+        </div>
+        <h1 className="text-3xl text-center self-end font-medium">New Task</h1>
+        <div>
+          <IconButton
+            className="fab-lg tap-zinc-100 text-primary-900"
+            icon="ArrowRight"
+          ></IconButton>
+        </div>
       </header>
       <div></div>
     </>

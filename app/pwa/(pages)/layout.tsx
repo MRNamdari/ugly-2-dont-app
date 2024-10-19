@@ -6,7 +6,7 @@ export default function PagesLayout({
   children: React.ReactNode;
 }) {
   return (
-    <main className="h-dvh w-full grid grid-rows-[3rem_1fr] px-8 pt-8 max-w-screen-sm mx-auto">
+    <main className="h-dvh w-full grid grid-rows-[3rem_1fr] px-6 pt-6 max-w-screen-sm mx-auto">
       {children}
     </main>
   );

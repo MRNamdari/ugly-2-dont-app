@@ -8,6 +8,7 @@ export default function IconButton(props: IconButtonProps) {
   const { icon, ...rest } = props;
   const whileTap = {
     scale: 0.9,
+    backgroundColor: "var(--fm-clr,transparent)",
   };
 
   return (

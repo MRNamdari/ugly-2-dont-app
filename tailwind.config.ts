@@ -72,6 +72,12 @@ const config: Config = {
         },
         lg: { height: "3rem", radius: "1.5rem", gap: "1rem", fontSize: "lg" },
       },
+      fabSizes: {
+        sm: "2rem",
+        md: "2.5rem",
+        lg: "3rem",
+        xl: "3.5rem",
+      },
     },
   },
   plugins: [
@@ -87,7 +93,7 @@ const config: Config = {
           });
         }
       });
-
+      // overlay component
       const overlay = {
         ".overlay": {
           width: "100%",
@@ -96,9 +102,8 @@ const config: Config = {
           inset: "0",
         },
       };
-
       addComponents({ ...overlay });
-      // menu, menu-item colors
+      // menu, menu-item, tap colors
       matchComponents(
         {
           menu: (value) => ({
@@ -158,6 +163,19 @@ const config: Config = {
           },
         },
         { values: theme("menuStyles") }
+      );
+      // fab sizes
+      matchComponents(
+        {
+          fab: (value) => ({
+            width: value,
+            height: value,
+            borderRadius: "100%",
+            aspectRatio: "1/1",
+            display: "inline-block",
+          }),
+        },
+        { values: theme("fabSizes") }
       );
     }),
   ],

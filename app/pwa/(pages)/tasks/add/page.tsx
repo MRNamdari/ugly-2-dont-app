@@ -31,32 +31,7 @@ export default function AddTaskPage() {
         <h1 className="text-3xl text-center">New Task</h1>
         <div></div>
       </header>
-      <div>
-        <Menu
-          className="menu-md menu-outlined menu-primary-800 tap-primary-200 text-primary-900"
-          label="Select an Item"
-          leadingIcon="Folder"
-        >
-          <MenuItem
-            key="searchbar"
-            className=" menu-item-zinc-200 text-zinc-800"
-            searchbar
-          >
-            <input
-              type="text"
-              className="w-full text-inherit h-full outline-none"
-            />
-          </MenuItem>
-          {items}
-        </Menu>
-
-        <IconButton
-          href="./"
-          onClick={(e) => e.preventDefault()}
-          icon="Bluetooth"
-          className="icon-xl bg-primary-700 text-white"
-        ></IconButton>
-      </div>
+      <div></div>
     </>
   );
 }

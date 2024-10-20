@@ -1,8 +1,9 @@
 import Icon, { IconLable } from "./icon";
 import { motion, HTMLMotionProps } from "framer-motion";
-export interface IconButtonProps extends HTMLMotionProps<"a"> {
+
+export type IconButtonProps = HTMLMotionProps<"button"> & {
   icon: IconLable;
-}
+};
 
 export default function IconButton(props: IconButtonProps) {
   const { icon, ...rest } = props;
@@ -12,8 +13,8 @@ export default function IconButton(props: IconButtonProps) {
   };
 
   return (
-    <motion.a whileTap={whileTap} {...rest}>
+    <motion.button whileTap={whileTap} {...rest}>
       <Icon label={icon} />
-    </motion.a>
+    </motion.button>
   );
 }

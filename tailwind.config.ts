@@ -139,6 +139,10 @@ const config: Config = {
             "&[aria-expanded=true] .menu-list-wrapper": {
               marginTop: value.gap,
             },
+            "& svg": {
+              width: theme("fontSize." + value.fontSize),
+              height: theme("fontSize." + value.fontSize),
+            },
           }),
         },
         { values: theme("menuSizes") }
@@ -210,13 +214,22 @@ const config: Config = {
             fontSize: theme("fontSize." + value.fontSize),
             display: "flex",
             alignItems: "center",
-            gap: value.gap,
             height: value.height,
             borderRadius: value.radius,
             '& input[type="text"]': {
               backgroundColor: "inherit",
               outlineWidth: "0",
               width: "100%",
+              "&:first-child": {
+                marginLeft: value.gap,
+              },
+              "&:last-child": {
+                marginRight: value.gap,
+              },
+            },
+            "& svg": {
+              width: theme("fontSize." + value.fontSize),
+              height: theme("fontSize." + value.fontSize),
             },
           }),
         },

@@ -69,7 +69,7 @@ type MenuItemProps = {
   value: string;
   children: string;
   className: string;
-  onSelect: (item: MenuItemProps["value"]) => any;
+  onSelect?: (item: MenuItemProps["value"]) => any;
 };
 type MenuDisabledItemProps = {
   children: string;
@@ -78,7 +78,7 @@ type MenuDisabledItemProps = {
 type MenuSearchbarProps = {
   children: React.ReactNode;
   searchbar: true;
-  className: string;
+  className?: string;
 };
 /**
  * @returns an item to populate `Menu` component.
@@ -110,7 +110,9 @@ export function MenuItem(
         whileTap={{ backgroundColor: "var(--fm-clr,inherit)" }}
         aria-valuetext={props.children}
         aria-label={props.children}
-        onClick={() => props.onSelect(props.value)}
+        onClick={() => {
+          if (props.onSelect) props.onSelect(props.value);
+        }}
         className={"menu-item " + props.className}
       >
         {props.children}

@@ -29,7 +29,7 @@ export default function AddTaskPage() {
   ));
   return (
     <>
-      <header className="grid grid-cols-[3rem_1fr_3rem] justify-center items-center">
+      <header className="grid grid-cols-[3rem_1fr_3rem] px-4  justify-center items-center">
         <div>
           <IconButton
             className="ico-lg tap-zinc-100 text-primary-900"
@@ -44,26 +44,139 @@ export default function AddTaskPage() {
           ></IconButton>
         </div>
       </header>
-      <div>
-        <TextField
-          // error={
-          //   <p className="text-error-400 text-center font-medium">
-          //     An Error Occured
-          //   </p>
-          // }
-          className=" text-input-lg bg-primary-700 rounded-full text-white group *:transition-colors"
+      <div className="">
+        <form
+          className="flex flex-col h-full"
+          onSubmit={(e) => e.preventDefault()}
         >
-          <Icon
-            label="Search"
-            className="ico-lg group-focus-within:text-primary-200"
-          ></Icon>
-          <input
-            type="text"
-            placeholder="Something to write here"
-            className="placeholder:text-primary-200"
-          />
-          <IconButton icon="X" className="ico-lg tap-primary-600" />
-        </TextField>
+          <section className="grid grid-flow-row gap-4 px-4 h-fit pt-10">
+            <TextField className=" text-input-md text-zinc-600 bg-zinc-100 group *:transition-colors">
+              <input
+                type="text"
+                placeholder="Title*"
+                className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-zinc-400"
+              />
+            </TextField>
+            <TextField className=" text-input-md text-zinc-600 bg-zinc-100 group *:transition-colors">
+              <Icon
+                label="PlusCircle"
+                className="ico-md group-focus-within:text-zinc-400"
+              />
+              <input
+                type="text"
+                placeholder="Description"
+                className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-zinc-400"
+              />
+            </TextField>
+            <div className="grid grid-cols-2 gap-[inherit]">
+              <Button
+                leadingIcon="Calendar"
+                className="btn-md bg-zinc-100 text-zinc-600 tap-zinc-200"
+              >
+                Date*
+              </Button>
+              <Button
+                leadingIcon="Clock"
+                className="btn-md bg-zinc-100 text-zinc-600 tap-zinc-200"
+              >
+                Time*
+              </Button>
+            </div>
+            <Menu
+              leadingIcon="Crosshair"
+              label="Project"
+              className=" menu-zinc-100 menu-md menu-filled tap-zinc-200 text-zinc-600"
+            >
+              <MenuItem searchbar className="">
+                <TextField className=" text-input-md text-zinc-600 bg-zinc-100 group *:transition-colors rounded-none">
+                  <Icon label="Search" className="ico-sm" />
+                  <input
+                    type="text"
+                    placeholder="Search"
+                    className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-zinc-400"
+                  />
+                </TextField>
+              </MenuItem>
+            </Menu>
+            <Menu
+              leadingIcon="FolderPlus"
+              label="Category"
+              className=" menu-zinc-100 menu-md menu-filled tap-zinc-200 text-zinc-600"
+            >
+              <MenuItem searchbar className="">
+                <TextField className=" text-input-md text-zinc-600 bg-zinc-100 group *:transition-colors rounded-none">
+                  <Icon label="Search" className="ico-sm" />
+                  <input
+                    type="text"
+                    placeholder="Search"
+                    className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-zinc-400"
+                  />
+                </TextField>
+              </MenuItem>
+            </Menu>
+
+            <div className="grid grid-cols-2 gap-[inherit]">
+              <Button
+                leadingIcon="Bell"
+                className="btn-md bg-zinc-100 text-zinc-600 tap-zinc-200"
+              >
+                Reminder
+              </Button>
+              <Menu
+                leadingIcon="TrendingUp"
+                label="Priority"
+                className=" menu-zinc-100 menu-md menu-filled tap-zinc-200 text-zinc-600"
+              >
+                <MenuItem
+                  value="0"
+                  className="menu-item-secondary-50 tap-secondary-100"
+                >
+                  Low
+                </MenuItem>
+                <MenuItem
+                  value="0"
+                  className="menu-item-warning-50 tap-warning-100"
+                >
+                  Medium
+                </MenuItem>
+                <MenuItem
+                  value="0"
+                  className="menu-item-error-50 tap-error-100"
+                >
+                  High
+                </MenuItem>
+              </Menu>
+            </div>
+          </section>
+          <section className="place-self-end w-full h-full flex flex-col justify-end">
+            <TextField className=" text-input-sm text-white bg-primary-800 group *:transition-colors rounded-none border-b-2 border-primary-600">
+              <Icon
+                label="Hash"
+                className="ico-sm group-focus-within:text-primary-400"
+              />
+              <input
+                type="text"
+                defaultValue="First Sub-task"
+                className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-primary-400"
+              />
+              <IconButton
+                icon="X"
+                className="ico-md rounded-none tap-primary-600"
+              />
+            </TextField>
+            <TextField className=" text-input-md text-white bg-primary-800 group *:transition-colors rounded-none">
+              <input
+                type="text"
+                placeholder="Add Sub-task"
+                className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-primary-400"
+              />
+              <IconButton
+                icon="Plus"
+                className="ico-md rounded-none tap-primary-600"
+              />
+            </TextField>
+          </section>
+        </form>
       </div>
     </>
   );

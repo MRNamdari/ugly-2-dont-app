@@ -2,6 +2,8 @@
 import Menu, { MenuItem } from "@/app/_components/menu";
 import IconButton from "@/app/_components/icon-button";
 import Button from "@/app/_components/button";
+import TextField from "@/app/_components/text-input";
+import Icon from "@/app/_components/icon";
 
 export default function AddTaskPage() {
   const ops = [
@@ -30,19 +32,39 @@ export default function AddTaskPage() {
       <header className="grid grid-cols-[3rem_1fr_3rem] justify-center items-center">
         <div>
           <IconButton
-            className="fab-lg tap-zinc-100 text-primary-900"
+            className="ico-lg tap-zinc-100 text-primary-900"
             icon="ArrowLeft"
           ></IconButton>
         </div>
         <h1 className="text-3xl text-center self-end font-medium">New Task</h1>
         <div>
           <IconButton
-            className="fab-lg tap-zinc-100 text-primary-900"
+            className="ico-lg tap-zinc-100 text-primary-900"
             icon="ArrowRight"
           ></IconButton>
         </div>
       </header>
-      <div></div>
+      <div>
+        <TextField
+          // error={
+          //   <p className="text-error-400 text-center font-medium">
+          //     An Error Occured
+          //   </p>
+          // }
+          className=" text-input-lg bg-primary-700 rounded-full text-white group *:transition-colors"
+        >
+          <Icon
+            label="Search"
+            className="ico-lg group-focus-within:text-primary-200"
+          ></Icon>
+          <input
+            type="text"
+            placeholder="Something to write here"
+            className="placeholder:text-primary-200"
+          />
+          <IconButton icon="X" className="ico-lg tap-primary-600" />
+        </TextField>
+      </div>
     </>
   );
 }

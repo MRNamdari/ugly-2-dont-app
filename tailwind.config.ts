@@ -211,6 +211,7 @@ const config: Config = {
       matchComponents(
         {
           "text-input": (value) => ({
+            boxSizing: "content-box",
             fontSize: theme("fontSize." + value.fontSize),
             display: "flex",
             alignItems: "center",

@@ -72,6 +72,12 @@ export default function AddTaskPage() {
               <Button
                 leadingIcon="Calendar"
                 className="btn-md bg-zinc-100 text-zinc-600 tap-zinc-200"
+                onClick={() => {
+                  const cal = document.querySelector(
+                    "#calendar"
+                  ) as HTMLDialogElement;
+                  cal.showModal();
+                }}
               >
                 Date*
               </Button>
@@ -149,7 +155,7 @@ export default function AddTaskPage() {
             </div>
           </section>
           <section className="place-self-end w-full h-full flex flex-col justify-end">
-            <TextField className=" text-input-sm text-white bg-primary-800 group *:transition-colors rounded-none border-b-2 border-primary-600">
+            <TextField className=" text-input-sm text-white bg-primary-800 group *:transition-colors rounded-none border-b-2 px-1 border-primary-600">
               <Icon
                 label="Hash"
                 className="ico-sm group-focus-within:text-primary-400"
@@ -161,7 +167,7 @@ export default function AddTaskPage() {
               />
               <IconButton
                 icon="X"
-                className="ico-md rounded-none tap-primary-600"
+                className="ico-sm rounded-none tap-primary-600"
               />
             </TextField>
             <TextField className=" text-input-md text-white bg-primary-800 group *:transition-colors rounded-none">

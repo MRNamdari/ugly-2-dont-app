@@ -26,7 +26,7 @@ export default forwardRef<HTMLButtonElement, ButtonProps>(function Button(
     <motion.button
       ref={ref}
       whileTap={whileTap}
-      className={className}
+      className={className + " select-none"}
       aria-disabled={disabled}
       {...rest}
     >

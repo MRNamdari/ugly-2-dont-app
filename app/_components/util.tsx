@@ -1356,3 +1356,8 @@ export function isTaskId(id: any): id is TaskId {
 export function isPriority(priority: any): priority is Priority {
   return /[0-2]/.test(priority);
 }
+
+export function wildCard(n: number | string) {
+  const num = typeof n == "string" ? parseInt(n) : n;
+  return num < 10 ? "0" + num : num.toString();
+}

@@ -4,15 +4,20 @@ import { useState, MouseEvent } from "react";
 import IconButton from "./icon-button";
 import Button from "./button";
 import { wildCard } from "./util";
+import { modals } from "../_store/state";
+import { useSignalEffect } from "@preact/signals-react";
+
+const pickedDate = modals.calendar;
 
 export default function Calendar(): JSX.Element {
   // hooks
   const { due = new Date() } = { due: new Date() };
   const [date, setDate] = useState(due);
-  //   const router = useRouter();
-  const navControl = useAnimation();
   const [direction, setDirection] = useState(1);
-  //   const overlayRef = useRef(null);
+
+  //   useSignalEffect(() => {
+  //     modals.calendar.value;
+  //   });
 
   const dayNames = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"] as const;
   const monthNames = [
@@ -29,32 +34,6 @@ export default function Calendar(): JSX.Element {
     "November",
     "December",
   ] as const;
-
-  //   const { query } = router.query;
-  //   useEffect(() => {
-  //     if (!overlayRef.current) return;
-  //     overlayRef.current.pop(navObj.pop);
-  //     overlayRef.current.onClick = handleCancel;
-  //   });
-
-  //   if (query !== NavigationQuery.CALENDAR) return;
-
-  //   const navObj = decodeNavigationParams(query, router.query);
-  //   const pickedDate = new Date(navObj.params.date) || date;
-
-  //   const setPickedDate = (date: Date) => {
-  //     Object.assign(navObj, {
-  //       query: navObj.caller ? navObj.caller : navObj.query,
-  //       pop: navObj.caller ? true : false,
-  //       caller: undefined,
-  //     });
-  //     navObj.params.date = date2str(date);
-  //     router.replace(
-  //       router.basePath +
-  //         "?" +
-  //         encodeNavigationParams(navObj, router.query).toString()
-  //     );
-  //   };
 
   const [month, year] = [date.getMonth() + 1, date.getFullYear()];
   const SOMonth = startOfMonth(date);
@@ -96,60 +75,46 @@ export default function Calendar(): JSX.Element {
     },
   };
 
-  //   function handleClick(
-  //     e: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement, MouseEvent>
-  //   ) {
-  //     e.preventDefault();
-  //     const button = e.target as HTMLButtonElement;
-  //     const [year, month, day] = button
-  //       .getAttribute("data-date")
-  //       .split("-")
-  //       .map((d) => Number(d));
-  //     // setPickedDate(new Date(`${year}-${month}-${day}`));
-  //   }
+  function handleClick(y: number, m: number, d: number) {
+    return (e: MouseEvent<HTMLButtonElement>) => {
+      const date = new Date(`${y}-${m}-${d}`);
+      setDate(date);
+      pickedDate.value = date;
+    };
+  }
 
-  //   function handleCancel() {
-  //     Object.assign(navObj, {
-  //       query: navObj.caller ? navObj.caller : navObj.query,
-  //       pop: navObj.caller ? true : false,
-  //       caller: undefined,
-  //     });
-  //     router.replace(
-  //       router.basePath +
-  //         "?" +
-  //         encodeNavigationParams(navObj, router.query).toString()
-  //     );
-  //   }
+  function handleCancel(e: MouseEvent<HTMLDialogElement>) {
+    var rect = (e.target as HTMLDialogElement).getBoundingClientRect();
+    var isInDialog =
+      rect.top <= e.clientY &&
+      e.clientY <= rect.top + rect.height &&
+      rect.left <= e.clientX &&
+      e.clientX <= rect.left + rect.width;
+    if (!isInDialog) {
+      (e.target as HTMLDialogElement).close();
+    }
+  }
 
-  //   function handleNextMonthDayClick(
-  //     e: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement, MouseEvent>
-  //   ) {
-  //     e.preventDefault();
-  //     const button = e.target as HTMLButtonElement;
-  //     const [year, month, day] = button
-  //       .getAttribute("data-date")
-  //       .split("-")
-  //       .map((d) => Number(d));
-  //     const d = nextMonth(new Date(`${year}-${month}-1`));
-  //     d.setDate(day);
-  //     // setDirection(1);
-  //     setPickedDate(d);
-  //     // setDate(d);
-  //   }
+  function handleNextMonthDayClick(y: number, m: number, d: number) {
+    return (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      const date = nextMonth(new Date(`${y}-${m}-1`));
+      date.setDate(d);
+      setDate(date);
+      setDirection(1);
+      pickedDate.value = date;
+    };
+  }
 
-  //   function handlePreviousMonthDayClick(
-  //     e: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement, MouseEvent>
-  //   ) {
-  //     e.preventDefault();
-  //     const button = e.target as HTMLButtonElement;
-  //     const [year, month, day] = button
-  //       .getAttribute("data-date")
-  //       .split("-")
-  //       .map((d) => Number(d));
-  //     const d = previousMonth(new Date(`${year}-${month}-1`));
-  //     d.setDate(day);
-  //     setPickedDate(d);
-  //   }
+  function handlePreviousMonthDayClick(y: number, m: number, d: number) {
+    return (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      const date = previousMonth(new Date(`${year}-${month}-1`));
+      date.setDate(d);
+      setDate(date);
+      pickedDate.value = date;
+    };
+  }
 
   function handleGoToPrevMonth(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
@@ -164,48 +129,42 @@ export default function Calendar(): JSX.Element {
   }
 
   function GoToDay(_date: Date) {
+    setDate(_date);
     if (_date.getMonth() !== date.getMonth()) {
       setDirection(_date > date ? 1 : -1);
-      setDate(_date);
     }
-    // setPickedDate(_date);
-    navControl.start("exit");
+    pickedDate.value = _date;
   }
 
   function handleToToday(e: MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
     const d = new Date();
-    d.setHours(0, 0, 0, 0);
+    d.setHours(0, 0, 0, 1);
     GoToDay(d);
   }
 
   function handleToTomorrow(e: MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
     const d = new Date();
-    d.setHours(24, 0, 0, 0);
+    d.setHours(24, 0, 0, 1);
     GoToDay(d);
   }
 
   function handleToNextWeek(e: MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
     const d = new Date();
-    d.setHours(24 * 7, 0, 0, 0);
+    d.setHours(24 * 7, 0, 0, 1);
     GoToDay(d);
   }
 
   function handleToNextMonth(e: MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
     const d = new Date();
     d.setMonth(d.getMonth() + 1);
-    d.setHours(0, 0, 0, 0);
+    d.setHours(0, 0, 0, 1);
     GoToDay(d);
   }
 
   function handleToNextYear(e: MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
     const d = new Date();
     d.setFullYear(d.getFullYear() + 1);
-    d.setHours(0, 0, 0, 0);
+    d.setHours(0, 0, 0, 1);
     GoToDay(d);
   }
 
@@ -213,7 +172,8 @@ export default function Calendar(): JSX.Element {
     <>
       <dialog
         id="calendar"
-        className="min-w-0 w-full max-w-screen-sm bg-primary-700 pb-4 mt-0 rounded-3xl rounded-t-none"
+        onClick={handleCancel}
+        className="min-w-0 w-full max-w-screen-sm bg-primary-700 pb-8 mt-0 rounded-3xl rounded-t-none relative after:block after:absolute after:w-1/4 after:h-1 after:bg-primary-800 after:rounded-sm after:left-1/2 after:-translate-x-1/2 after:bottom-4"
       >
         <div className="flex items-center w-full justify-between px-4 py-6 text-white">
           <IconButton
@@ -239,125 +199,121 @@ export default function Calendar(): JSX.Element {
             </span>
           ))}
         </div>
-        <AnimatePresence initial={false} custom={direction} mode="popLayout">
-          <motion.div
-            key={date.toDateString()}
-            className="grid grid-cols-7 justify-items-center px-2"
-            custom={direction}
-            variants={variants}
-            initial="exit"
-            animate="center"
-            exit="exit"
-            transition={{
-              y: { type: "spring", damping: 10 },
-              opacity: { ease: "anticipate", duration: 0.1 },
-            }}
-          >
-            {previousDayNumbers.map((n, i) => (
-              <Button
-                key={-i}
-                className="btn-sm text-primary-900 tap-primary-800 w-fit"
-                data-date={[year, month, n].join("-")}
-                // onClick={handlePreviousMonthDayClick}
-              >
-                {n}
-              </Button>
-            ))}
-            {dayNumbers.map((n, i) => {
-              const d = new Date();
-              //   if (
-              //     year === pickedDate.getFullYear() &&
-              //     month === pickedDate.getMonth() + 1 &&
-              //     n == pickedDate.getDate()
-              //   ) {
-              //     return (
-              //       <button
-              //         key={i}
-              //         className="btn solid sm primary"
-              //         onClick={(e) => e.preventDefault()}
-              //       >
-              //         {n}
-              //       </button>
-              //     );
-              //   }
-              if (
-                d.getDate() === n &&
-                d.getMonth() + 1 === month &&
-                d.getFullYear() === year
-              ) {
+        <form method="dialog">
+          <AnimatePresence initial={false} custom={direction} mode="popLayout">
+            <motion.div
+              key={date.toDateString()}
+              className="grid grid-cols-7 justify-items-center px-2"
+              custom={direction}
+              variants={variants}
+              initial="exit"
+              animate="center"
+              exit="exit"
+              transition={{
+                y: { type: "spring", damping: 10 },
+                opacity: { ease: "anticipate", duration: 0.1 },
+              }}
+            >
+              {previousDayNumbers.map((n, i) => (
+                <Button
+                  key={-i}
+                  className="btn-sm text-primary-900 tap-primary-800 w-8 justify-center"
+                  value={[year, month, n].join("-")}
+                  onClick={handlePreviousMonthDayClick(year, month, n)}
+                >
+                  {n}
+                </Button>
+              ))}
+              {dayNumbers.map((n, i) => {
+                if (isPickedDate(year, month, n)) {
+                  return (
+                    <Button
+                      key={i}
+                      value={[year, month, n].join("-")}
+                      className={
+                        "btn-sm text-white justify-center w-8 bg-primary-900 tap-primary-900 " +
+                        (isToday(year, month, n) ? "border-2 border-white" : "")
+                      }
+                    >
+                      {n}
+                    </Button>
+                  );
+                }
+
+                if (isToday(year, month, n)) {
+                  return (
+                    <Button
+                      key={i}
+                      value={[year, month, n].join("-")}
+                      onClick={handleClick(year, month, n)}
+                      className="btn-sm text-white border-2 border-white w-8 justify-center tap-primary-800"
+                    >
+                      {wildCard(n)}
+                    </Button>
+                  );
+                }
+
                 return (
                   <Button
                     key={i}
-                    className="btn-sm text-white border-2 border-white w-fit"
-                    data-date={[year, month, n].join("-")}
-                    // onClick={handleClick}
+                    value={[year, month, n].join("-")}
+                    onClick={handleClick(year, month, n)}
+                    className="btn-sm text-white tap-primary-800 w-8 justify-center"
                   >
                     {wildCard(n)}
                   </Button>
                 );
-              }
-
-              return (
+              })}
+              {nextDayNumbers.map((n, i) => (
                 <Button
-                  key={i}
-                  className="btn-sm text-white tap-primary-800 w-fit"
-                  data-date={[year, month, n].join("-")}
-                  //   onClick={handleClick}
+                  key={-i}
+                  value={[year, month, n].join("-")}
+                  onClick={handleNextMonthDayClick(year, month, n)}
+                  className="btn-sm text-primary-900 tap-primary-800 w-8 justify-center"
                 >
                   {wildCard(n)}
                 </Button>
-              );
-            })}
-            {nextDayNumbers.map((n, i) => (
-              <Button
-                key={-i}
-                className="btn-sm text-primary-900 tap-primary-800 w-fit"
-                data-date={[year, month, n].join("-")}
-                // onClick={handleNextMonthDayClick}
-              >
-                {wildCard(n)}
-              </Button>
-            ))}
-          </motion.div>
-        </AnimatePresence>
-        <div className="flex text-nowrap overflow-x-auto gap-2 px-4 pt-4 pb-2">
-          <Button
-            className="btn-sm bg-secondary-200 text-primary-800 w-fit tap-secondary-100"
-            onClick={handleToToday}
-            aria-label="Go to today"
-          >
-            Today
-          </Button>
-          <Button
-            className="btn-sm bg-secondary-200 text-primary-800 w-fit tap-secondary-100"
-            onClick={handleToTomorrow}
-            aria-label="Go to tomorrow"
-          >
-            Tomorrow
-          </Button>
-          <Button
-            className="btn-sm bg-secondary-200 text-primary-800 w-fit tap-secondary-100"
-            onClick={handleToNextWeek}
-            aria-label="Go to next week"
-          >
-            Next Week
-          </Button>
-          <Button
-            className="btn-sm bg-secondary-200 text-primary-800 w-fit tap-secondary-100"
-            onClick={handleToNextMonth}
-            aria-label="Go to next month"
-          >
-            Next Month
-          </Button>
-          <Button
-            className="btn-sm bg-secondary-200 text-primary-800 w-fit tap-secondary-100"
-            onClick={handleToNextYear}
-            aria-label="Go to next year"
-          >
-            Next Year
-          </Button>
-        </div>
-        <hr className="h-1 border-none w-1/4 mx-auto bg-primary-800 rounded-md mt-4" />
+              ))}
+            </motion.div>
+          </AnimatePresence>
+          <div className="flex text-nowrap overflow-x-auto gap-2 px-4 pt-4 pb-2">
+            <Button
+              className="btn-sm bg-secondary-200 text-primary-800 w-fit tap-secondary-100"
+              onClick={handleToToday}
+              aria-label="Go to today"
+            >
+              Today
+            </Button>
+            <Button
+              className="btn-sm bg-secondary-200 text-primary-800 w-fit tap-secondary-100"
+              onClick={handleToTomorrow}
+              aria-label="Go to tomorrow"
+            >
+              Tomorrow
+            </Button>
+            <Button
+              className="btn-sm bg-secondary-200 text-primary-800 w-fit tap-secondary-100"
+              onClick={handleToNextWeek}
+              aria-label="Go to next week"
+            >
+              Next Week
+            </Button>
+            <Button
+              className="btn-sm bg-secondary-200 text-primary-800 w-fit tap-secondary-100"
+              onClick={handleToNextMonth}
+              aria-label="Go to next month"
+            >
+              Next Month
+            </Button>
+            <Button
+              className="btn-sm bg-secondary-200 text-primary-800 w-fit tap-secondary-100"
+              onClick={handleToNextYear}
+              aria-label="Go to next year"
+            >
+              Next Year
+            </Button>
+          </div>
+        </form>
       </dialog>
     </>
   );
@@ -386,4 +342,21 @@ function endOfMonth(date: Date) {
   const d = new Date();
   d.setTime(nextMonth(date).getTime() - 1);
   return d;
+}
+
+function isPickedDate(y: number, m: number, d: number) {
+  const date = pickedDate.value;
+  if (!date) return false;
+  if (date.getFullYear() !== y) return false;
+  if (date.getMonth() + 1 !== m) return false;
+  if (date.getDate() !== d) return false;
+  return true;
+}
+
+function isToday(y: number, m: number, d: number) {
+  const date = new Date();
+  if (date.getFullYear() !== y) return false;
+  if (date.getMonth() + 1 !== m) return false;
+  if (date.getDate() !== d) return false;
+  return true;
 }

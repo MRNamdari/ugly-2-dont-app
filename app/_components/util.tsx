@@ -1199,15 +1199,19 @@ export function date2str(date: Date | string): CalendarDate {
 export function date2display(date: Date | string): string {
   if (typeof date === "string") date = new Date(date);
   const d = new Date();
-  const db = new Date(); // day before
-  db.setHours(-24, 0, 0, 0);
   d.setHours(0, 0, 0, 0);
+  const db = new Date(); // day before `d`
+  db.setHours(-24, 0, 0, 0);
+
+  const jumpADay = () => {
+    d.setHours(24, 0, 0, 0);
+    db.setHours(24, 0, 0, 0);
+  };
+
   if (date < d && date > db) return "yesterday";
-  d.setHours(24);
-  db.setHours(24);
+  jumpADay();
   if (date < d && date > db) return "today";
-  d.setHours(24);
-  db.setHours(24);
+  jumpADay();
   if (date < d && date > db) return "tomorrow";
 
   const month = [

@@ -4,6 +4,13 @@ import IconButton from "@/app/_components/icon-button";
 import Button from "@/app/_components/button";
 import TextField from "@/app/_components/text-input";
 import Icon from "@/app/_components/icon";
+import { modals } from "@/app/_store/state";
+import { computed } from "@preact/signals-react";
+import { date2display } from "@/app/_components/util";
+
+const date = computed(() =>
+  modals.calendar.value ? date2display(modals.calendar.value) : "Date*"
+);
 
 export default function AddTaskPage() {
   const ops = [
@@ -27,6 +34,8 @@ export default function AddTaskPage() {
       {f.name}
     </MenuItem>
   ));
+  // const [date, setDate] = useState<string | undefined>();
+
   return (
     <>
       <header className="grid grid-cols-[3rem_1fr_3rem] px-4  justify-center items-center">
@@ -79,7 +88,7 @@ export default function AddTaskPage() {
                   cal.showModal();
                 }}
               >
-                Date*
+                {date}
               </Button>
               <Button
                 leadingIcon="Clock"

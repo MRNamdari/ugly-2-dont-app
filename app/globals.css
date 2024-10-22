@@ -48,3 +48,46 @@ body {
     }
   }
 }
+
+dialog[open] {
+  transform: translateY(0);
+}
+
+dialog {
+  /* Final state of the exit animation */
+  transform: translateY(-100%);
+  transition:
+    transform 300ms,
+    overlay 300ms allow-discrete,
+    display 300ms allow-discrete;
+  @apply ease-in-out;
+}
+
+@starting-style {
+  dialog[open] {
+    transform: translateY(-100%);
+  }
+}
+
+/* Transition for the popover's backdrop */
+
+dialog::backdrop {
+  background-color: rgb(0 0 0 / 0%);
+  transition:
+    display 0.7s allow-discrete,
+    overlay 0.7s allow-discrete,
+    background-color 0.7s;
+}
+
+dialog[open]::backdrop {
+  background-color: rgb(0 0 0 / 25%);
+}
+
+/* Nesting selectors (&) cannot represent pseudo-elements, so this 
+   starting-style rule cannot be nested. */
+
+@starting-style {
+  dialog[open]::backdrop {
+    background-color: rgb(0 0 0 / 0%);
+  }
+}

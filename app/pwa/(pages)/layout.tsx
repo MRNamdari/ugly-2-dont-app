@@ -1,6 +1,7 @@
+"use client";
 import Calendar from "@/app/_components/calendar.modal";
 import React from "react";
-
+import { modals } from "@/app/_store/state";
 export default function PagesLayout({
   children,
 }: {

@@ -196,7 +196,7 @@ const config: Config = {
             lineHeight: value.height,
             borderRadius: parseFloat(value.height) / 2 + "rem",
             display: "flex",
-            placeItems: "center",
+            alignItems: "center",
             gap: value.gap,
             paddingInline: value.gap,
             "& svg": {

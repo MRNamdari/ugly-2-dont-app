@@ -6,10 +6,14 @@ import TextField from "@/app/_components/text-input";
 import Icon from "@/app/_components/icon";
 import { modals } from "@/app/_store/state";
 import { computed } from "@preact/signals-react";
-import { date2display } from "@/app/_components/util";
+import { date2display, timeToLocalTime } from "@/app/_components/util";
 
 const date = computed(() =>
   modals.calendar.value ? date2display(modals.calendar.value) : "Date*"
+);
+
+const time = computed(() =>
+  modals.clock.value ? timeToLocalTime(modals.clock.value) : "Time*"
 );
 
 export default function AddTaskPage() {
@@ -93,8 +97,14 @@ export default function AddTaskPage() {
               <Button
                 leadingIcon="Clock"
                 className="btn-md bg-zinc-100 text-zinc-600 tap-zinc-200"
+                onClick={() => {
+                  const clk = document.querySelector(
+                    "#clock"
+                  ) as HTMLDialogElement;
+                  clk.showModal();
+                }}
               >
-                Time*
+                {time}
               </Button>
             </div>
             <Menu

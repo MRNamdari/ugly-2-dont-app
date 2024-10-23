@@ -128,8 +128,13 @@ const config: Config = {
         {
           menu: (value) => ({
             fontSize: theme("fontSize." + value.fontSize),
-            "& .menu-button,& .menu-item": {
+            "& .menu-button": {
               height: value.height,
+              paddingInline: value.gap,
+              gap: value.gap,
+            },
+            "& .menu-item": {
+              minHeight: value.height,
               paddingInline: value.gap,
               gap: value.gap,
             },
@@ -191,6 +196,7 @@ const config: Config = {
         {
           btn: (value) => ({
             width: "100%",
+            minWidth: "0",
             height: value.height,
             fontSize: theme("fontSize." + value.fontSize),
             lineHeight: value.height,

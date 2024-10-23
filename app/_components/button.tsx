@@ -31,7 +31,9 @@ export default forwardRef<HTMLButtonElement, ButtonProps>(function Button(
       {...rest}
     >
       {leadingIcon ? <Icon label={leadingIcon} /> : null}
-      {children}
+      <p className="text-ellipsis overflow-hidden whitespace-nowrap">
+        {children}
+      </p>
       {trailingIcon ? <Icon label={trailingIcon} /> : null}
     </motion.button>
   );

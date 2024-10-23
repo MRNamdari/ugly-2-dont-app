@@ -217,7 +217,7 @@ export default function Calendar(): JSX.Element {
               {previousDayNumbers.map((n, i) => (
                 <Button
                   key={-i}
-                  className="btn-sm text-primary-900 tap-primary-800 w-8 justify-center"
+                  className="btn-sm text-primary-900 tap-primary-800 justify-center"
                   value={[year, month, n].join("-")}
                   onClick={handlePreviousMonthDayClick(year, month, n)}
                 >
@@ -231,7 +231,7 @@ export default function Calendar(): JSX.Element {
                       key={i}
                       value={[year, month, n].join("-")}
                       className={
-                        "btn-sm text-white justify-center w-8 bg-primary-900 tap-primary-900 " +
+                        "btn-sm text-white justify-center bg-primary-900 tap-primary-900 " +
                         (isToday(year, month, n) ? "border-2 border-white" : "")
                       }
                     >
@@ -246,7 +246,7 @@ export default function Calendar(): JSX.Element {
                       key={i}
                       value={[year, month, n].join("-")}
                       onClick={handleClick(year, month, n)}
-                      className="btn-sm text-white border-2 border-white w-8 justify-center tap-primary-800"
+                      className="btn-sm text-white border-2 border-white justify-center tap-primary-800"
                     >
                       {wildCard(n)}
                     </Button>
@@ -258,7 +258,7 @@ export default function Calendar(): JSX.Element {
                     key={i}
                     value={[year, month, n].join("-")}
                     onClick={handleClick(year, month, n)}
-                    className="btn-sm text-white tap-primary-800 w-8 justify-center"
+                    className="btn-sm text-white tap-primary-800 justify-center"
                   >
                     {wildCard(n)}
                   </Button>
@@ -269,7 +269,7 @@ export default function Calendar(): JSX.Element {
                   key={-i}
                   value={[year, month, n].join("-")}
                   onClick={handleNextMonthDayClick(year, month, n)}
-                  className="btn-sm text-primary-900 tap-primary-800 w-8 justify-center"
+                  className="btn-sm text-primary-900 tap-primary-800 justify-center"
                 >
                   {wildCard(n)}
                 </Button>
@@ -278,35 +278,35 @@ export default function Calendar(): JSX.Element {
           </AnimatePresence>
           <div className="flex text-nowrap overflow-x-auto gap-2 px-4 pt-4 pb-2">
             <Button
-              className="btn-sm bg-secondary-200 text-primary-800 w-fit tap-secondary-100"
+              className="btn-sm bg-secondary-200 text-primary-800 min-w-fit tap-secondary-100"
               onClick={handleToToday}
               aria-label="Go to today"
             >
               Today
             </Button>
             <Button
-              className="btn-sm bg-secondary-200 text-primary-800 w-fit tap-secondary-100"
+              className="btn-sm bg-secondary-200 text-primary-800 min-w-fit tap-secondary-100"
               onClick={handleToTomorrow}
               aria-label="Go to tomorrow"
             >
               Tomorrow
             </Button>
             <Button
-              className="btn-sm bg-secondary-200 text-primary-800 w-fit tap-secondary-100"
+              className="btn-sm bg-secondary-200 text-primary-800 min-w-fit tap-secondary-100"
               onClick={handleToNextWeek}
               aria-label="Go to next week"
             >
               Next Week
             </Button>
             <Button
-              className="btn-sm bg-secondary-200 text-primary-800 w-fit tap-secondary-100"
+              className="btn-sm bg-secondary-200 text-primary-800 min-w-fit tap-secondary-100"
               onClick={handleToNextMonth}
               aria-label="Go to next month"
             >
               Next Month
             </Button>
             <Button
-              className="btn-sm bg-secondary-200 text-primary-800 w-fit tap-secondary-100"
+              className="btn-sm bg-secondary-200 text-primary-800 min-w-fit tap-secondary-100"
               onClick={handleToNextYear}
               aria-label="Go to next year"
             >

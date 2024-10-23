@@ -1,13 +1,15 @@
 import Icon, { IconLable } from "./icon";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { motion } from "framer-motion";
 
 export type MenuOption = { name: string; value: any };
 
-export type MenuProps = {
+export type MenuProps<T extends { name: string; value: string }> = {
   className?: string;
   label?: string;
   leadingIcon?: IconLable;
+  name?: string;
+  defaultValue?: T;
   children?: React.ReactNode;
 };
 /**
@@ -17,9 +19,15 @@ export type MenuProps = {
           leadingIcon="Folder"
         ></Menu>
  */
-export default function Menu(props: MenuProps) {
+export default function Menu<T extends { name: string; value: string }>(
+  props: MenuProps<T>
+) {
   const [expanded, setExpansion] = useState<boolean>(false); // is closed
-  const [value, setValue] = useState<string | null>(null);
+  const [label, setLabel] = useState<string | null>(
+    props.defaultValue?.name ?? null
+  );
+  const [value, setValue] = useState<string>(props.defaultValue?.value ?? "");
+
   function ExpansionHandler(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
     // Checking if input[type=text] is clicked to dismiss the event
     if (!(e.target instanceof HTMLInputElement)) {
@@ -29,7 +37,11 @@ export default function Menu(props: MenuProps) {
         !e.target.ariaInvalid &&
         !e.target.ariaDisabled
       )
-        setValue((e.target as HTMLElement).ariaValueText);
+        setLabel((e.target as HTMLElement).ariaLabel);
+      if (expanded) {
+        const newvalue = (e.target as HTMLElement).ariaValueText ?? value;
+        setValue(newvalue);
+      }
       setExpansion(!expanded);
     }
   }
@@ -42,14 +54,17 @@ export default function Menu(props: MenuProps) {
       aria-expanded={expanded}
       onClick={ExpansionHandler}
     >
+      <input type="hidden" name={props.name} defaultValue={value} />
       <motion.button
         whileTap={{ backgroundColor: "var(--fm-clr,inherit)" }}
         className="menu-button"
         aria-invalid
         onClick={ClickHandler}
       >
-        {props.leadingIcon && <Icon label={props.leadingIcon}></Icon>}
-        <p className="w-full text-left">{value ?? props.label}</p>
+        {props.leadingIcon && <Icon label={props.leadingIcon} />}
+        <p className="w-full text-left text-ellipsis overflow-hidden whitespace-nowrap">
+          {label ?? props.label}
+        </p>
         <motion.span
           animate={expanded ? "open" : "closed"}
           variants={{ open: { rotate: 180 }, closed: { rotate: 0 } }}
@@ -108,7 +123,7 @@ export function MenuItem(
     return (
       <motion.li
         whileTap={{ backgroundColor: "var(--fm-clr,inherit)" }}
-        aria-valuetext={props.children}
+        aria-valuetext={props.value}
         aria-label={props.children}
         onClick={() => {
           if (props.onSelect) props.onSelect(props.value);

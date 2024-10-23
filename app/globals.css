@@ -29,7 +29,7 @@ body {
 
 @layer components {
   .menu {
-    @apply w-full;
+    @apply w-full min-w-0;
     & .menu-button {
       @apply flex justify-center items-center w-full text-left;
     }

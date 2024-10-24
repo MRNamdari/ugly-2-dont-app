@@ -9,7 +9,7 @@ export default function PagesLayout({
   children: React.ReactNode;
 }) {
   return (
-    <main className="h-dvh grid grid-rows-[3rem_1fr] pt-4 max-w-screen-sm mx-auto">
+    <main className="h-dvh grid grid-rows-[5rem_1fr] max-w-screen-sm mx-auto">
       <Calendar />
       <Clock />
       {children}

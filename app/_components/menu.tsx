@@ -1,5 +1,5 @@
 import Icon, { IconLable } from "./icon";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, MouseEvent } from "react";
 import { motion } from "framer-motion";
 
 export type MenuOption = { name: string; value: any };
@@ -28,7 +28,7 @@ export default function Menu<T extends { name: string; value: string }>(
   );
   const [value, setValue] = useState<string>(props.defaultValue?.value ?? "");
 
-  function ExpansionHandler(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+  function ExpansionHandler(e: MouseEvent<HTMLDivElement>) {
     // Checking if input[type=text] is clicked to dismiss the event
     if (!(e.target instanceof HTMLInputElement)) {
       // Checking if an `li` in `ol` is clicked
@@ -45,7 +45,8 @@ export default function Menu<T extends { name: string; value: string }>(
       setExpansion(!expanded);
     }
   }
-  function ClickHandler() {
+  function ClickHandler(e: MouseEvent<HTMLButtonElement>) {
+    e.preventDefault();
     setExpansion(!expanded);
   }
   return (

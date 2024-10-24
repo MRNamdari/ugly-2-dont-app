@@ -4,7 +4,7 @@ import Icon from "./icon";
 import IconButton from "./icon-button";
 import { num2str } from "./util";
 
-const pickedTime = modals.clock;
+const pickedTime = modals.clock.signal;
 
 export default function Clock() {
   // hooks

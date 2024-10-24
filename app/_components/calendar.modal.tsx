@@ -1,13 +1,12 @@
 "use client";
-import { AnimatePresence, motion, useAnimation } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useState, MouseEvent } from "react";
 import IconButton from "./icon-button";
 import Button from "./button";
 import { wildCard } from "./util";
 import { modals } from "../_store/state";
-import { useSignalEffect } from "@preact/signals-react";
 
-const pickedDate = modals.calendar;
+const pickedDate = modals.calendar.signal;
 
 export default function Calendar(): JSX.Element {
   // hooks

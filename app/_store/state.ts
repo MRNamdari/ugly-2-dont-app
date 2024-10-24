@@ -40,4 +40,8 @@ export const modals = (function modal() {
   };
 })();
 
-export const store = signal({ tasks, projects, categories });
+export const store = {
+  tasks: signal(tasks),
+  projects: signal(projects),
+  categories: signal(categories),
+};

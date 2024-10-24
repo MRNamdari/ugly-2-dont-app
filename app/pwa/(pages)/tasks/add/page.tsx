@@ -2,7 +2,7 @@
 import Menu, { MenuItem } from "@/app/_components/menu";
 import IconButton from "@/app/_components/icon-button";
 import Button from "@/app/_components/button";
-import TextField from "@/app/_components/text-input";
+import TextInput from "@/app/_components/text-input";
 import Icon from "@/app/_components/icon";
 import { modals, store } from "@/app/_store/state";
 import { computed } from "@preact/signals-react";
@@ -12,7 +12,7 @@ import { IProject, ISubTask, ICategory } from "@/app/_store/data";
 import { useRouter } from "next/navigation";
 import { useSignalEffect } from "@preact/signals-react/runtime";
 
-const cats = computed(() => store.value.categories);
+const cats = computed(() => store.categories.value);
 const fuseCats = new Fuse(cats.value, { keys: ["title"] });
 function mapCats<T extends { item: ICategory }>({ item }: T) {
   return (
@@ -26,7 +26,7 @@ function mapCats<T extends { item: ICategory }>({ item }: T) {
   );
 }
 
-const prjs = computed(() => store.value.projects);
+const prjs = computed(() => store.projects.value);
 const fusePrjs = new Fuse(prjs.value, { keys: ["title", "description"] });
 function mapPrjs<T extends { item: IProject }>({ item }: T) {
   return (
@@ -114,7 +114,7 @@ export default function AddTaskPage() {
       >
         <section className="grid grid-flow-row gap-4 px-4 h-fit pt-10">
           {/* Title */}
-          <TextField
+          <TextInput
             className={
               (err.title
                 ? "text-error-600 bg-error-50"
@@ -139,9 +139,9 @@ export default function AddTaskPage() {
               placeholder="Title*"
               className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-zinc-400 peer"
             />
-          </TextField>
+          </TextInput>
           {/* Description */}
-          <TextField className=" text-input-md text-zinc-600 bg-zinc-100 group *:transition-colors">
+          <TextInput className=" text-input-md text-zinc-600 bg-zinc-100 group *:transition-colors">
             <Icon
               label="PlusCircle"
               className="ico-md group-focus-within:text-zinc-400"
@@ -152,7 +152,7 @@ export default function AddTaskPage() {
               placeholder="Description"
               className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-zinc-400"
             />
-          </TextField>
+          </TextInput>
           {/* Date & Time */}
           <div className="grid grid-cols-2 gap-[inherit]">
             <span>
@@ -244,7 +244,7 @@ export default function AddTaskPage() {
             className=" menu-zinc-100 menu-md menu-filled tap-zinc-200 text-zinc-600"
           >
             <MenuItem searchbar className="">
-              <TextField className=" text-input-md text-zinc-600 bg-zinc-100 group *:transition-colors rounded-none">
+              <TextInput className=" text-input-md text-zinc-600 bg-zinc-100 group *:transition-colors rounded-none">
                 <Icon label="Search" className="ico-sm" />
                 <input
                   type="text"
@@ -256,7 +256,7 @@ export default function AddTaskPage() {
                     else setPrjSearch("");
                   }}
                 />
-              </TextField>
+              </TextInput>
             </MenuItem>
             {prjSearch.length
               ? fusePrjs.search(prjSearch).map(mapPrjs)
@@ -270,7 +270,7 @@ export default function AddTaskPage() {
             className=" menu-zinc-100 menu-md menu-filled tap-zinc-200 text-zinc-600"
           >
             <MenuItem searchbar className="">
-              <TextField className=" text-input-md text-zinc-600 bg-zinc-100 group *:transition-colors rounded-none">
+              <TextInput className=" text-input-md text-zinc-600 bg-zinc-100 group *:transition-colors rounded-none">
                 <Icon label="Search" className="ico-sm" />
                 <input
                   type="text"
@@ -282,7 +282,7 @@ export default function AddTaskPage() {
                     else setCatSearch("");
                   }}
                 />
-              </TextField>
+              </TextInput>
             </MenuItem>
             {catSearch.length
               ? fuseCats.search(catSearch).map(mapCats)
@@ -322,7 +322,7 @@ export default function AddTaskPage() {
         </section>
         <section className="place-self-end w-full h-full flex flex-col justify-end">
           {subtasks.map((st) => (
-            <TextField
+            <TextInput
               key={st.id}
               className=" text-input-sm text-white bg-primary-800 group *:transition-colors rounded-none border-b-2 px-1 border-primary-600"
             >
@@ -358,10 +358,10 @@ export default function AddTaskPage() {
                   setSubTasks(subtasks.filter((v) => v.id !== st.id));
                 }}
               />
-            </TextField>
+            </TextInput>
           ))}
 
-          <TextField className=" text-input-md text-white bg-primary-800 group *:transition-colors rounded-none">
+          <TextInput className=" text-input-md text-white bg-primary-800 group *:transition-colors rounded-none">
             <input
               ref={subtaskInput}
               type="text"
@@ -387,7 +387,7 @@ export default function AddTaskPage() {
                 }
               }}
             />
-          </TextField>
+          </TextInput>
         </section>
       </form>
     </>

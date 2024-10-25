@@ -7,12 +7,14 @@ import TextInput from "@/app/_components/text-input";
 import Icon from "@/app/_components/icon";
 import Button from "@/app/_components/button";
 import { Priority } from "@/app/_store/data";
+import { useRouter } from "next/navigation";
 
 export default function VerifyTaskPage({
   searchParams,
 }: {
   searchParams: Record<string, string>;
 }) {
+  const router = useRouter();
   const project = useComputed(() =>
     store.projects.value.find((p) => p.id == searchParams.project)
   );
@@ -27,7 +29,7 @@ export default function VerifyTaskPage({
             className="ico-lg tap-zinc-100 text-primary-900"
             icon="ArrowLeft"
             onClick={() => {
-              // router.back();
+              router.back();
             }}
           ></IconButton>
         </div>
@@ -63,14 +65,21 @@ export default function VerifyTaskPage({
           {Object.entries(searchParams)
             .filter(([key, value]) => /st[0-9]+/.test(key))
             .map(([key, value]) => (
-              <span className="group">
+              <span key={key} className="group">
                 <TextInput
                   key={key}
                   className=" text-input-md text-zinc-600 bg-secondary-50 group *:transition-colors border-transparent border-2 border-b-2 border-b-secondary-100 group-last:border-b-transparent"
                 >
                   <Icon label="Hash" className="ico-md text-secondary-600" />
                   <p className="w-full">{value}</p>
-                  <Icon label="Circle" className="ico-md text-secondary-600" />
+                  <Icon
+                    label={
+                      searchParams[key.replace("t", "s")] === "0"
+                        ? "Circle"
+                        : "CheckCircle"
+                    }
+                    className="ico-md text-secondary-600"
+                  />
                 </TextInput>
               </span>
             ))}
@@ -100,7 +109,7 @@ export default function VerifyTaskPage({
             leadingIcon="TrendingUp"
             className="btn-md bg-zinc-100 text-zinc-600 tap-zinc-200"
           >
-            {Priority[parseInt(searchParams.priority)]}
+            {Priority[searchParams.priority]}
           </Button>
         </div>
       </div>

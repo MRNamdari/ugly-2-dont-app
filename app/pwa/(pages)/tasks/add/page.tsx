@@ -1,44 +1,27 @@
 "use client";
+// Types and Constants
+import type { IProject, ISubTask, ICategory } from "@/app/_store/data";
+import { Priority } from "@/app/_store/data";
+// Signals
+import { useSignalEffect } from "@preact/signals-react/runtime";
+import { computed } from "@preact/signals-react";
+import { encodeURL, modals, store } from "@/app/_store/state";
+// Hooks
+import Fuse from "fuse.js";
+import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
+// Components
 import Menu, { MenuItem } from "@/app/_components/menu";
 import IconButton from "@/app/_components/icon-button";
 import Button from "@/app/_components/button";
 import TextInput from "@/app/_components/text-input";
 import Icon from "@/app/_components/icon";
-import { modals, store } from "@/app/_store/state";
-import { computed } from "@preact/signals-react";
-import Fuse from "fuse.js";
-import { useRef, useState } from "react";
-import { IProject, ISubTask, ICategory } from "@/app/_store/data";
-import { useRouter } from "next/navigation";
-import { useSignalEffect } from "@preact/signals-react/runtime";
 
 const cats = computed(() => store.categories.value);
 const fuseCats = new Fuse(cats.value, { keys: ["title"] });
-function mapCats<T extends { item: ICategory }>({ item }: T) {
-  return (
-    <MenuItem
-      key={item.id}
-      value={item.id}
-      className="menu-item-zinc-100 hover:menu-item-zinc-200 active:menu-item-zinc-300 tap-zinc-300"
-    >
-      {item.title}
-    </MenuItem>
-  );
-}
 
 const prjs = computed(() => store.projects.value);
 const fusePrjs = new Fuse(prjs.value, { keys: ["title", "description"] });
-function mapPrjs<T extends { item: IProject }>({ item }: T) {
-  return (
-    <MenuItem
-      key={item.id}
-      value={item.id}
-      className="menu-item-zinc-100 hover:menu-item-zinc-200 active:menu-item-zinc-300 tap-zinc-300"
-    >
-      {item.title}
-    </MenuItem>
-  );
-}
 
 type init = {
   title?: string;
@@ -49,15 +32,27 @@ type init = {
   category?: string;
   reminder?: string;
   priority?: string;
-} & { [key in `st${string}`]?: string };
+} & { [key in `st${string}` | `ss${string}`]?: string };
 
-export default function AddTaskPage() {
+export default function AddTaskPage({
+  searchParams: state,
+}: {
+  searchParams: init;
+}) {
   const router = useRouter();
   const form = useRef<HTMLFormElement>(null);
   const subtaskInput = useRef<HTMLInputElement>(null);
+  const subtasks: ISubTask[] = Object.keys(state)
+    .filter((k) => /^st[0-9]+$/.test(k))
+    .map((k) => {
+      const id = k.slice(2);
+      const title = state[`st${id}` as const]!;
+      const status = state[`ss${id}` as const];
+      return { title, status: status == "0" ? false : true, id };
+    });
+
   const [catSearch, setCatSearch] = useState<string>("");
   const [prjSearch, setPrjSearch] = useState<string>("");
-  const [subtasks, setSubTasks] = useState<ISubTask[]>([]);
 
   const [err, setError] = useState({
     title: false,
@@ -65,17 +60,47 @@ export default function AddTaskPage() {
     time: false,
   });
 
-  const [initialValues, setInitialValues] = useState<init>({});
+  if (state.date && !modals.calendar.signal.peek())
+    modals.calendar.signal.value = new Date(state.date);
+
+  if (state.time && !modals.clock.signal.peek())
+    modals.clock.signal.value = new Date("0 " + state.time);
+
   useSignalEffect(() => {
     const time = modals.clock.value.value;
     if (time.length > 0) setError((e) => ({ ...e, time: false }));
     const date = modals.calendar.value.value;
     if (date.length > 0) setError((e) => ({ ...e, date: false }));
-    setInitialValues({
-      time,
-      date,
-    });
+    router.replace(encodeURL({ ...state, time, date }));
   });
+
+  function mapCats<T extends { item: ICategory }>({ item }: T) {
+    return (
+      <MenuItem
+        key={item.id}
+        value={item.id}
+        onSelect={(category) =>
+          router.replace(encodeURL({ ...state, category }))
+        }
+        className="menu-item-zinc-100 hover:menu-item-zinc-200 active:menu-item-zinc-300 tap-zinc-300"
+      >
+        {item.title}
+      </MenuItem>
+    );
+  }
+  function mapPrjs<T extends { item: IProject }>({ item }: T) {
+    return (
+      <MenuItem
+        key={item.id}
+        value={item.id}
+        onSelect={(project) => router.replace(encodeURL({ ...state, project }))}
+        className="menu-item-zinc-100 hover:menu-item-zinc-200 active:menu-item-zinc-300 tap-zinc-300"
+      >
+        {item.title}
+      </MenuItem>
+    );
+  }
+
   return (
     <>
       <header className="grid grid-cols-[3rem_1fr_3rem] p-4  justify-center items-center">
@@ -126,15 +151,22 @@ export default function AddTaskPage() {
             <input
               type="text"
               name="title"
+              defaultValue={state.title}
               required
               onInvalid={(e) => {
                 err.title = true;
               }}
               onBlur={(e) => {
+                const isValid = e.target.checkValidity();
                 setError((err) => ({
                   ...err,
-                  title: !e.target.checkValidity(),
+                  title: !isValid,
                 }));
+                if (isValid) {
+                  router.replace(
+                    encodeURL({ ...state, title: e.target.value.trim() })
+                  );
+                }
               }}
               placeholder="Title*"
               className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-zinc-400 peer"
@@ -149,7 +181,13 @@ export default function AddTaskPage() {
             <input
               type="text"
               name="description"
+              defaultValue={state.description}
               placeholder="Description"
+              onBlur={(e) => {
+                const val = e.target.value.trim();
+                if (val.length > 0)
+                  router.replace(encodeURL({ ...state, description: val }));
+              }}
               className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-zinc-400"
             />
           </TextInput>
@@ -190,7 +228,7 @@ export default function AddTaskPage() {
                       date: true,
                     }));
                   }}
-                  defaultValue={initialValues.date}
+                  defaultValue={state.date}
                 />
               </Button>
               <Error visible={err.date}>* add a due date</Error>
@@ -230,7 +268,7 @@ export default function AddTaskPage() {
                       time: true,
                     }));
                   }}
-                  defaultValue={initialValues.time}
+                  defaultValue={state.time}
                 />
               </Button>
               <Error visible={err.time}>* add a due time</Error>
@@ -241,6 +279,10 @@ export default function AddTaskPage() {
             leadingIcon="Crosshair"
             label="Project"
             name="project"
+            defaultValue={{
+              name: prjs.value.find((p) => p.id == state.project)?.title,
+              value: state.project,
+            }}
             className=" menu-zinc-100 menu-md menu-filled tap-zinc-200 text-zinc-600"
           >
             <MenuItem searchbar className="">
@@ -267,6 +309,10 @@ export default function AddTaskPage() {
             leadingIcon="FolderPlus"
             label="Category"
             name="category"
+            defaultValue={{
+              name: cats.value.find((c) => c.id == state.category)?.title,
+              value: state.category,
+            }}
             className=" menu-zinc-100 menu-md menu-filled tap-zinc-200 text-zinc-600"
           >
             <MenuItem searchbar className="">
@@ -300,21 +346,37 @@ export default function AddTaskPage() {
               leadingIcon="TrendingUp"
               label="Priority"
               name="priority"
+              defaultValue={{
+                name: Priority[state.priority ?? "2"],
+                value: Priority[Priority[state.priority ?? "2"]],
+              }}
               className=" menu-zinc-100 menu-md menu-filled tap-zinc-200 text-zinc-600"
             >
               <MenuItem
-                value="0"
+                value="2"
+                onSelect={(priority) =>
+                  router.replace(encodeURL({ ...state, priority }))
+                }
                 className="menu-item-secondary-50 tap-secondary-100"
               >
                 Low
               </MenuItem>
               <MenuItem
-                value="0"
+                value="1"
+                onSelect={(priority) =>
+                  router.replace(encodeURL({ ...state, priority }))
+                }
                 className="menu-item-warning-50 tap-warning-100"
               >
                 Medium
               </MenuItem>
-              <MenuItem value="0" className="menu-item-error-50 tap-error-100">
+              <MenuItem
+                value="0"
+                onSelect={(priority) =>
+                  router.replace(encodeURL({ ...state, priority }))
+                }
+                className="menu-item-error-50 tap-error-100"
+              >
                 High
               </MenuItem>
             </Menu>
@@ -335,27 +397,31 @@ export default function AddTaskPage() {
                 name={`st${st.id}`}
                 defaultValue={st.title}
                 onBlur={(e) => {
+                  e.preventDefault();
                   const input = e.target;
                   const value = input.value;
                   const storedValue = subtasks.find((t) => t.id == st.id);
                   if (storedValue && value !== storedValue?.title) {
-                    setSubTasks(
-                      subtasks.map((t) => {
-                        if (t.id == storedValue.id) {
-                          return { ...storedValue, title: value.trim() };
-                        }
-                        return t;
-                      })
+                    router.replace(
+                      encodeURL({ ...state, [`st${st.id}`]: value.trim() })
                     );
                   }
                 }}
                 className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-primary-400"
               />
+              <input
+                type="hidden"
+                name={`ss${st.id}`}
+                defaultValue={st.status ? "1" : "0"}
+              />
               <IconButton
                 icon="X"
                 className="ico-sm rounded-none tap-primary-600"
-                onClick={() => {
-                  setSubTasks(subtasks.filter((v) => v.id !== st.id));
+                onClick={(e) => {
+                  e.preventDefault();
+                  delete state[`st${st.id}`];
+                  delete state[`ss${st.id}`];
+                  router.replace(encodeURL(state));
                 }}
               />
             </TextInput>
@@ -371,18 +437,22 @@ export default function AddTaskPage() {
             <IconButton
               icon="Plus"
               className="ico-md rounded-none tap-primary-600"
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
                 const val = subtaskInput.current?.value;
                 if (val) {
-                  setSubTasks([
-                    ...subtasks,
-                    {
-                      id:
-                        subtasks.reduce((p, c) => (p > c.id ? p : c.id), 0) + 1,
-                      status: false,
-                      title: val.trim(),
-                    },
-                  ]);
+                  const id =
+                    subtasks.reduce(
+                      (p, c) => (p > parseInt(c.id) ? p : parseInt(c.id)),
+                      0
+                    ) + 1;
+                  router.replace(
+                    encodeURL({
+                      ...state,
+                      [`st${id}`]: val.trim(),
+                      [`ss${id}`]: 0,
+                    })
+                  );
                   subtaskInput.current.value = "";
                 }
               }}

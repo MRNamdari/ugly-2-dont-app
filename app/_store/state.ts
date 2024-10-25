@@ -1,6 +1,6 @@
 import { signal, effect, computed } from "@preact/signals-react";
 import { categories, projects, tasks } from "./data";
-import { date2display, timeToLocalTime } from "../_components/util";
+import { date2display, timeToLocalTime, wildCard } from "../_components/util";
 
 // export const modals = {
 //   calendar: signal<Date>(),
@@ -32,7 +32,7 @@ export const modals = (function modal() {
       value: computed(() => {
         const date = clock.value;
         if (date) {
-          return `${date.getHours()}:${date.getMinutes()}`;
+          return `${wildCard(date.getHours())}:${wildCard(date.getMinutes())}`;
         }
         return "";
       }),
@@ -45,3 +45,8 @@ export const store = {
   projects: signal(projects),
   categories: signal(categories),
 };
+
+export function encodeURL(struct: any) {
+  const url = new URLSearchParams(struct);
+  return "?" + url;
+}

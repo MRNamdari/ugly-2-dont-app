@@ -2,9 +2,9 @@ import Icon, { IconLable } from "./icon";
 import React, { useRef, useState, MouseEvent } from "react";
 import { motion } from "framer-motion";
 
-export type MenuOption = { name: string; value: any };
+export type MenuOption = { name?: string; value?: string };
 
-export type MenuProps<T extends { name: string; value: string }> = {
+export type MenuProps<T extends MenuOption> = {
   className?: string;
   label?: string;
   leadingIcon?: IconLable;
@@ -19,9 +19,7 @@ export type MenuProps<T extends { name: string; value: string }> = {
           leadingIcon="Folder"
         ></Menu>
  */
-export default function Menu<T extends { name: string; value: string }>(
-  props: MenuProps<T>
-) {
+export default function Menu<T extends MenuOption>(props: MenuProps<T>) {
   const [expanded, setExpansion] = useState<boolean>(false); // is closed
   const [label, setLabel] = useState<string | null>(
     props.defaultValue?.name ?? null

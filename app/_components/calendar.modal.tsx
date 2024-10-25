@@ -10,13 +10,9 @@ const pickedDate = modals.calendar.signal;
 
 export default function Calendar(): JSX.Element {
   // hooks
-  const { due = new Date() } = { due: new Date() };
-  const [date, setDate] = useState(due);
-  const [direction, setDirection] = useState(1);
 
-  //   useSignalEffect(() => {
-  //     modals.calendar.value;
-  //   });
+  const [date, setDate] = useState(new Date());
+  const [direction, setDirection] = useState(1);
 
   const dayNames = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"] as const;
   const monthNames = [

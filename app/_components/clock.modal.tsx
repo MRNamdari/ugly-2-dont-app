@@ -1,3 +1,4 @@
+"use client";
 import { useState, MouseEvent, useRef } from "react";
 import { modals } from "../_store/state";
 import Icon from "./icon";

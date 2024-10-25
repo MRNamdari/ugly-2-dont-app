@@ -5,7 +5,7 @@ export type IProject = {
   id: ProjectId;
   due?: string;
   description?: string;
-  priority?: Priority;
+  priority?: IPriority;
   categoryId?: CategoryId;
   projectId?: ProjectId;
 };
@@ -28,16 +28,25 @@ export type ITask = {
   categoryId?: CategoryId;
   due?: string;
   notification?: string;
-  priority?: Priority;
+  priority?: IPriority;
 };
 
-export type ISubTask = { title: string; id: number; status: boolean };
+export type ISubTask = { title: string; id: string; status: boolean };
 
-export enum Priority {
+export enum IPriority {
   High = 2,
   Medium = 1,
   Low = 0,
 }
+
+export const Priority = {
+  "0": "High",
+  "1": "Medium",
+  "2": "Low",
+  High: "2",
+  Medium: "1",
+  Low: "0",
+} as Record<string, string>;
 
 export const tasks: ITask[] = [
     {
@@ -69,9 +78,9 @@ export const tasks: ITask[] = [
       status: false,
       description: "Write a blog post about my recent vacation",
       subtasks: [
-        { title: "Do research", id: 1, status: true },
-        { title: "Write the first draft", id: 2, status: false },
-        { title: "Edit and proofread", id: 3, status: false },
+        { title: "Do research", id: "1", status: true },
+        { title: "Write the first draft", id: "2", status: false },
+        { title: "Edit and proofread", id: "3", status: false },
       ],
       projectId: "p3",
       categoryId: "c3",
@@ -106,9 +115,9 @@ export const tasks: ITask[] = [
       status: true,
       description: "Choose a destination and book flights and hotels",
       subtasks: [
-        { title: "Research destinations", id: 104, status: true },
-        { title: "Book flights", id: 105, status: true },
-        { title: "Book hotels", id: 106, status: true },
+        { title: "Research destinations", id: "104", status: true },
+        { title: "Book flights", id: "105", status: true },
+        { title: "Book hotels", id: "106", status: true },
       ],
       categoryId: "c3",
       due: "2023-09-15T12:00:00",

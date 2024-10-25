@@ -1,6 +1,11 @@
 "use client";
 // Types and Constants
-import type { IProject, ISubTask, ICategory } from "@/app/_store/data";
+import type {
+  IProject,
+  ISubTask,
+  ICategory,
+  ITaskFormData,
+} from "@/app/_store/data";
 import { Priority } from "@/app/_store/data";
 // Signals
 import { useSignalEffect } from "@preact/signals-react/runtime";
@@ -23,22 +28,14 @@ const fuseCats = new Fuse(cats.value, { keys: ["title"] });
 const prjs = computed(() => store.projects.value);
 const fusePrjs = new Fuse(prjs.value, { keys: ["title", "description"] });
 
-type init = {
-  title?: string;
-  description?: string;
-  date?: string;
-  time?: string;
-  project?: string;
-  category?: string;
-  reminder?: string;
-  priority?: string;
-} & { [key in `st${string}` | `ss${string}`]?: string };
-
 export default function AddTaskPage({
+  params,
   searchParams: state,
 }: {
-  searchParams: init;
+  params: { id: string };
+  searchParams: ITaskFormData;
 }) {
+  console.log(params, state);
   const router = useRouter();
   const form = useRef<HTMLFormElement>(null);
   const subtaskInput = useRef<HTMLInputElement>(null);
@@ -68,10 +65,15 @@ export default function AddTaskPage({
 
   useSignalEffect(() => {
     const time = modals.clock.value.value;
-    if (time.length > 0) setError((e) => ({ ...e, time: false }));
+    if (time.length > 0) {
+      setError((e) => ({ ...e, time: false }));
+      router.replace(encodeURL({ ...state, time }));
+    }
     const date = modals.calendar.value.value;
-    if (date.length > 0) setError((e) => ({ ...e, date: false }));
-    router.replace(encodeURL({ ...state, time, date }));
+    if (date.length > 0) {
+      setError((e) => ({ ...e, date: false }));
+      router.replace(encodeURL({ ...state, date }));
+    }
   });
 
   function mapCats<T extends { item: ICategory }>({ item }: T) {
@@ -114,7 +116,7 @@ export default function AddTaskPage({
           ></IconButton>
         </div>
         <h1 className="text-3xl text-center self-end font-medium whitespace-nowrap overflow-hidden text-ellipsis">
-          New Task
+          {params.id ? "Edit" : "New"} Task
         </h1>
         <div>
           <IconButton
@@ -132,11 +134,14 @@ export default function AddTaskPage({
       </header>
       <form
         ref={form}
-        action="./verify"
+        action="/pwa/tasks/verify"
         method="GET"
         className="flex flex-col h-full"
         onSubmit={(e) => e.preventDefault()}
       >
+        {params.id && (
+          <input type="hidden" name="id" defaultValue={params.id} />
+        )}
         <section className="grid grid-flow-row gap-4 px-4 h-fit pt-10">
           {/* Title */}
           <TextInput

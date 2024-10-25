@@ -1,25 +1,27 @@
 "use client";
 import IconButton from "@/app/_components/icon-button";
 import { store } from "@/app/_store/state";
-import { computed, useComputed } from "@preact/signals-react";
 import Link from "next/link";
 import TextInput from "@/app/_components/text-input";
 import Icon from "@/app/_components/icon";
 import Button from "@/app/_components/button";
-import { Priority } from "@/app/_store/data";
+import { ITaskFormData, Priority } from "@/app/_store/data";
 import { useRouter } from "next/navigation";
+import { date2display, dateToLocalTime } from "@/app/_components/util";
 
 export default function VerifyTaskPage({
-  searchParams,
+  searchParams: state,
 }: {
-  searchParams: Record<string, string>;
+  searchParams: ITaskFormData;
 }) {
   const router = useRouter();
-  const project = useComputed(() =>
-    store.projects.value.find((p) => p.id == searchParams.project)
-  );
-  const category = useComputed(() =>
-    store.categories.value.find((c) => c.id == searchParams.category)
+
+  const project = store.projects.value.find((p) => p.id == state.project);
+
+  const category = store.categories.value.find((c) => c.id == state.category);
+
+  const subtasks = Object.entries(state).filter(([key, value]) =>
+    /^st[0-9]+$/.test(key)
   );
   return (
     <>
@@ -38,33 +40,39 @@ export default function VerifyTaskPage({
           <IconButton
             className="ico-lg tap-zinc-100 text-primary-900"
             icon="Check"
+            onClick={() => {}}
           ></IconButton>
         </div>
       </header>
       <div className="bg-secondary-100 px-4 flex flex-col gap-4">
         <article className="bg-white w-full grid gap-2 p-6 rounded-3xl">
-          <h2 className="text-lg font-medium">{searchParams.title}</h2>
-          <h3 className="text-primary-600 text-base">
-            <Link
-              className="underline"
-              href={"../projects/details/" + searchParams.project}
-            >
-              {project.value?.title}
-            </Link>
-            {" • "}
-            <Link
-              className="underline"
-              href={"../categories/details/" + searchParams.category}
-            >
-              {category.value?.title}
-            </Link>
-          </h3>
-          <p className="text-primary-700 text-sm">{searchParams.description}</p>
+          <h2 className="text-lg font-medium">{state.title}</h2>
+          {(project || category) && (
+            <h3 className="text-primary-600 text-base">
+              <Link
+                className="underline"
+                href={"../projects/details/" + state.project}
+              >
+                {project?.title}
+              </Link>
+              {category && (
+                <>
+                  {" • "}
+                  <Link
+                    className="underline"
+                    href={"../categories/details/" + state.category}
+                  >
+                    {category.title}
+                  </Link>
+                </>
+              )}
+            </h3>
+          )}
+          <p className="text-primary-700 text-sm">{state.description}</p>
         </article>
-        <section className=" w-full rounded-3xl bg-secondary-50">
-          {Object.entries(searchParams)
-            .filter(([key, value]) => /st[0-9]+/.test(key))
-            .map(([key, value]) => (
+        {subtasks.length > 0 && (
+          <section className=" w-full rounded-3xl bg-secondary-50">
+            {subtasks.map(([key, value]) => (
               <span key={key} className="group">
                 <TextInput
                   key={key}
@@ -74,7 +82,7 @@ export default function VerifyTaskPage({
                   <p className="w-full">{value}</p>
                   <Icon
                     label={
-                      searchParams[key.replace("t", "s")] === "0"
+                      state[key.replace("t", "s") as `st${string}`] === "0"
                         ? "Circle"
                         : "CheckCircle"
                     }
@@ -83,19 +91,20 @@ export default function VerifyTaskPage({
                 </TextInput>
               </span>
             ))}
-        </section>
+          </section>
+        )}
         <div className="grid grid-cols-2 gap-[inherit]">
           <Button
             leadingIcon="Calendar"
             className={"btn-md tap-error-50 bg-error-50 text-error-600"}
           >
-            {searchParams.date}
+            {state.date && date2display(state.date)}
           </Button>
           <Button
             leadingIcon="Clock"
             className={"btn-md tap-error-50 bg-error-50 text-error-600"}
           >
-            {searchParams.time}
+            {dateToLocalTime(new Date("0 " + state.time))}
           </Button>
         </div>
         <div className="grid grid-cols-2 gap-[inherit]">
@@ -107,9 +116,16 @@ export default function VerifyTaskPage({
           </Button>
           <Button
             leadingIcon="TrendingUp"
-            className="btn-md bg-zinc-100 text-zinc-600 tap-zinc-200"
+            className={
+              "btn-md " +
+              (state.priority == "0"
+                ? "bg-error-50 text-error-600 tap-error-100"
+                : state.priority == "1"
+                  ? "bg-warning-50 text-warning-600 tap-warning-100"
+                  : " bg-secondary-50 text-secondary-600 tap-secondary-100")
+            }
           >
-            {Priority[searchParams.priority]}
+            {state.priority && Priority[state.priority]}
           </Button>
         </div>
       </div>

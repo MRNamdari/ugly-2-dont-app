@@ -5,7 +5,7 @@ export type IProject = {
   id: ProjectId;
   due?: string;
   description?: string;
-  priority?: IPriority;
+  priority?: IPriority[keyof IPriority];
   categoryId?: CategoryId;
   projectId?: ProjectId;
 };
@@ -26,17 +26,28 @@ export type ITask = {
   subtasks?: ISubTask[];
   projectId?: ProjectId;
   categoryId?: CategoryId;
-  due?: string;
+  due: string;
   notification?: string;
-  priority?: IPriority;
+  priority?: string;
 };
+export type ITaskFormData = {
+  id?: string;
+  title?: string;
+  description?: string;
+  date?: string;
+  time?: string;
+  project?: string;
+  category?: string;
+  reminder?: string;
+  priority?: string;
+} & { [K in `st${string}` | `ss${string}`]?: string };
 
 export type ISubTask = { title: string; id: string; status: boolean };
 
 export enum IPriority {
-  High = 2,
-  Medium = 1,
-  Low = 0,
+  High = "2",
+  Medium = "1",
+  Low = "0",
 }
 
 export const Priority = {
@@ -59,7 +70,7 @@ export const tasks: ITask[] = [
       categoryId: "c1",
       due: "2023-10-13T09:00:00",
       notification: "2023-08-25T18:00:00",
-      priority: 2,
+      priority: "2",
     },
     {
       title: "Call the doctor",
@@ -70,7 +81,7 @@ export const tasks: ITask[] = [
       projectId: "p2",
       categoryId: "c2",
       due: "2023-08-28T10:00:00",
-      priority: 1,
+      priority: "1",
     },
     {
       title: "Write a blog post",
@@ -85,7 +96,7 @@ export const tasks: ITask[] = [
       projectId: "p3",
       categoryId: "c3",
       due: "2023-08-30T12:00:00",
-      priority: 0,
+      priority: "0",
     },
     {
       title: "Meet with client",
@@ -97,7 +108,7 @@ export const tasks: ITask[] = [
       categoryId: "c2",
       due: "2023-08-29T14:00:00",
       notification: "2023-08-28T12:00:00",
-      priority: 2,
+      priority: "2",
     },
     {
       title: "Go to the gym",
@@ -107,7 +118,7 @@ export const tasks: ITask[] = [
       subtasks: [],
       categoryId: "c1",
       due: "2023-08-27T18:00:00",
-      priority: 1,
+      priority: "1",
     },
     {
       title: "Plan a vacation",
@@ -121,7 +132,7 @@ export const tasks: ITask[] = [
       ],
       categoryId: "c3",
       due: "2023-09-15T12:00:00",
-      priority: 0,
+      priority: "0",
     },
     {
       title: "Learn a new language",
@@ -131,7 +142,7 @@ export const tasks: ITask[] = [
       subtasks: [],
       categoryId: "c1",
       due: "2023-09-30T12:00:00",
-      priority: 1,
+      priority: "1",
     },
     {
       title: "Read a book",
@@ -141,7 +152,7 @@ export const tasks: ITask[] = [
       subtasks: [],
       categoryId: "c3",
       due: "2023-09-01T12:00:00",
-      priority: 0,
+      priority: "0",
     },
     {
       title: "Start a blog",
@@ -151,7 +162,7 @@ export const tasks: ITask[] = [
       subtasks: [],
       categoryId: "c3",
       due: "2023-10-01T12:00:00",
-      priority: 2,
+      priority: "2",
     },
     {
       title: "Learn to code",
@@ -161,7 +172,7 @@ export const tasks: ITask[] = [
       subtasks: [],
       categoryId: "c1",
       due: "2023-12-01T12:00:00",
-      priority: 1,
+      priority: "1",
     },
     {
       title: "Get a promotion",
@@ -171,7 +182,7 @@ export const tasks: ITask[] = [
       subtasks: [],
       categoryId: "c2",
       due: "2024-01-01T12:00:00",
-      priority: 2,
+      priority: "2",
     },
     {
       title: "Start a business",
@@ -181,7 +192,7 @@ export const tasks: ITask[] = [
       subtasks: [],
       categoryId: "c1",
       due: "2024-03-01T12:00:00",
-      priority: 0,
+      priority: "0",
     },
     {
       title: "Travel the world",
@@ -191,7 +202,7 @@ export const tasks: ITask[] = [
       subtasks: [],
       categoryId: "c3",
       due: "2025-01-01T12:00:00",
-      priority: 1,
+      priority: "1",
     },
     {
       title: "Make a difference in the world",
@@ -201,7 +212,7 @@ export const tasks: ITask[] = [
       subtasks: [],
       categoryId: "c1",
       due: "2025-12-31T12:00:00",
-      priority: 2,
+      priority: "2",
     },
     {
       title: "Buy PC",
@@ -211,7 +222,7 @@ export const tasks: ITask[] = [
       subtasks: [],
       due: "2023-09-26T09:00:00",
       notification: "2023-09-25T18:00:00",
-      priority: 2,
+      priority: "2",
     },
   ],
   projects: IProject[] = [
@@ -221,7 +232,7 @@ export const tasks: ITask[] = [
       projectId: "p5",
       categoryId: "c1",
       due: "2023-08-30T12:00:00",
-      priority: 2,
+      priority: "2",
     },
     {
       title: "Doctor's appointments",
@@ -229,7 +240,7 @@ export const tasks: ITask[] = [
 
       categoryId: "c2",
       due: "2023-08-28T10:00:00",
-      priority: 1,
+      priority: "1",
     },
     {
       title: "Blog posts",
@@ -237,27 +248,27 @@ export const tasks: ITask[] = [
       projectId: "p4",
       categoryId: "c3",
       due: "2023-08-26T09:00:00",
-      priority: 0,
+      priority: "0",
     },
     {
       title: "Work",
       id: "p4",
       categoryId: "c2",
-      priority: 2,
+      priority: "2",
     },
     {
       title: "Personal",
       id: "p5",
 
       categoryId: "c1",
-      priority: 1,
+      priority: "1",
     },
     {
       title: "Creative",
       id: "p6",
       projectId: "p5",
       categoryId: "c3",
-      priority: 0,
+      priority: "0",
     },
   ],
   categories: ICategory[] = [

@@ -5,6 +5,7 @@ import IconButton from "./icon-button";
 import Button from "./button";
 import { wildCard } from "./util";
 import { modals } from "../_store/state";
+import { useSignalEffect } from "@preact/signals-react";
 
 const pickedDate = modals.calendar.signal;
 
@@ -13,6 +14,10 @@ export default function Calendar(): JSX.Element {
 
   const [date, setDate] = useState(new Date());
   const [direction, setDirection] = useState(1);
+
+  useSignalEffect(() => {
+    if (pickedDate.value) setDate(pickedDate.value);
+  });
 
   const dayNames = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"] as const;
   const monthNames = [

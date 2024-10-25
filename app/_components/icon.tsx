@@ -1,5 +1,4 @@
 import * as FeatherIcon from "react-feather";
-import { filterTransientProps } from "./util";
 
 // Declaring IFeatherIcon type to have "react-feather" namespace as a type
 declare type IFeatherIcon = typeof import("react-feather");

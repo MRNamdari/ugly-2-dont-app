@@ -1,5 +1,5 @@
 import { signal, effect, computed } from "@preact/signals-react";
-import { categories, projects, tasks } from "./data";
+import { categories, ITask, ITaskFormData, projects, tasks } from "./data";
 import { date2display, timeToLocalTime, wildCard } from "../_components/util";
 
 // export const modals = {
@@ -19,7 +19,7 @@ export const modals = (function modal() {
       value: computed(() => {
         const date = calendar.value;
         if (date) {
-          return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+          return `${date.getFullYear()}-${wildCard(date.getMonth() + 1)}-${wildCard(date.getDate())}`;
         }
         return "";
       }),
@@ -49,4 +49,37 @@ export const store = {
 export function encodeURL(struct: any) {
   const url = new URLSearchParams(struct);
   return "?" + url;
+}
+
+export function TaskToFormData(t?: ITask): ITaskFormData | undefined {
+  if (!t) return;
+  const {
+    title,
+    categoryId: category,
+    description,
+    due,
+    priority,
+    projectId: project,
+    subtasks,
+  } = t;
+  const date = new Date(due);
+  modals.calendar.signal.value = date;
+  modals.clock.signal.value = date;
+  const flatSubtasks = {};
+  subtasks?.map((s) => {
+    Object.assign(flatSubtasks, {
+      ["st" + s.id]: s.title,
+      ["ss" + s.id]: s.status ? "1" : "0",
+    });
+  });
+  return {
+    title,
+    description,
+    project,
+    category,
+    time: `${wildCard(date.getHours())}:${wildCard(date.getMinutes())}`,
+    date: `${date.getFullYear()}-${wildCard(date.getMonth() + 1)}-${wildCard(date.getDate())}`,
+    priority,
+    ...flatSubtasks,
+  };
 }

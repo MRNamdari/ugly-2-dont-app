@@ -1,6 +1,6 @@
 "use client";
 import IconButton from "@/app/_components/icon-button";
-import { store } from "@/app/_store/state";
+import { FormDataToTask, store } from "@/app/_store/state";
 import Link from "next/link";
 import TextInput from "@/app/_components/text-input";
 import Icon from "@/app/_components/icon";
@@ -8,6 +8,7 @@ import Button from "@/app/_components/button";
 import { ITaskFormData, Priority } from "@/app/_store/data";
 import { useRouter } from "next/navigation";
 import { date2display, dateToLocalTime } from "@/app/_components/util";
+import { MouseEvent } from "react";
 
 export default function VerifyTaskPage({
   searchParams: state,
@@ -23,6 +24,21 @@ export default function VerifyTaskPage({
   const subtasks = Object.entries(state).filter(([key, value]) =>
     /^st[0-9]+$/.test(key)
   );
+
+  function handleSubmit(e: MouseEvent<HTMLButtonElement>) {
+    const tasks = store.tasks.value;
+    const newTask = FormDataToTask(state);
+    if (state.id) {
+      const index = tasks.findIndex((t) => t.id == state.id);
+      tasks[index] = newTask;
+    } else {
+      tasks.push(newTask);
+    }
+    store.tasks.value = tasks;
+    router.back();
+    router.back();
+  }
+
   return (
     <>
       <header className="grid grid-cols-[3rem_1fr_3rem] px-4  justify-center items-center bg-secondary-100">
@@ -40,7 +56,7 @@ export default function VerifyTaskPage({
           <IconButton
             className="ico-lg tap-zinc-100 text-primary-900"
             icon="Check"
-            onClick={() => {}}
+            onClick={handleSubmit}
           ></IconButton>
         </div>
       </header>

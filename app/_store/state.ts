@@ -1,5 +1,15 @@
 import { signal, effect, computed } from "@preact/signals-react";
-import { categories, ITask, ITaskFormData, projects, tasks } from "./data";
+import {
+  categories,
+  CategoryId,
+  ISubTask,
+  ITask,
+  ITaskFormData,
+  ProjectId,
+  projects,
+  TaskId,
+  tasks,
+} from "./data";
 import { date2display, timeToLocalTime, wildCard } from "../_components/util";
 
 // export const modals = {
@@ -81,5 +91,43 @@ export function TaskToFormData(t?: ITask): ITaskFormData | undefined {
     date: `${date.getFullYear()}-${wildCard(date.getMonth() + 1)}-${wildCard(date.getDate())}`,
     priority,
     ...flatSubtasks,
+  };
+}
+
+export function FormDataToTask(fd: ITaskFormData): ITask {
+  const {
+    category,
+    date,
+    description,
+    id,
+    priority,
+    project,
+    // reminder,
+    time,
+    title,
+  } = fd;
+  const due = new Date(date!);
+  const [h, m] = time!.split(":").map((i) => parseInt(i));
+  due.setHours(h, m);
+  const subtasks: ISubTask[] = Object.keys(fd)
+    .filter((k) => /^st[0-9]+$/.test(k))
+    .map((key) => {
+      const id = key.slice(2);
+      return {
+        id,
+        title: fd[key as `st${string}`]!,
+        status: fd[`ss${id}`] == "0" ? false : true,
+      };
+    });
+  return {
+    id: (id as TaskId) ?? "t" + store.tasks.peek().length + 1,
+    title: title ?? "",
+    description,
+    projectId: project as ProjectId,
+    categoryId: category as CategoryId,
+    due: due.toISOString(),
+    priority,
+    status: false,
+    subtasks,
   };
 }

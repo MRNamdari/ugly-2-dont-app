@@ -9,12 +9,12 @@ import type {
 import { Priority } from "@/app/_store/data";
 // Signals
 import { useSignalEffect } from "@preact/signals-react/runtime";
-import { computed } from "@preact/signals-react";
+import { batch, computed } from "@preact/signals-react";
 import { encodeURL, modals, store } from "@/app/_store/state";
 // Hooks
 import Fuse from "fuse.js";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 // Components
 import Menu, { MenuItem } from "@/app/_components/menu";
 import IconButton from "@/app/_components/icon-button";
@@ -30,13 +30,13 @@ const fusePrjs = new Fuse(prjs.value, { keys: ["title", "description"] });
 
 export default function AddTaskPage({
   params,
-  searchParams: state,
+  searchParams,
 }: {
   params: { id: string };
   searchParams: ITaskFormData;
 }) {
-  console.log(params, state);
   const router = useRouter();
+  const [state, setState] = useState<ITaskFormData>(searchParams);
   const form = useRef<HTMLFormElement>(null);
   const subtaskInput = useRef<HTMLInputElement>(null);
   const subtasks: ISubTask[] = Object.keys(state)
@@ -65,15 +65,16 @@ export default function AddTaskPage({
 
   useSignalEffect(() => {
     const time = modals.clock.value.value;
-    if (time.length > 0) {
+    if (time.length > 0 && state.time !== time) {
       setError((e) => ({ ...e, time: false }));
-      router.replace(encodeURL({ ...state, time }));
+      setState((s) => ({ ...s, time }));
     }
     const date = modals.calendar.value.value;
-    if (date.length > 0) {
+    if (date.length > 0 && date !== state.date) {
       setError((e) => ({ ...e, date: false }));
-      router.replace(encodeURL({ ...state, date }));
+      setState((s) => ({ ...s, date }));
     }
+    console.log({ date, time });
   });
 
   function mapCats<T extends { item: ICategory }>({ item }: T) {
@@ -81,9 +82,7 @@ export default function AddTaskPage({
       <MenuItem
         key={item.id}
         value={item.id}
-        onSelect={(category) =>
-          router.replace(encodeURL({ ...state, category }))
-        }
+        onSelect={(category) => setState({ ...state, category })}
         className="menu-item-zinc-100 hover:menu-item-zinc-200 active:menu-item-zinc-300 tap-zinc-300"
       >
         {item.title}
@@ -95,7 +94,7 @@ export default function AddTaskPage({
       <MenuItem
         key={item.id}
         value={item.id}
-        onSelect={(project) => router.replace(encodeURL({ ...state, project }))}
+        onSelect={(project) => setState({ ...state, project })}
         className="menu-item-zinc-100 hover:menu-item-zinc-200 active:menu-item-zinc-300 tap-zinc-300"
       >
         {item.title}
@@ -124,7 +123,12 @@ export default function AddTaskPage({
               const f = form.current;
               if (!f) return;
               if (f.checkValidity()) {
-                f.submit();
+                new Promise((res) => {
+                  router.replace(encodeURL(state));
+                  setTimeout(() => res(true), 500);
+                }).then(() => {
+                  f.submit();
+                });
               }
             }}
             className="ico-lg tap-zinc-100 text-primary-900"
@@ -168,9 +172,7 @@ export default function AddTaskPage({
                   title: !isValid,
                 }));
                 if (isValid) {
-                  router.replace(
-                    encodeURL({ ...state, title: e.target.value.trim() })
-                  );
+                  setState({ ...state, title: e.target.value.trim() });
                 }
               }}
               placeholder="Title*"
@@ -190,8 +192,7 @@ export default function AddTaskPage({
               placeholder="Description"
               onBlur={(e) => {
                 const val = e.target.value.trim();
-                if (val.length > 0)
-                  router.replace(encodeURL({ ...state, description: val }));
+                if (val.length > 0) setState({ ...state, description: val });
               }}
               className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-zinc-400"
             />
@@ -359,27 +360,21 @@ export default function AddTaskPage({
             >
               <MenuItem
                 value="2"
-                onSelect={(priority) =>
-                  router.replace(encodeURL({ ...state, priority }))
-                }
+                onSelect={(priority) => setState({ ...state, priority })}
                 className="menu-item-secondary-50 tap-secondary-100"
               >
                 Low
               </MenuItem>
               <MenuItem
                 value="1"
-                onSelect={(priority) =>
-                  router.replace(encodeURL({ ...state, priority }))
-                }
+                onSelect={(priority) => setState({ ...state, priority })}
                 className="menu-item-warning-50 tap-warning-100"
               >
                 Medium
               </MenuItem>
               <MenuItem
                 value="0"
-                onSelect={(priority) =>
-                  router.replace(encodeURL({ ...state, priority }))
-                }
+                onSelect={(priority) => setState({ ...state, priority })}
                 className="menu-item-error-50 tap-error-100"
               >
                 High
@@ -407,9 +402,7 @@ export default function AddTaskPage({
                   const value = input.value;
                   const storedValue = subtasks.find((t) => t.id == st.id);
                   if (storedValue && value !== storedValue?.title) {
-                    router.replace(
-                      encodeURL({ ...state, [`st${st.id}`]: value.trim() })
-                    );
+                    setState({ ...state, [`st${st.id}`]: value.trim() });
                   }
                 }}
                 className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-primary-400"
@@ -426,7 +419,7 @@ export default function AddTaskPage({
                   e.preventDefault();
                   delete state[`st${st.id}`];
                   delete state[`ss${st.id}`];
-                  router.replace(encodeURL(state));
+                  setState(state);
                 }}
               />
             </TextInput>
@@ -451,13 +444,13 @@ export default function AddTaskPage({
                       (p, c) => (p > parseInt(c.id) ? p : parseInt(c.id)),
                       0
                     ) + 1;
-                  router.replace(
-                    encodeURL({
-                      ...state,
-                      [`st${id}`]: val.trim(),
-                      [`ss${id}`]: 0,
-                    })
-                  );
+
+                  setState({
+                    ...state,
+                    [`st${id}`]: val.trim(),
+                    [`ss${id}`]: 0,
+                  });
+
                   subtaskInput.current.value = "";
                 }
               }}

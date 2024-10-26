@@ -1,15 +1,21 @@
 "use client";
 import { useState, MouseEvent, useRef } from "react";
+import { useSignalEffect } from "@preact/signals-react";
 import { modals } from "../_store/state";
+
+import { num2str } from "./util";
+
 import Icon from "./icon";
 import IconButton from "./icon-button";
-import { num2str } from "./util";
 
 const pickedTime = modals.clock.signal;
 
 export default function Clock() {
   // hooks
-  const [time, setTime] = useState<Date>(pickedTime.value ?? new Date());
+  const [time, setTime] = useState<Date>(new Date());
+  useSignalEffect(() => {
+    if (pickedTime.value) setTime(pickedTime.value);
+  });
   const ref = useRef<HTMLDialogElement>(null);
   const form = useRef<HTMLFormElement>(null);
 

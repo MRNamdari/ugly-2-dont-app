@@ -210,6 +210,8 @@ export default function AddTaskPage({
                 }
                 onClick={(e) => {
                   e.preventDefault();
+                  if (state.date)
+                    modals.calendar.signal.value = new Date(state.date);
                   const cal = document.querySelector(
                     "#calendar"
                   ) as HTMLDialogElement;
@@ -352,10 +354,14 @@ export default function AddTaskPage({
               leadingIcon="TrendingUp"
               label="Priority"
               name="priority"
-              defaultValue={{
-                name: Priority[state.priority ?? "2"],
-                value: Priority[Priority[state.priority ?? "2"]],
-              }}
+              defaultValue={
+                state.priority !== undefined
+                  ? {
+                      name: Priority[state.priority ?? "2"],
+                      value: Priority[Priority[state.priority ?? "2"]],
+                    }
+                  : undefined
+              }
               className=" menu-zinc-100 menu-md menu-filled tap-zinc-200 text-zinc-600"
             >
               <MenuItem

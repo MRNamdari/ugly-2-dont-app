@@ -1,8 +1,12 @@
 "use client";
-import Calendar from "@/app/_components/calendar.modal";
 import React from "react";
-import { modals } from "@/app/_store/state";
-import Clock from "@/app/_components/clock.modal";
+import dynamic from "next/dynamic";
+const Calendar = dynamic(() => import("@/app/_components/calendar.modal"), {
+  ssr: false,
+});
+const Clock = dynamic(() => import("@/app/_components/clock.modal"), {
+  ssr: false,
+});
 export default function PagesLayout({
   children,
 }: {

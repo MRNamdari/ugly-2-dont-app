@@ -3,12 +3,24 @@ export type ProjectId = string & `p${number}`;
 export type IProject = {
   title: string;
   id: ProjectId;
-  due?: string;
+  due: string;
   description?: string;
-  priority?: IPriority[keyof IPriority];
+  priority?: string;
   categoryId?: CategoryId;
   projectId?: ProjectId;
 };
+
+export type IProjectFormData = Partial<{
+  id: string;
+  title: string;
+  date: string;
+  time: string;
+  description: string;
+  priority: string;
+  project: string;
+  category: string;
+  reminder: string;
+}>;
 
 export type CategoryId = string & `c${number}`;
 export type ICategory = {
@@ -30,17 +42,19 @@ export type ITask = {
   notification?: string;
   priority?: string;
 };
-export type ITaskFormData = {
-  id?: string;
-  title?: string;
-  description?: string;
-  date?: string;
-  time?: string;
-  project?: string;
-  category?: string;
-  reminder?: string;
-  priority?: string;
-} & { [K in `st${string}` | `ss${string}`]?: string };
+export type ITaskFormData = Partial<
+  {
+    id: string;
+    title: string;
+    description: string;
+    date: string;
+    time: string;
+    project: string;
+    category: string;
+    reminder: string;
+    priority: string;
+  } & { [K in `st${string}` | `ss${string}`]: string }
+>;
 
 export type ISubTask = { title: string; id: string; status: boolean };
 
@@ -255,17 +269,19 @@ export const tasks: ITask[] = [
       id: "p4",
       categoryId: "c2",
       priority: "2",
+      due: "2023-08-26T09:00:00",
     },
     {
       title: "Personal",
       id: "p5",
-
+      due: "2023-08-26T09:00:00",
       categoryId: "c1",
       priority: "1",
     },
     {
       title: "Creative",
       id: "p6",
+      due: "2023-08-26T09:00:00",
       projectId: "p5",
       categoryId: "c3",
       priority: "0",

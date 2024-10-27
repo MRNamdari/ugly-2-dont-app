@@ -2,6 +2,8 @@ import { signal, effect, computed } from "@preact/signals-react";
 import {
   categories,
   CategoryId,
+  IProject,
+  IProjectFormData,
   ISubTask,
   ITask,
   ITaskFormData,
@@ -129,5 +131,55 @@ export function FormDataToTask(fd: ITaskFormData): ITask {
     priority,
     status: false,
     subtasks,
+  };
+}
+
+export function ProjectToFormData(p?: IProject): IProjectFormData | undefined {
+  if (!p) return;
+  const {
+    title,
+    categoryId: category,
+    description,
+    due,
+    projectId: project,
+    priority,
+  } = p;
+  const date = new Date(due);
+  modals.calendar.signal.value = date;
+  modals.clock.signal.value = date;
+  return {
+    title,
+    description,
+    project,
+    category,
+    time: `${wildCard(date.getHours())}:${wildCard(date.getMinutes())}`,
+    date: `${date.getFullYear()}-${wildCard(date.getMonth() + 1)}-${wildCard(date.getDate())}`,
+    priority,
+  };
+}
+
+export function FormDataToProject(fd: IProjectFormData): IProject {
+  const {
+    category,
+    date,
+    description,
+    id,
+    priority,
+    project,
+    // reminder,
+    time,
+    title,
+  } = fd;
+  const due = new Date(date!);
+  const [h, m] = time!.split(":").map((i) => parseInt(i));
+  due.setHours(h, m);
+  return {
+    id: (id as ProjectId) ?? "p" + store.tasks.peek().length + 1,
+    title: title ?? "",
+    description,
+    projectId: project as ProjectId,
+    categoryId: category as CategoryId,
+    due: due.toISOString(),
+    priority,
   };
 }

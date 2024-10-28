@@ -1,16 +1,11 @@
 "use client";
 // Types and Constants
-import type { IProject, ICategory, ITaskFormData } from "@/app/_store/data";
+import type { IProject, ICategory, IProjectFormData } from "@/app/_store/data";
 import { Priority } from "@/app/_store/data";
 // Signals
 import { useSignalEffect } from "@preact/signals-react/runtime";
-import { batch, computed } from "@preact/signals-react";
-import {
-  encodeURL,
-  FormDataToProject,
-  modals,
-  store,
-} from "@/app/_store/state";
+import { computed } from "@preact/signals-react";
+import { FormDataToProject, modals, store } from "@/app/_store/state";
 // Hooks
 import Fuse from "fuse.js";
 import { useRouter } from "next/navigation";
@@ -33,10 +28,10 @@ export default function AddProjectPage({
   searchParams,
 }: {
   params: { id: string };
-  searchParams: ITaskFormData;
+  searchParams: IProjectFormData;
 }) {
   const router = useRouter();
-  const [state, setState] = useState<ITaskFormData>(searchParams);
+  const [state, setState] = useState<IProjectFormData>(searchParams);
   const form = useRef<HTMLFormElement>(null);
 
   const [catSearch, setCatSearch] = useState<string>("");

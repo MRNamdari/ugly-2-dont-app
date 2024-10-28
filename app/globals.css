@@ -47,6 +47,34 @@ body {
       transition-property: grid, opacity, margin;
     }
   }
+
+  .subtask {
+    & svg {
+      & circle:first-child {
+        @apply transition-all duration-200 fill-white stroke-gray-200;
+      }
+      & circle:nth-child(2) {
+        @apply fill-white  rotate-[200deg] origin-center transition-all duration-200;
+      }
+      & polyline {
+        @apply fill-none stroke-white transition-all duration-200 delay-150;
+        stroke-dashoffset: -1;
+      }
+    }
+
+    & input:checked + svg {
+      & circle:first-child {
+        @apply stroke-transparent fill-current;
+      }
+      & circle:nth-child(2) {
+        @apply fill-current stroke-current;
+        stroke-width: 6;
+      }
+      & polyline {
+        stroke-dashoffset: 0;
+      }
+    }
+  }
 }
 
 dialog[open] {

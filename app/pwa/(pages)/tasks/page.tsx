@@ -50,15 +50,17 @@ export function TaskTicket(props: ITask) {
   const project = projects.find((p) => p.id === props.projectId);
   const category = categorie.find((c) => c.id === props.categoryId);
   const [isExpanded, setExpansion] = useState<boolean>(false);
+  const hasSubtasks =
+    Array.isArray(props.subtasks) && props.subtasks.length > 0;
   const [status, setStatus] = useState(
     props.subtasks?.map((st) => st.status) ?? []
   );
   const subtaskProgress =
     status.reduce((p, c) => p + (c ? 1 : 0), 0) / status.length;
-
-  const [progress, setProgress] = useState<number>(
-    status.length ? subtaskProgress : props.status ? 1 : 0
+  const [isChecked, setCheckbox] = useState<boolean>(
+    hasSubtasks ? props.status : subtaskProgress == 1
   );
+  const progress = hasSubtasks ? subtaskProgress : isChecked ? 1 : 0;
   return (
     <article
       className="grid gap-2 bg-gray-100 rounded-3xl p-6"
@@ -67,51 +69,83 @@ export function TaskTicket(props: ITask) {
         setExpansion(!isExpanded);
       }}
     >
-      <span className="grid grid-flow-col">
+      <span className="grid grid-cols-[auto_2rem]">
         <h4 className="font-medium">{props.title}</h4>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="size-8 place-self-end text-primary-700"
-          viewBox="0 0 36 36"
-          onClick={() => {
-            setProgress(progress === 1 ? 0 : 1);
-          }}
-        >
-          <circle
-            cx={18}
-            cy={18}
-            r={15}
-            className={
-              "transition-all duration-500 " +
-              (progress === 1
-                ? "stroke-current fill-current"
-                : "fill-white stroke-gray-200")
-            }
-            strokeWidth={4}
-          ></circle>
-          <circle
-            cx={18}
-            cy={18}
-            r={15}
-            className="fill-none rotate-[200deg] origin-center transition-all duration-500 "
-            stroke="currentColor"
-            strokeWidth={4}
-            pathLength={0.99}
-            strokeDasharray={"1.01 1"}
-            strokeLinecap="round"
-            strokeDashoffset={-1 + progress}
-          ></circle>
-          <polyline
-            className="fill-none stroke-white transition-all duration-500 delay-300"
-            pathLength={0.99}
-            strokeWidth={3}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeDasharray="1.01 1"
-            points="25.05 13.95 15.15 23.85 10.65 19.35"
-            strokeDashoffset={progress === 1 ? 0 : -1}
-          ></polyline>
-        </svg>
+        <span className="relative">
+          <input
+            type="checkbox"
+            className=" appearance-none absolute inset-0 w-full h-full"
+            defaultChecked={isChecked}
+            onChange={(e) => {
+              const chk = e.target.checked;
+              if (hasSubtasks) {
+                setStatus(Array.from(status).fill(chk));
+                tasks.value = tasks.value.map((t) => {
+                  if (t.id == props.id)
+                    return {
+                      ...props,
+                      status: chk,
+                      subtasks: props.subtasks?.map((st) => ({
+                        ...st,
+                        status: chk,
+                      })),
+                    };
+                  return t;
+                });
+              } else {
+                tasks.value = tasks.value.map((t) => {
+                  if (t.id == props.id)
+                    return {
+                      ...props,
+                      status: chk,
+                    };
+                  return t;
+                });
+              }
+              setCheckbox(chk);
+            }}
+          />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="size-8 place-self-end text-primary-700"
+            viewBox="0 0 36 36"
+          >
+            <circle
+              cx={18}
+              cy={18}
+              r={15}
+              className={
+                "transition-all duration-500 " +
+                (progress === 1
+                  ? "stroke-current fill-current"
+                  : "fill-white stroke-gray-200")
+              }
+              strokeWidth={4}
+            ></circle>
+            <circle
+              cx={18}
+              cy={18}
+              r={15}
+              className="fill-none rotate-[200deg] origin-center transition-all duration-500 "
+              stroke="currentColor"
+              strokeWidth={4}
+              pathLength={0.99}
+              strokeDasharray={"1.01 1"}
+              strokeLinecap="round"
+              strokeDashoffset={-1 + progress}
+            ></circle>
+            <polyline
+              className="fill-none stroke-white transition-all duration-500 delay-300"
+              pathLength={0.99}
+              strokeWidth={3}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeDasharray="1.01 1"
+              points="25.05 13.95 15.15 23.85 10.65 19.35"
+              strokeDashoffset={progress === 1 ? 0 : -1}
+            ></polyline>
+          </svg>
+        </span>
       </span>
       <h5 className="text-primary-600 text-base">
         <Link className="underline" href={"../projects/details/" + project?.id}>
@@ -149,7 +183,7 @@ export function TaskTicket(props: ITask) {
                   <input
                     type="checkbox"
                     className=" appearance-none absolute inset-0 w-full h-full"
-                    defaultChecked={st.status}
+                    defaultChecked={status[i]}
                     onChange={(e) => {
                       setStatus(
                         status.map((s, idx) => {
@@ -224,15 +258,23 @@ function onSubtaskStatusChange(
   status: boolean
 ) {
   const pre = tasks.peek();
+
   tasks.value = pre.map((t) => {
-    if (t.id === taskId)
+    if (t.id === taskId) {
+      const subtasks = t.subtasks?.map((s) => {
+        if (s.id == subtaskId) return { ...s, status };
+        return s;
+      });
       return {
         ...t,
-        subtasks: t.subtasks?.map((s) => {
-          if (s.id == subtaskId) return { ...s, status };
-          return s;
-        }),
+        status: subtasks?.every((s) => s.status) ?? t.status,
+        subtasks,
       };
+    }
     return t;
   });
 }
+
+effect(() => {
+  console.log(tasks.value[2]);
+});

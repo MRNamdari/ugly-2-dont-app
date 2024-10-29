@@ -62,7 +62,7 @@ body {
       }
     }
 
-    & input:checked + svg {
+    & input[checked] + svg {
       & circle:first-child {
         @apply stroke-transparent fill-current;
       }

@@ -52,11 +52,18 @@ export const modals = (function modal() {
   };
 })();
 
+type FeatureID = `p${number}` | `t${number}` | `c${number}`;
+
 export const store = {
   tasks: signal(tasks),
   projects: signal(projects),
   categories: signal(categories),
+  selection: signal<FeatureID[]>([]),
 };
+
+export const isSelectionStarted = computed(
+  () => store.selection.value.length > 0
+);
 
 export function encodeURL(struct: any) {
   const url = new URLSearchParams(struct);

@@ -136,7 +136,7 @@ export const tasks: ITask[] = [
       status: true,
       description: "Choose a destination and book flights and hotels",
       subtasks: [
-        { title: "Research destinations", id: "104", status: true },
+        { title: "Research destinations", id: "104", status: false },
         { title: "Book flights", id: "105", status: true },
         { title: "Book hotels", id: "106", status: true },
       ],

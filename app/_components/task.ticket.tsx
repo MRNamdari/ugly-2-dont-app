@@ -117,8 +117,16 @@ export default function TaskTicket(props: ITask) {
   function DragEndHandler(e: any, info: PanInfo) {
     if (Math.abs(info.offset.x) > 90)
       info.offset.x > 0
-        ? console.log("Delete")
+        ? onDelete()
         : router.push(`/pwa/tasks/edit/${props.id}`);
+  }
+  function onDelete() {
+    modals.delete.message.value = `Sure wanna delete “${props.title}” task?`;
+    const deleteModal = document.getElementById("delete") as HTMLDialogElement;
+    deleteModal.onclose = (e) => {
+      console.log(deleteModal.returnValue);
+    };
+    deleteModal.showModal();
   }
   return (
     <article className="relative" id={props.id}>

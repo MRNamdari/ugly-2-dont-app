@@ -49,6 +49,9 @@ export const modals = (function modal() {
         return "";
       }),
     },
+    delete: {
+      message: signal<string>(""),
+    },
   };
 })();
 

@@ -173,7 +173,7 @@ export default function Calendar(): JSX.Element {
       <dialog
         id="calendar"
         onClick={handleCancel}
-        className="min-w-0 w-full max-w-screen-sm bg-primary-700 pb-8 mt-0 rounded-3xl rounded-t-none relative after:block after:absolute after:w-1/4 after:h-1 after:bg-primary-800 after:rounded-sm after:left-1/2 after:-translate-x-1/2 after:bottom-4"
+        className="dropdown-modal min-w-0 w-full max-w-screen-sm bg-primary-700 pb-8 mt-0 rounded-3xl rounded-t-none relative after:block after:absolute after:w-1/4 after:h-1 after:bg-primary-800 after:rounded-sm after:left-1/2 after:-translate-x-1/2 after:bottom-4"
       >
         <div className="flex items-center w-full justify-between px-4 py-6 text-white">
           <IconButton

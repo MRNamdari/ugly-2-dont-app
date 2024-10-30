@@ -1,10 +1,14 @@
 "use client";
 import React from "react";
 import dynamic from "next/dynamic";
+
 const Calendar = dynamic(() => import("@/app/_components/calendar.modal"), {
   ssr: false,
 });
 const Clock = dynamic(() => import("@/app/_components/clock.modal"), {
+  ssr: false,
+});
+const DeleteModal = dynamic(() => import("@/app/_components/delete.modal"), {
   ssr: false,
 });
 export default function PagesLayout({
@@ -16,6 +20,7 @@ export default function PagesLayout({
     <main className="h-dvh grid grid-rows-[5rem_1fr] max-w-screen-sm mx-auto">
       <Calendar />
       <Clock />
+      <DeleteModal />
       {children}
     </main>
   );

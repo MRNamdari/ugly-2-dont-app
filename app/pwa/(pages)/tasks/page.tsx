@@ -1,16 +1,19 @@
 "use client";
 import IconButton from "@/app/_components/icon-button";
 import TaskTicket from "@/app/_components/task.ticket";
+import { ITask } from "@/app/_store/data";
 import { store } from "@/app/_store/state";
+import { useSignalEffect } from "@preact/signals-react";
+import { AnimatePresence } from "framer-motion";
+import { useState } from "react";
 
-const tasks = store.tasks;
+const Tasks = store.tasks;
 
 export default function TaskBrowserPage() {
-  // const [tasks, setTasks] = useState<ITask[]>([]);
-  // useSignalEffect(() => {
-  //   console.log("taskSignal Updated");
-  //   if (tasks.length == 0) setTasks(tasksSignal.value);
-  // });
+  const [tasks, setTasks] = useState<ITask[]>([]);
+  useSignalEffect(() => {
+    setTasks(Tasks.value);
+  });
   return (
     <>
       <header className="grid grid-cols-[3rem_1fr_3rem] p-4  justify-center items-center">
@@ -30,10 +33,12 @@ export default function TaskBrowserPage() {
           ></IconButton>
         </div>
       </header>
-      <section className="grid grid-flow-row gap-4 p-4 h-full overflow-auto">
-        {tasks.value.map((t, i) => (
-          <TaskTicket key={i} {...t} />
-        ))}
+      <section className="p-4 h-full overflow-auto">
+        <AnimatePresence>
+          {tasks.map((t) => (
+            <TaskTicket key={t.id} {...t} />
+          ))}
+        </AnimatePresence>
       </section>
     </>
   );

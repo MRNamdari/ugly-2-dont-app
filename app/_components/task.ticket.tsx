@@ -124,12 +124,18 @@ export default function TaskTicket(props: ITask) {
     modals.delete.message.value = `Sure wanna delete “${props.title}” task?`;
     const deleteModal = document.getElementById("delete") as HTMLDialogElement;
     deleteModal.onclose = (e) => {
-      console.log(deleteModal.returnValue);
+      if (deleteModal.returnValue === "true") {
+        tasks.value = tasks.value.filter((t) => t.id !== props.id);
+      }
     };
     deleteModal.showModal();
   }
   return (
-    <article className="relative" id={props.id}>
+    <motion.article
+      className="relative mb-4"
+      id={props.id}
+      exit={{ height: 0, opacity: 0, marginBottom: 0 }}
+    >
       <div className="absolute h-5/6 w-1/2 left-2 top-1/2 -translate-y-1/2 -z-10 rounded-l-2xl bg-error-100  flex justify-start items-center p-4">
         <Icon label="Trash" size={24} className="size-6 text-error-500" />
       </div>
@@ -297,7 +303,7 @@ export default function TaskTicket(props: ITask) {
           </p>
         </div>
       </motion.div>
-    </article>
+    </motion.article>
   );
 }
 

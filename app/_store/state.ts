@@ -193,3 +193,24 @@ export function FormDataToProject(fd: IProjectFormData): IProject {
     priority,
   };
 }
+
+export function PendingTasksCount(projectId: ProjectId) {
+  const tasks = store.tasks.value;
+  const allTasks = ExtractProjects(projectId)
+    .map((id) => tasks.filter((t) => t.projectId == id))
+    .flat();
+  return [allTasks.length, allTasks.filter((t) => t.status === false).length];
+}
+
+export function ExtractProjects(projectId: ProjectId): ProjectId[] {
+  const directChildren = store.projects.value
+    .filter((p) => p.projectId == projectId)
+    .map((p) => p.id);
+  if (directChildren.length > 0) {
+    return [projectId, ...directChildren].concat(
+      directChildren.map((id) => ExtractProjects(id)).flat()
+    );
+  } else {
+    return [projectId];
+  }
+}

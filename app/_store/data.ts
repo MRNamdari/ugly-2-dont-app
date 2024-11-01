@@ -232,7 +232,7 @@ export const tasks: ITask[] = [
       id: "p1",
       projectId: "p5",
       categoryId: "c1",
-      due: "2023-08-30T12:00:00",
+      due: "2024-11-01T12:00:00",
       priority: "2",
     },
     {

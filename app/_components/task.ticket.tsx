@@ -10,13 +10,13 @@ import { ChangeEvent, MouseEvent, useEffect, useRef, useState } from "react";
 
 const tasks = store.tasks;
 const projects = store.projects.value;
-const categorie = store.categories.value;
+const categories = store.categories.value;
 const selection = store.selection;
 
 export default function TaskTicket(props: ITask) {
   const router = useRouter();
   const project = projects.find((p) => p.id === props.projectId);
-  const category = categorie.find((c) => c.id === props.categoryId);
+  const category = categories.find((c) => c.id === props.categoryId);
   const [isExpanded, setExpansion] = useState<boolean>(false);
   const [isSelected, setSelection] = useState<boolean>(
     selection.value.includes(props.id)

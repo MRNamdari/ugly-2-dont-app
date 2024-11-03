@@ -3,18 +3,25 @@
 import Link from "next/link";
 import { ICategory, IProject } from "../_store/data";
 import Icon from "./icon";
-import { isSelectionStarted, PendingTasksCount, store } from "../_store/state";
+import {
+  isSelectionStarted,
+  modals,
+  PendingTasksCount,
+  store,
+} from "../_store/state";
 import IconButton from "./icon-button";
-import { motion } from "framer-motion";
+import { motion, PanInfo } from "framer-motion";
 import { useState, MouseEvent } from "react";
+import { useRouter } from "next/navigation";
 
 const tasks = store.tasks;
-const projects = store.projects.value;
+const projects = store.projects;
 const categories = store.categories.value;
 const selection = store.selection;
 
 export default function ProjectTicket(props: IProject) {
-  const project = projects.find((p) => p.id === props.projectId);
+  const router = useRouter();
+  const project = projects.value.find((p) => p.id === props.projectId);
   const [isSelected, setSelection] = useState<boolean>();
   const [allTasks, pendingTasks] = PendingTasksCount(props.id);
   const progress =
@@ -25,8 +32,28 @@ export default function ProjectTicket(props: IProject) {
     setSelection(true);
     selection.value = [...selection.value, props.id];
   }
+  function DragEndHandler(e: any, info: PanInfo) {
+    if (Math.abs(info.offset.x) > 90)
+      info.offset.x > 0
+        ? onDelete()
+        : router.push(`/pwa/projects/edit/${props.id}`);
+  }
+  function onDelete() {
+    modals.delete.message.value = `Sure wanna delete “${props.title}” project?`;
+    const deleteModal = document.getElementById("delete") as HTMLDialogElement;
+    deleteModal.onclose = (e) => {
+      if (deleteModal.returnValue === "true") {
+        projects.value = projects.value.filter((p) => p.id !== props.id);
+      }
+    };
+    deleteModal.showModal();
+  }
   return (
-    <article className="relative mb-4">
+    <motion.article
+      id={props.id}
+      exit={{ height: 0, opacity: 0, marginBottom: 0 }}
+      className="relative mb-4"
+    >
       <div className="absolute h-5/6 w-1/2 left-2 top-1/2 -translate-y-1/2 -z-10 rounded-l-2xl bg-error-100  flex justify-start items-center p-4">
         <Icon label="Trash" size={24} className="size-6 text-error-500" />
       </div>
@@ -54,6 +81,7 @@ export default function ProjectTicket(props: IProject) {
           }
         }}
         onContextMenu={ContextMenuHandler}
+        onDragEnd={DragEndHandler}
       >
         <span className="grid grid-cols-[auto_2rem]">
           <h4 className="font-medium text-lg self-center">{props.title}</h4>
@@ -87,7 +115,7 @@ export default function ProjectTicket(props: IProject) {
           <DueTime due={new Date(props.due)} />
         </div>
       </motion.div>
-    </article>
+    </motion.article>
   );
 }
 

@@ -1,10 +1,19 @@
 "use client";
 import IconButton from "@/app/_components/icon-button";
 import ProjectTicket from "@/app/_components/project.ticket";
+import ProjectCard from "@/app/_components/project.card";
+import { IProject } from "@/app/_store/data";
 import { store } from "@/app/_store/state";
+import { useSignalEffect } from "@preact/signals-react";
+import { AnimatePresence } from "framer-motion";
+import { useState } from "react";
 
-const projects = store.projects;
+const projectsSignal = store.projects;
 export default function ProjectBrowserPage() {
+  const [projects, setProjects] = useState<IProject[]>([]);
+  useSignalEffect(() => {
+    setProjects(projectsSignal.value);
+  });
   return (
     <>
       <header className="grid grid-cols-[3rem_1fr_3rem] p-4  justify-center items-center">
@@ -20,9 +29,11 @@ export default function ProjectBrowserPage() {
         <div></div>
       </header>
       <section className="p-4 h-full overflow-auto">
-        {projects.value.map((p) => (
-          <ProjectTicket key={p.id} {...p} />
-        ))}
+        <AnimatePresence>
+          {projects.map((p) => (
+            <ProjectCard key={p.id} {...p} />
+          ))}
+        </AnimatePresence>
       </section>
     </>
   );

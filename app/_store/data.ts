@@ -229,6 +229,8 @@ export const tasks: ITask[] = [
   projects: IProject[] = [
     {
       title: "Groceries",
+      description:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       id: "p1",
       projectId: "p5",
       categoryId: "c1",

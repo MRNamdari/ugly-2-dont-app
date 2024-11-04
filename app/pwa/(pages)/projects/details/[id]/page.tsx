@@ -7,18 +7,23 @@ import { useSignalEffect } from "@preact/signals-react";
 import { useState } from "react";
 import ProjectsCarousel from "@/app/_components/project.carousel";
 import { useRouter } from "next/navigation";
+import { AnimatePresence } from "framer-motion";
+import TaskTicket from "@/app/_components/task.ticket";
 
 const projectsSignal = store.projects;
+const tasksSignal = store.tasks;
 export default function ProjectDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: { id?: ProjectId };
 }) {
-  const router = useRouter();
-  // const [projects, setProjects] = useState<IProject[]>([]);
-  // useSignalEffect(() => {
-  //   setProjects(projectsSignal.value);
-  // });
+  const [active, setActive] = useState<ProjectId>(
+    params.id ? params.id : projectsSignal.value[0].id
+  );
+  const [projects, setProjects] = useState<IProject[]>([]);
+  useSignalEffect(() => {
+    setProjects(projectsSignal.value);
+  });
   return (
     <>
       <header className="grid grid-cols-[3rem_1fr_3rem] p-4  justify-center items-center">
@@ -35,8 +40,9 @@ export default function ProjectDetailPage({
       </header>
       <section className="pt-4 h-full overflow-auto">
         <ProjectsCarousel
-          defaultProject={params.id as ProjectId}
+          defaultProject={active}
           onProjectChange={(id) => {
+            setActive(id);
             console.log(id);
             window.history.replaceState(
               window.history.state,
@@ -45,6 +51,20 @@ export default function ProjectDetailPage({
             );
           }}
         />
+        <div className="px-4">
+          <AnimatePresence>
+            {projects
+              .filter((p) => p.projectId === active)
+              .map((p) => (
+                <ProjectTicket key={p.id} {...p} />
+              ))}
+            {tasksSignal.value
+              .filter((t) => t.projectId == active)
+              .map((t) => (
+                <TaskTicket key={t.id} {...t} />
+              ))}
+          </AnimatePresence>
+        </div>
       </section>
     </>
   );

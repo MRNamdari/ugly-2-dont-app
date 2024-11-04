@@ -195,11 +195,11 @@ export function FormDataToProject(fd: IProjectFormData): IProject {
 }
 
 export function PendingTasksCount(projectId: ProjectId) {
-  const tasks = store.tasks.value;
-  const allTasks = ExtractProjects(projectId)
-    .map((id) => tasks.filter((t) => t.projectId == id))
-    .flat();
-  return [allTasks.length, allTasks.filter((t) => t.status === false).length];
+  return computed(() => {
+    const projectList = ExtractProjects(projectId);
+    const allTasks = SelectTasksByProjectId(projectList);
+    return [allTasks.length, allTasks.filter((t) => t.status === false).length];
+  });
 }
 
 export function ExtractProjects(projectId: ProjectId): ProjectId[] {
@@ -207,10 +207,20 @@ export function ExtractProjects(projectId: ProjectId): ProjectId[] {
     .filter((p) => p.projectId == projectId)
     .map((p) => p.id);
   if (directChildren.length > 0) {
-    return [projectId, ...directChildren].concat(
+    return [projectId].concat(
       directChildren.map((id) => ExtractProjects(id)).flat()
     );
   } else {
     return [projectId];
+  }
+}
+
+export function SelectTasksByProjectId(id: ProjectId): ITask[];
+export function SelectTasksByProjectId(id: ProjectId[]): ITask[];
+export function SelectTasksByProjectId(id: ProjectId | ProjectId[]): ITask[] {
+  if (Array.isArray(id)) {
+    return id.map((pid) => SelectTasksByProjectId(pid)).flat();
+  } else {
+    return store.tasks.value.filter((t) => t.projectId === id);
   }
 }

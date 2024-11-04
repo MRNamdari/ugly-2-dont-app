@@ -82,42 +82,34 @@ type SlideIndicatorsProps = {
 };
 
 export function SlideIndicators(props: SlideIndicatorsProps) {
-  const { count, active } = props;
-  const n = count > 4 ? 4 : count; // number of thumbs
-  let template = Array(count);
-  var index: number; // position of active thumb
-  if (active == count) {
-    // when active was the last item
-    index = n - 1;
-  } else if (active >= n - 1) {
-    // when active was not the last
-    // item nor the first `n-2` items
-    index = n - 2;
-  } else {
-    index = active;
+  const template = new Array(props.count).fill(0);
+  const isInRange = (index: number) =>
+    index >= 0 && index < props.count ? true : false;
+  template[props.active] = "24px";
+  for (let i = -2; i < 3; ++i) {
+    if (i == 0) continue;
+    if (Math.abs(i) === 2) {
+      if (isInRange(props.active + i)) template[props.active + i] = "4px";
+      continue;
+    }
+    if (isInRange(props.active + i)) template[props.active + i] = "6px";
   }
-  for (let i = 0; i < count; i++) template[i] = i;
-  template = template.slice(active - index, active - index + n);
-
-  const gridTemplate = Array.from(template, (i) =>
-    i == active ? "20px" : "4px"
-  );
-
-  const thumbs = Array.from(template, (i, k) => {
-    let classNames = "h-full w-full rounded-full bg-zinc-400";
-    if (k == n - 1 && i !== count - 1) classNames += " bg-zinc-300";
-    if (k == 0 && i !== 0) classNames += " bg-zinc-300";
-    return <motion.div key={i} layout className={classNames}></motion.div>;
-  });
-
   return (
     <div
-      style={{
-        gridTemplateColumns: gridTemplate.join(" "),
-      }}
-      className="mx-auto my-2 w-fit grid gap-1 items-center h-1"
+      className="mx-auto my-4 grid h-[6px] gap-1 items-center w-fit overflow-hidden transition-[grid-template-columns] ease-in-out"
+      style={{ gridTemplateColumns: template.join(" ") }}
     >
-      {thumbs}
+      {template.map((col, i) => (
+        <div
+          key={i}
+          className={
+            "rounded-full w-full transition-all " +
+            (col !== "6px" && col !== "24px"
+              ? "bg-zinc-300 h-[4px]"
+              : "bg-zinc-400 h-[6px]")
+          }
+        ></div>
+      ))}
     </div>
   );
 }

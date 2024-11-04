@@ -10,11 +10,12 @@ import {
   PanInfo,
   TargetAndTransition,
 } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DueTime, PendingTasks, ProgressPie } from "./project.ticket";
 import Button from "./button";
 import { ProjectId } from "./util";
+import { useSignalEffect } from "@preact/signals-react";
 
 const projects = store.projects;
 const categories = store.categories.value;
@@ -28,7 +29,16 @@ export default function ProjectCard(props: ProjectCardProps) {
   const router = useRouter();
   const menu = useRef<HTMLDialogElement>(null);
   const project = projects.value.find((p) => p.id === props.projectId);
-  const [allTasks, pendingTasks] = PendingTasksCount(props.id);
+  const [{ allTasks, pendingTasks }, setPendingTasksCount] = useState({
+    allTasks: 0,
+    pendingTasks: 0,
+  });
+
+  useSignalEffect(() => {
+    const [allTasks, pendingTasks] = PendingTasksCount(props.id).value;
+    setPendingTasksCount({ allTasks, pendingTasks });
+  });
+
   const progress =
     allTasks === 0 ? 0 : ((allTasks - pendingTasks) / allTasks) * 100;
   const category = categories.find((c) => c.id === props.categoryId);
@@ -143,7 +153,7 @@ export default function ProjectCard(props: ProjectCardProps) {
         )}
       </span>
       {props.description ? (
-        <p className="text-justify text-sm py-2 text-ellipsis overflow-hidden">
+        <p className="text-justify text-sm py-2 text-ellipsis overflow-auto">
           {props.description}
         </p>
       ) : (

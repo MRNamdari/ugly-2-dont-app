@@ -13,6 +13,7 @@ import IconButton from "./icon-button";
 import { motion, PanInfo } from "framer-motion";
 import { useState, MouseEvent } from "react";
 import { useRouter } from "next/navigation";
+import { useSignalEffect } from "@preact/signals-react";
 
 const tasks = store.tasks;
 const projects = store.projects;
@@ -23,7 +24,16 @@ export default function ProjectTicket(props: IProject) {
   const router = useRouter();
   const project = projects.value.find((p) => p.id === props.projectId);
   const [isSelected, setSelection] = useState<boolean>();
-  const [allTasks, pendingTasks] = PendingTasksCount(props.id);
+  const [{ allTasks, pendingTasks }, setPendingTasksCount] = useState({
+    allTasks: 0,
+    pendingTasks: 0,
+  });
+
+  useSignalEffect(() => {
+    const [allTasks, pendingTasks] = PendingTasksCount(props.id).value;
+    setPendingTasksCount({ allTasks, pendingTasks });
+  });
+
   const progress =
     allTasks === 0 ? 0 : ((allTasks - pendingTasks) / allTasks) * 100;
   const category = categories.find((c) => c.id === props.categoryId);
@@ -51,6 +61,8 @@ export default function ProjectTicket(props: IProject) {
   return (
     <motion.article
       id={props.id}
+      initial={{ opacity: 0, marginBottom: 0 }}
+      animate={{ opacity: 1, marginBottom: "1rem" }}
       exit={{ height: 0, opacity: 0, marginBottom: 0 }}
       className="relative mb-4"
     >
@@ -218,21 +230,22 @@ export function ProgressPie(props: { progress: number }) {
           cx="11"
           cy="11"
           r="5.5"
-          className="-rotate-90 origin-center"
+          className="-rotate-90 origin-center transition-[stroke-dashoffset] duration-500"
           pathLength={100.01}
           strokeWidth={11}
-          strokeDasharray={`${props.progress} ${100 - props.progress}`}
+          strokeDasharray="100 100"
+          strokeDashoffset={`${100 - props.progress}`}
         ></circle>
-        {props.progress === 100 ? (
-          <polyline
-            pathLength="1"
-            strokeDasharray="1 1"
-            stroke="var(--clr-quinary)"
-            strokeWidth={2}
-            strokeLinecap="round"
-            points="6.1 10.9 9.1 13.9 15.7 7.3"
-          ></polyline>
-        ) : null}
+
+        <polyline
+          className="transition-[stroke-dashoffset] delay-500 stroke-secondary-100"
+          pathLength="1"
+          strokeDasharray="1 1"
+          strokeDashoffset={props.progress === 100 ? "0" : "1"}
+          strokeWidth={2}
+          strokeLinecap="round"
+          points="6.1 10.9 9.1 13.9 15.7 7.3"
+        ></polyline>
       </svg>
       <div className="text-3xl leading-8">{props.progress}</div>%
     </div>

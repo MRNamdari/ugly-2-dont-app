@@ -133,7 +133,7 @@ export const tasks: ITask[] = [
     {
       title: "Plan a vacation",
       id: "t6",
-      status: true,
+      status: false,
       description: "Choose a destination and book flights and hotels",
       subtasks: [
         { title: "Research destinations", id: "104", status: false },
@@ -240,7 +240,6 @@ export const tasks: ITask[] = [
     {
       title: "Doctor's appointments",
       id: "p2",
-
       categoryId: "c2",
       due: "2023-08-28T10:00:00",
       priority: "1",

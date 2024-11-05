@@ -10,7 +10,13 @@ import { Priority } from "@/app/_store/data";
 // Signals
 import { useSignalEffect } from "@preact/signals-react/runtime";
 import { batch, computed } from "@preact/signals-react";
-import { encodeURL, modals, store } from "@/app/_store/state";
+import {
+  encodeURL,
+  TaskFormDataSignal,
+  modals,
+  store,
+  TaskToFormData,
+} from "@/app/_store/state";
 // Hooks
 import Fuse from "fuse.js";
 import { useRouter } from "next/navigation";
@@ -21,6 +27,7 @@ import IconButton from "@/app/_components/icon-button";
 import Button from "@/app/_components/button";
 import TextInput from "@/app/_components/text-input";
 import Icon from "@/app/_components/icon";
+import { motion } from "framer-motion";
 
 const cats = computed(() => store.categories.value);
 const fuseCats = new Fuse(cats.value, { keys: ["title"] });
@@ -30,13 +37,13 @@ const fusePrjs = new Fuse(prjs.value, { keys: ["title", "description"] });
 
 export default function AddTaskPage({
   params,
-  searchParams,
+  // searchParams,
 }: {
   params: { id: string };
-  searchParams: ITaskFormData;
+  // searchParams: ITaskFormData;
 }) {
   const router = useRouter();
-  const [state, setState] = useState<ITaskFormData>(searchParams);
+  const [state, setState] = useState<ITaskFormData>(TaskFormDataSignal.value);
   const form = useRef<HTMLFormElement>(null);
   const subtaskInput = useRef<HTMLInputElement>(null);
   const subtasks: ISubTask[] = Object.keys(state)
@@ -64,6 +71,10 @@ export default function AddTaskPage({
     modals.clock.signal.value = new Date("0 " + state.time);
 
   useSignalEffect(() => {
+    if (params.id) {
+      const task = store.tasks.value.find((t) => t.id == params.id);
+      task && setState(TaskToFormData(task) ?? {});
+    }
     const time = modals.clock.value.value;
     if (time.length > 0 && state.time !== time) {
       setError((e) => ({ ...e, time: false }));
@@ -74,7 +85,6 @@ export default function AddTaskPage({
       setError((e) => ({ ...e, date: false }));
       setState((s) => ({ ...s, date }));
     }
-    console.log({ date, time });
   });
 
   function mapCats<T extends { item: ICategory }>({ item }: T) {
@@ -83,7 +93,7 @@ export default function AddTaskPage({
         key={item.id}
         value={item.id}
         onSelect={(category) => setState({ ...state, category })}
-        className="menu-item-zinc-100 hover:menu-item-zinc-200 active:menu-item-zinc-300 tap-zinc-300"
+        className="menu-item-zinc-100 tap-zinc-300 hover:menu-item-zinc-200 active:menu-item-zinc-300"
       >
         {item.title}
       </MenuItem>
@@ -95,7 +105,7 @@ export default function AddTaskPage({
         key={item.id}
         value={item.id}
         onSelect={(project) => setState({ ...state, project })}
-        className="menu-item-zinc-100 hover:menu-item-zinc-200 active:menu-item-zinc-300 tap-zinc-300"
+        className="menu-item-zinc-100 tap-zinc-300 hover:menu-item-zinc-200 active:menu-item-zinc-300"
       >
         {item.title}
       </MenuItem>
@@ -104,56 +114,63 @@ export default function AddTaskPage({
 
   return (
     <>
-      <header className="grid grid-cols-[3rem_1fr_3rem] p-4  justify-center items-center">
+      <header className="grid grid-cols-[3rem_1fr_3rem] items-center justify-center p-4">
         <div>
           <IconButton
-            className="ico-lg tap-zinc-100 text-primary-900"
+            className="tap-zinc-100 ico-lg text-primary-900"
             icon="ArrowLeft"
             onClick={() => {
               router.back();
             }}
-          ></IconButton>
+          />
         </div>
-        <h1 className="text-3xl text-center self-end font-medium whitespace-nowrap overflow-hidden text-ellipsis">
+        <motion.h1
+          initial={{ transform: "translate(0,-200%)", opacity: 0 }}
+          animate={{ transform: "translate(0,0)", opacity: 1 }}
+          exit={{ transform: "translate(0,-200%)", opacity: 0 }}
+          className="self-end overflow-hidden text-ellipsis whitespace-nowrap text-center text-3xl font-medium"
+        >
           {params.id ? "Edit" : "New"} Task
-        </h1>
+        </motion.h1>
         <div>
           <IconButton
+            initial={{ opacity: 0, scale: 0.9 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
             onClick={() => {
               const f = form.current;
               if (!f) return;
               if (f.checkValidity()) {
-                new Promise((res) => {
-                  router.replace(encodeURL(state));
-                  setTimeout(() => res(true), 500);
-                }).then(() => {
-                  f.submit();
-                });
+                TaskFormDataSignal.value = state;
+                router.push("/pwa/tasks/verify");
               }
             }}
-            className="ico-lg tap-zinc-100 text-primary-900"
+            className="tap-zinc-100 ico-lg text-primary-900"
             icon="ArrowRight"
-          ></IconButton>
+          />
         </div>
       </header>
-      <form
+      <motion.form
+        exit={{ opacity: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         ref={form}
         action="/pwa/tasks/verify"
         method="GET"
-        className="flex flex-col h-full"
+        className="flex h-full flex-col"
         onSubmit={(e) => e.preventDefault()}
       >
         {params.id && (
           <input type="hidden" name="id" defaultValue={params.id} />
         )}
-        <section className="grid grid-flow-row gap-4 px-4 h-fit pt-10">
+        <section className="grid h-fit grid-flow-row gap-4 px-4 pt-10">
           {/* Title */}
           <TextInput
             className={
               (err.title
-                ? "text-error-600 bg-error-50"
-                : "text-zinc-600 bg-zinc-100") +
-              " text-input-md group *:transition-colors"
+                ? "bg-error-50 text-error-600"
+                : "bg-zinc-100 text-zinc-600") +
+              " group text-input-md *:transition-colors"
             }
             error={<Error visible={err.title}>* add a title</Error>}
           >
@@ -176,11 +193,11 @@ export default function AddTaskPage({
                 }
               }}
               placeholder="Title*"
-              className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-zinc-400 peer"
+              className="peer placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-zinc-400"
             />
           </TextInput>
           {/* Description */}
-          <TextInput className=" text-input-md text-zinc-600 bg-zinc-100 group *:transition-colors">
+          <TextInput className="group text-input-md bg-zinc-100 text-zinc-600 *:transition-colors">
             <Icon
               label="PlusCircle"
               className="ico-md group-focus-within:text-zinc-400"
@@ -203,7 +220,7 @@ export default function AddTaskPage({
               <Button
                 leadingIcon="Calendar"
                 className={
-                  "btn-md tap-zinc-200 " +
+                  "tap-zinc-200 btn-md " +
                   (err.date
                     ? "bg-error-50 text-error-600"
                     : "bg-zinc-100 text-zinc-600")
@@ -213,14 +230,14 @@ export default function AddTaskPage({
                   if (state.date)
                     modals.calendar.signal.value = new Date(state.date);
                   const cal = document.querySelector(
-                    "#calendar"
+                    "#calendar",
                   ) as HTMLDialogElement;
                   cal.showModal();
                 }}
                 onTap={(e) =>
                   setTimeout(
                     () => (e.target as HTMLElement).removeAttribute("style"),
-                    600
+                    600,
                   )
                 }
               >
@@ -245,7 +262,7 @@ export default function AddTaskPage({
               <Button
                 leadingIcon="Clock"
                 className={
-                  "btn-md tap-zinc-200 " +
+                  "tap-zinc-200 btn-md " +
                   (err.time
                     ? "bg-error-50 text-error-600"
                     : "bg-zinc-100 text-zinc-600")
@@ -253,14 +270,14 @@ export default function AddTaskPage({
                 onClick={(e) => {
                   e.preventDefault();
                   const clk = document.querySelector(
-                    "#clock"
+                    "#clock",
                   ) as HTMLDialogElement;
                   clk.showModal();
                 }}
                 onTap={(e) =>
                   setTimeout(
                     () => (e.target as HTMLElement).removeAttribute("style"),
-                    600
+                    600,
                   )
                 }
               >
@@ -291,10 +308,10 @@ export default function AddTaskPage({
               name: prjs.value.find((p) => p.id == state.project)?.title,
               value: state.project,
             }}
-            className=" menu-zinc-100 menu-md menu-filled tap-zinc-200 text-zinc-600"
+            className="menu-zinc-100 tap-zinc-200 menu-md menu-filled text-zinc-600"
           >
             <MenuItem searchbar className="">
-              <TextInput className=" text-input-md text-zinc-600 bg-zinc-100 group *:transition-colors rounded-none">
+              <TextInput className="group text-input-md rounded-none bg-zinc-100 text-zinc-600 *:transition-colors">
                 <Icon label="Search" className="ico-sm" />
                 <input
                   type="text"
@@ -321,10 +338,10 @@ export default function AddTaskPage({
               name: cats.value.find((c) => c.id == state.category)?.title,
               value: state.category,
             }}
-            className=" menu-zinc-100 menu-md menu-filled tap-zinc-200 text-zinc-600"
+            className="menu-zinc-100 tap-zinc-200 menu-md menu-filled text-zinc-600"
           >
             <MenuItem searchbar className="">
-              <TextInput className=" text-input-md text-zinc-600 bg-zinc-100 group *:transition-colors rounded-none">
+              <TextInput className="group text-input-md rounded-none bg-zinc-100 text-zinc-600 *:transition-colors">
                 <Icon label="Search" className="ico-sm" />
                 <input
                   type="text"
@@ -346,7 +363,7 @@ export default function AddTaskPage({
           <div className="grid grid-cols-2 gap-[inherit]">
             <Button
               leadingIcon="Bell"
-              className="btn-md bg-zinc-100 text-zinc-600 tap-zinc-200"
+              className="tap-zinc-200 btn-md bg-zinc-100 text-zinc-600"
             >
               Reminder
             </Button>
@@ -362,7 +379,7 @@ export default function AddTaskPage({
                     }
                   : undefined
               }
-              className=" menu-zinc-100 menu-md menu-filled tap-zinc-200 text-zinc-600"
+              className="menu-zinc-100 tap-zinc-200 menu-md menu-filled text-zinc-600"
             >
               <MenuItem
                 value="2"
@@ -388,11 +405,11 @@ export default function AddTaskPage({
             </Menu>
           </div>
         </section>
-        <section className="place-self-end w-full h-full flex flex-col justify-end">
+        <section className="flex h-full w-full flex-col justify-end place-self-end">
           {subtasks.map((st) => (
             <TextInput
               key={st.id}
-              className=" text-input-sm text-white bg-primary-800 group *:transition-colors rounded-none border-b-2 px-1 border-primary-600"
+              className="group text-input-sm rounded-none border-b-2 border-primary-600 bg-primary-800 px-1 text-white *:transition-colors"
             >
               <Icon
                 label="Hash"
@@ -420,7 +437,7 @@ export default function AddTaskPage({
               />
               <IconButton
                 icon="X"
-                className="ico-sm rounded-none tap-primary-600"
+                className="tap-primary-600 ico-sm rounded-none"
                 onClick={(e) => {
                   e.preventDefault();
                   delete state[`st${st.id}`];
@@ -431,7 +448,7 @@ export default function AddTaskPage({
             </TextInput>
           ))}
 
-          <TextInput className=" text-input-md text-white bg-primary-800 group *:transition-colors rounded-none">
+          <TextInput className="group text-input-md rounded-none bg-primary-800 text-white *:transition-colors">
             <input
               ref={subtaskInput}
               type="text"
@@ -440,7 +457,7 @@ export default function AddTaskPage({
             />
             <IconButton
               icon="Plus"
-              className="ico-md rounded-none tap-primary-600"
+              className="tap-primary-600 ico-md rounded-none"
               onClick={(e) => {
                 e.preventDefault();
                 const val = subtaskInput.current?.value;
@@ -448,7 +465,7 @@ export default function AddTaskPage({
                   const id =
                     subtasks.reduce(
                       (p, c) => (p > parseInt(c.id) ? p : parseInt(c.id)),
-                      0
+                      0,
                     ) + 1;
 
                   setState({
@@ -463,7 +480,7 @@ export default function AddTaskPage({
             />
           </TextInput>
         </section>
-      </form>
+      </motion.form>
     </>
   );
 }
@@ -472,7 +489,7 @@ function Error(props: { children: React.ReactNode; visible: boolean }) {
   return (
     <p
       className={
-        "text-sm px-2 text-error-500 transition-[height] overflow-hidden " +
+        "overflow-hidden px-2 text-sm text-error-500 transition-[height] " +
         (props.visible ? "h-5" : "h-0")
       }
     >

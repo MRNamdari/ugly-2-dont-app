@@ -4,7 +4,7 @@ import TaskTicket from "@/app/_components/task.ticket";
 import { ITask } from "@/app/_store/data";
 import { store } from "@/app/_store/state";
 import { useSignalEffect } from "@preact/signals-react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
 const Tasks = store.tasks;
@@ -16,24 +16,32 @@ export default function TaskBrowserPage() {
   });
   return (
     <>
-      <header className="grid grid-cols-[3rem_1fr_3rem] p-4  justify-center items-center">
+      <header className="grid grid-cols-[3rem_1fr_3rem] items-center justify-center p-4">
         <div>
           <IconButton
-            className="ico-lg tap-zinc-100 text-primary-900"
+            className="tap-zinc-100 ico-lg text-primary-900"
             icon="ArrowLeft"
           ></IconButton>
         </div>
-        <h1 className="text-3xl text-center self-end font-medium whitespace-nowrap overflow-hidden text-ellipsis">
+        <motion.h1
+          initial={{ transform: "translate(0,-200%)", opacity: 0 }}
+          animate={{ transform: "translate(0,0)", opacity: 1 }}
+          exit={{ transform: "translate(0,-200%)", opacity: 0 }}
+          className="self-end overflow-hidden text-ellipsis whitespace-nowrap text-center text-3xl font-medium"
+        >
           Tasks
-        </h1>
+        </motion.h1>
         <div>
           <IconButton
-            className="ico-lg tap-zinc-100 text-primary-900"
+            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="tap-zinc-100 ico-lg text-primary-900"
             icon="Sliders"
           ></IconButton>
         </div>
       </header>
-      <section className="p-4 h-full overflow-auto">
+      <section className="h-full overflow-auto p-4">
         <AnimatePresence>
           {tasks.map((t) => (
             <TaskTicket key={t.id} {...t} />

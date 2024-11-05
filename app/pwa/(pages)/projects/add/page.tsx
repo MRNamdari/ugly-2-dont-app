@@ -16,7 +16,7 @@ import IconButton from "@/app/_components/icon-button";
 import Button from "@/app/_components/button";
 import TextInput from "@/app/_components/text-input";
 import Icon from "@/app/_components/icon";
-
+import { motion } from "framer-motion";
 const cats = computed(() => store.categories.value);
 const fuseCats = new Fuse(cats.value, { keys: ["title"] });
 
@@ -60,7 +60,6 @@ export default function AddProjectPage({
       setError((e) => ({ ...e, date: false }));
       setState((s) => ({ ...s, date }));
     }
-    console.log({ date, time });
   });
 
   function mapCats<T extends { item: ICategory }>({ item }: T) {
@@ -117,18 +116,29 @@ export default function AddProjectPage({
             }}
           ></IconButton>
         </div>
-        <h1 className="text-3xl text-center self-end font-medium whitespace-nowrap overflow-hidden text-ellipsis">
+        <motion.h1
+          initial={{ transform: "translate(0,-200%)", opacity: 0 }}
+          animate={{ transform: "translate(0,0)", opacity: 1 }}
+          exit={{ transform: "translate(0,-200%)", opacity: 0 }}
+          className="text-3xl text-center self-end font-medium whitespace-nowrap overflow-hidden text-ellipsis"
+        >
           {params.id ? "Edit" : "New"} Project
-        </h1>
+        </motion.h1>
         <div>
           <IconButton
+            initial={{ opacity: 0, scale: 0.9 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
             onClick={handleSubmit}
             className="ico-lg tap-zinc-100 text-primary-900"
             icon="Check"
-          ></IconButton>
+          />
         </div>
       </header>
-      <form
+      <motion.form
+        initial={{ opacity: 0 }}
+        exit={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         ref={form}
         action="/pwa/tasks/verify"
         method="GET"
@@ -380,7 +390,7 @@ export default function AddProjectPage({
             </Menu>
           </div>
         </section>
-      </form>
+      </motion.form>
     </>
   );
 }

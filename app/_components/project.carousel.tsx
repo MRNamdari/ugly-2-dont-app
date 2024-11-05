@@ -1,80 +1,91 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useImperativeHandle, forwardRef } from "react";
 import { IProject, ProjectId } from "../_store/data";
-import { AnimatePresence, motion, useMotionValue } from "framer-motion";
+import { AnimatePresence, useMotionValue } from "framer-motion";
 import ProjectCard from "./project.card";
 import { store } from "../_store/state";
 import { useSignalEffect } from "@preact/signals-react";
 
 const projectsSignal = store.projects;
-export default function ProjectsCarousel(props: {
-  defaultProject: ProjectId;
-  onProjectChange: (id: ProjectId) => void;
-}) {
-  const [projects, setProjects] = useState<IProject[]>([]);
-  const [active, setActiveProject] = useState<ProjectId>(props.defaultProject);
-  const offset = projects.findIndex((p) => p.id === active);
+type ProjectsCarouselProps = {
+  default: ProjectId;
+  value?: ProjectId;
+  onChange: (id: ProjectId) => void;
+};
+export type ProjectCarouselRef = { setActive: (id: ProjectId) => void };
+export default forwardRef<ProjectCarouselRef, ProjectsCarouselProps>(
+  function ProjectsCarousel(props: ProjectsCarouselProps, ref) {
+    const [projects, setProjects] = useState<IProject[]>([]);
+    const [active, setActiveProject] = useState<ProjectId>(props.default);
+    const offset = projects.findIndex((p) => p.id === active);
 
-  useSignalEffect(() => {
-    setProjects(projectsSignal.value);
-  });
-  useEffect(() => {
-    props.onProjectChange(active);
-  }, [active]);
-  const ref = useRef<HTMLDivElement>(null);
-  const x = useMotionValue(0);
+    useSignalEffect(() => {
+      setProjects(projectsSignal.value);
+    });
 
-  return (
-    <>
-      <div
-        ref={ref}
-        className="w-screen whitespace-nowrap overflow-hidden h-[11.5rem] "
-      >
-        <AnimatePresence>
-          {projects.map((p, i) => {
-            if (i == 0) {
+    useEffect(() => {
+      props.onChange(active);
+    }, [active]);
+
+    const x = useMotionValue(0);
+    useImperativeHandle(ref, () => {
+      return {
+        setActive(id: ProjectId) {
+          setActiveProject(id);
+        },
+      };
+    });
+    return (
+      <>
+        <div className="max-w-screen-sm whitespace-nowrap overflow-hidden h-[11.5rem] ">
+          <AnimatePresence>
+            {projects.map((p, i) => {
+              if (i == 0) {
+                return (
+                  <ProjectCard
+                    key={p.id}
+                    {...p}
+                    x={x}
+                    animate={{
+                      marginLeft: `calc(-${offset * 100}% + ${offset + 1}rem)`,
+                    }}
+                    onDelete={() => {
+                      if (i + 1 in projects)
+                        setActiveProject(projects[i + 1].id);
+                    }}
+                    onDrag={(e, dir) => {
+                      if (dir == 1 && i + 1 in projects) {
+                        setActiveProject(projects[i + 1].id);
+                      }
+                    }}
+                  />
+                );
+              }
               return (
                 <ProjectCard
                   key={p.id}
                   {...p}
                   x={x}
-                  animate={{
-                    marginLeft: `calc(-${offset * 100}% + ${offset + 1}rem)`,
-                  }}
                   onDelete={() => {
-                    if (i + 1 in projects) setActiveProject(projects[i + 1].id);
+                    setActiveProject(projects[i - 1].id);
                   }}
                   onDrag={(e, dir) => {
-                    if (dir == 1 && i + 1 in projects) {
-                      setActiveProject(projects[i + 1].id);
+                    if (dir == 1) {
+                      if (i + 1 in projects)
+                        setActiveProject(projects[i + 1].id);
+                    } else {
+                      setActiveProject(projects[i - 1].id);
                     }
                   }}
                 />
               );
-            }
-            return (
-              <ProjectCard
-                key={p.id}
-                {...p}
-                x={x}
-                onDelete={() => {
-                  setActiveProject(projects[i - 1].id);
-                }}
-                onDrag={(e, dir) => {
-                  if (dir == 1) {
-                    if (i + 1 in projects) setActiveProject(projects[i + 1].id);
-                  } else {
-                    setActiveProject(projects[i - 1].id);
-                  }
-                }}
-              />
-            );
-          })}
-        </AnimatePresence>
-      </div>
-      <SlideIndicators count={projects.length} active={offset} />
-    </>
-  );
-}
+            })}
+          </AnimatePresence>
+        </div>
+        <SlideIndicators count={projects.length} active={offset} />
+      </>
+    );
+  }
+);
 
 type SlideIndicatorsProps = {
   count: number;

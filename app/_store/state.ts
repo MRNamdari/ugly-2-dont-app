@@ -26,7 +26,7 @@ export const modals = (function modal() {
     calendar: {
       signal: calendar,
       display: computed(() =>
-        calendar.value ? date2display(calendar.value) : "Date*"
+        calendar.value ? date2display(calendar.value) : "Date*",
       ),
       value: computed(() => {
         const date = calendar.value;
@@ -39,7 +39,7 @@ export const modals = (function modal() {
     clock: {
       signal: clock,
       display: computed(() =>
-        clock.value ? timeToLocalTime(clock.value) : "Time*"
+        clock.value ? timeToLocalTime(clock.value) : "Time*",
       ),
       value: computed(() => {
         const date = clock.value;
@@ -51,6 +51,13 @@ export const modals = (function modal() {
     },
     delete: {
       message: signal<string>(""),
+    },
+    add: {
+      buttons: signal<{
+        category?: string;
+        project?: string;
+        task?: string;
+      }>({}),
     },
   };
 })();
@@ -65,7 +72,7 @@ export const store = {
 };
 
 export const isSelectionStarted = computed(
-  () => store.selection.value.length > 0
+  () => store.selection.value.length > 0,
 );
 
 export function encodeURL(struct: any) {
@@ -208,7 +215,7 @@ export function ExtractProjects(projectId: ProjectId): ProjectId[] {
     .map((p) => p.id);
   if (directChildren.length > 0) {
     return [projectId].concat(
-      directChildren.map((id) => ExtractProjects(id)).flat()
+      directChildren.map((id) => ExtractProjects(id)).flat(),
     );
   } else {
     return [projectId];
@@ -224,3 +231,5 @@ export function SelectTasksByProjectId(id: ProjectId | ProjectId[]): ITask[] {
     return store.tasks.value.filter((t) => t.projectId === id);
   }
 }
+
+export const TaskFormDataSignal = signal<ITaskFormData>({});

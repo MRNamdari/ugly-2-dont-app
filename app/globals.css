@@ -79,6 +79,9 @@ body {
 
 .dropdown-modal[open] {
   transform: translateY(0);
+  @starting-style {
+    transform: translateY(-100%);
+  }
 }
 
 .dropdown-modal {
@@ -93,6 +96,10 @@ body {
 
 .popup-modal[open] {
   @apply opacity-100 scale-100;
+  @starting-style {
+    opacity: 0;
+    transform: scale(0.9);
+  }
 }
 .popup-modal {
   @apply opacity-0 scale-90;
@@ -103,15 +110,6 @@ body {
     display 150ms allow-discrete;
 }
 
-@starting-style {
-  .dropdown-modal[open] {
-    transform: translateY(-100%);
-  }
-  .popup-modal[open] {
-    @apply opacity-0 scale-90;
-  }
-}
-
 /* Transition for the popover's backdrop */
 
 .dropdown-modal::backdrop,
@@ -120,20 +118,13 @@ body {
   transition:
     display 0.3s allow-discrete,
     overlay 0.3s allow-discrete,
-    background-color 0.3s;
+    background-color 250ms;
 }
 
 .dropdown-modal[open]::backdrop,
-.popup-modal::backdrop {
+.popup-modal[open]::backdrop {
   background-color: rgb(0 0 0 / 25%);
-}
-
-/* Nesting selectors (&) cannot represent pseudo-elements, so this 
-   starting-style rule cannot be nested. */
-
-@starting-style {
-  .dropdown-modal[open]::backdrop,
-  .popup-modal::backdrop {
+  @starting-style {
     background-color: rgb(0 0 0 / 0%);
   }
 }

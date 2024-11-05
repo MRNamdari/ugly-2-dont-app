@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ICategory, IProject } from "../_store/data";
+import { ICategory, IProject, ProjectId } from "../_store/data";
 import Icon from "./icon";
 import {
   isSelectionStarted,
@@ -15,12 +15,14 @@ import { useState, MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useSignalEffect } from "@preact/signals-react";
 
-const tasks = store.tasks;
 const projects = store.projects;
 const categories = store.categories.value;
 const selection = store.selection;
 
-export default function ProjectTicket(props: IProject) {
+type ProjectTicketProps = IProject & {
+  onOpen?: (e: MouseEvent, id: ProjectId) => void;
+};
+export default function ProjectTicket(props: ProjectTicketProps) {
   const router = useRouter();
   const project = projects.value.find((p) => p.id === props.projectId);
   const [isSelected, setSelection] = useState<boolean>();
@@ -97,7 +99,10 @@ export default function ProjectTicket(props: IProject) {
       >
         <span className="grid grid-cols-[auto_2rem]">
           <h4 className="font-medium text-lg self-center">{props.title}</h4>
-          <Link href={"/pwa/projects/details/" + props.id}>
+          <Link
+            href={"/pwa/projects/details/" + props.id}
+            onClick={(e) => props.onOpen && props.onOpen(e, props.id)}
+          >
             <IconButton
               icon="ExternalLink"
               className="ico-md tap-gray-200 text-primary-700"
@@ -108,6 +113,7 @@ export default function ProjectTicket(props: IProject) {
           <Link
             className="underline"
             href={"../projects/details/" + project?.id}
+            onClick={(e) => props.onOpen && props.onOpen(e, props.id)}
           >
             {project?.title}
           </Link>

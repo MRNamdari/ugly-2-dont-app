@@ -31,7 +31,7 @@ export default function TaskTicket(props: ITask) {
   const [isChecked, setCheckbox] = useState<boolean>(
     hasSubtasks ? subtaskProgress == 1 : props.status
   );
-  console.log(isChecked);
+
   const progress = hasSubtasks ? subtaskProgress : isChecked ? 1 : 0;
 
   const clickEvent = useRef({ timeStamp: 0 });

@@ -20,6 +20,7 @@ export default forwardRef<ProjectCarouselRef, ProjectsCarouselProps>(
 
     useSignalEffect(() => {
       setProjects(projectsSignal.value);
+      console.log(projectsSignal.value);
     });
 
     useEffect(() => {
@@ -36,7 +37,7 @@ export default forwardRef<ProjectCarouselRef, ProjectsCarouselProps>(
     });
     return (
       <>
-        <div className="max-w-screen-sm whitespace-nowrap overflow-hidden h-[11.5rem] ">
+        <div className="h-[11.5rem] max-w-screen-sm overflow-hidden whitespace-nowrap">
           <AnimatePresence>
             {projects.map((p, i) => {
               if (i == 0) {
@@ -84,7 +85,7 @@ export default forwardRef<ProjectCarouselRef, ProjectsCarouselProps>(
         <SlideIndicators count={projects.length} active={offset} />
       </>
     );
-  }
+  },
 );
 
 type SlideIndicatorsProps = {
@@ -107,17 +108,17 @@ export function SlideIndicators(props: SlideIndicatorsProps) {
   }
   return (
     <div
-      className="mx-auto my-4 grid h-[6px] gap-1 items-center w-fit overflow-hidden transition-[grid-template-columns] ease-in-out"
+      className="mx-auto my-4 grid h-[6px] w-fit items-center gap-1 overflow-hidden transition-[grid-template-columns] ease-in-out"
       style={{ gridTemplateColumns: template.join(" ") }}
     >
       {template.map((col, i) => (
         <div
           key={i}
           className={
-            "rounded-full w-full transition-all " +
+            "w-full rounded-full transition-all " +
             (col !== "6px" && col !== "24px"
-              ? "bg-zinc-300 h-[4px]"
-              : "bg-zinc-400 h-[6px]")
+              ? "h-[4px] bg-zinc-300"
+              : "h-[6px] bg-zinc-400")
           }
         ></div>
       ))}

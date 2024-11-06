@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { IProject, Priority } from "../_store/data";
-import { modals, PendingTasksCount, store } from "../_store/state";
+import {
+  modals,
+  PendingTasksCount,
+  RemoveProjectById,
+  store,
+} from "../_store/state";
 import IconButton from "./icon-button";
 import {
   motion,
@@ -12,10 +17,11 @@ import {
 } from "framer-motion";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { DueTime, PendingTasks, ProgressPie } from "./project.ticket";
+import { DueTime, PendingTasks } from "./project.ticket";
 import Button from "./button";
 import { ProjectId } from "./util";
 import { useSignalEffect } from "@preact/signals-react";
+import ProgressPie from "./progress-pie";
 
 const projects = store.projects;
 const categories = store.categories.value;
@@ -35,8 +41,13 @@ export default function ProjectCard(props: ProjectCardProps) {
   });
 
   useSignalEffect(() => {
-    const [allTasks, pendingTasks] = PendingTasksCount(props.id).value;
-    setPendingTasksCount({ allTasks, pendingTasks });
+    // const [allTasks, pendingTasks] = PendingTasksCount(props.id).value;
+    // setPendingTasksCount({ allTasks, pendingTasks });
+    new Promise<number[]>((resolve) =>
+      resolve(PendingTasksCount(props.id).value),
+    ).then(([allTasks, pendingTasks]) =>
+      setPendingTasksCount({ allTasks, pendingTasks }),
+    );
   });
 
   const progress =
@@ -44,12 +55,12 @@ export default function ProjectCard(props: ProjectCardProps) {
   const category = categories.find((c) => c.id === props.categoryId);
 
   function onDelete() {
-    modals.delete.message.value = `Sure wanna delete “${props.title}” project?`;
+    modals.delete.message.value = `Sure wanna delete “${props.title}” and all its tasks and projects?`;
     const deleteModal = document.getElementById("delete") as HTMLDialogElement;
     deleteModal.onclose = (e) => {
       if (deleteModal.returnValue === "true") {
         props.onDelete && props.onDelete();
-        projects.value = projects.value.filter((p) => p.id !== props.id);
+        RemoveProjectById(props.id);
       }
     };
     menu.current?.close();
@@ -71,14 +82,14 @@ export default function ProjectCard(props: ProjectCardProps) {
           if (info.offset.x < 0) props.onDrag(e, 1);
         }
       }}
-      className="relative w-[calc(100%-2rem)] mx-2 first:ml-4 last:mr-4 h-full inline-flex flex-col whitespace-normal rounded-3xl p-6 pt-2 bg-secondary-100"
+      className="relative mx-2 inline-flex h-full w-[calc(100%-2rem)] flex-col whitespace-normal rounded-3xl bg-secondary-100 p-6 pt-2 first:ml-4 last:mr-4"
     >
       <span className="grid grid-cols-[auto_2rem]">
-        <h4 className="font-medium text-lg self-center">{props.title}</h4>
+        <h4 className="self-center text-lg font-medium">{props.title}</h4>
         <span className="relative">
           <IconButton
             icon="MoreHorizontal"
-            className="ico-md tap-secondary-200 text-primary-700"
+            className="tap-secondary-200 ico-md text-primary-700"
             onClick={() => {
               menu.current?.showModal();
             }}
@@ -86,7 +97,7 @@ export default function ProjectCard(props: ProjectCardProps) {
           <dialog
             ref={menu}
             className={
-              "popup-modal bg-transparent max-w-screen-sm w-5/6 overflow-hidden"
+              "popup-modal w-5/6 max-w-screen-sm overflow-hidden bg-transparent"
             }
             onClick={(e) => {
               const rect = menu.current?.getBoundingClientRect();
@@ -104,15 +115,18 @@ export default function ProjectCard(props: ProjectCardProps) {
             <Button
               leadingIcon="Trash"
               onClick={onDelete}
-              className="btn-md bg-error-100 tap-error-200 text-error-600 rounded-b-none"
+              className="tap-error-200 btn-md rounded-b-none bg-error-100 text-error-600"
             >
               Delete “{props.title}”
             </Button>
 
             <Button
               leadingIcon="Edit2"
-              onClick={() => router.push("/pwa/projects/edit/" + props.id)}
-              className="btn-md bg-warning-100 tap-warning-200 text-warning-700 rounded-t-none"
+              onClick={() => {
+                menu.current?.close();
+                router.push("/pwa/projects/edit/" + props.id);
+              }}
+              className="tap-warning-200 btn-md rounded-t-none bg-warning-100 text-warning-700"
             >
               Edit “{props.title}”
             </Button>
@@ -120,18 +134,20 @@ export default function ProjectCard(props: ProjectCardProps) {
         </span>
       </span>
       <span>
-        <h5 className="text-primary-600 text-base inline">
-          <Link
-            className="underline"
-            href={"../projects/details/" + project?.id}
-          >
-            {project?.title}
-          </Link>
+        <h5 className="inline text-base text-primary-600">
+          {project && (
+            <Link
+              className="underline"
+              href={"/pwa/projects/details/" + project.id}
+            >
+              {project.title}
+            </Link>
+          )}
           {category && project && " • "}
           {category && (
             <Link
               className="underline"
-              href={"../categories/details/" + category.id}
+              href={"/pwa/categories/details/" + category.id}
             >
               {category.title}
             </Link>
@@ -140,11 +156,11 @@ export default function ProjectCard(props: ProjectCardProps) {
         {props.priority && (
           <label
             className={
-              "text-xs px-1 rounded-sm float-end " +
+              "float-end rounded-sm px-1 text-xs " +
               (props.priority === "0"
-                ? "bg-error-100 text-error-600 "
+                ? "bg-error-100 text-error-600"
                 : props.priority === "1"
-                  ? "bg-warning-100 text-warning-600 "
+                  ? "bg-warning-100 text-warning-600"
                   : "bg-secondary-200 text-secondary-800")
             }
           >
@@ -153,13 +169,13 @@ export default function ProjectCard(props: ProjectCardProps) {
         )}
       </span>
       {props.description ? (
-        <p className="text-justify text-sm py-2 text-ellipsis overflow-auto">
+        <p className="overflow-auto text-ellipsis py-2 text-justify text-sm">
           {props.description}
         </p>
       ) : (
         <div className="h-full w-full"></div>
       )}
-      <div className="justify-self-end flex justify-between items-center text-primary-700 pt-2">
+      <div className="flex items-center justify-between justify-self-end pt-2 text-primary-700">
         <ProgressPie {...{ progress }} />
         <PendingTasks pending={pendingTasks} />
         <DueTime due={new Date(props.due)} />

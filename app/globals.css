@@ -31,7 +31,7 @@ body {
   .menu {
     @apply w-full min-w-0;
     & .menu-button {
-      @apply flex justify-center items-center w-full text-left;
+      @apply flex w-full items-center justify-center text-left;
     }
     & .menu-list {
       @apply max-h-48 overflow-y-auto bg-inherit;
@@ -43,7 +43,7 @@ body {
       @apply grid-rows-[1fr] opacity-100;
     }
     & .menu-list-wrapper {
-      @apply grid grid-rows-[0fr] duration-150 z-10 opacity-0 relative w-full overflow-hidden;
+      @apply relative z-10 grid w-full grid-rows-[0fr] overflow-hidden opacity-0 duration-150;
       transition-property: grid, opacity, margin;
     }
   }
@@ -51,20 +51,20 @@ body {
   .subtask {
     & svg {
       & circle:first-child {
-        @apply transition-all duration-200 fill-white stroke-gray-200;
+        @apply fill-white stroke-gray-200 transition-all duration-200;
       }
       & circle:nth-child(2) {
-        @apply fill-white  rotate-[200deg] origin-center transition-all duration-200;
+        @apply origin-center rotate-[200deg] fill-white transition-all duration-200;
       }
       & polyline {
-        @apply fill-none stroke-white transition-all duration-200 delay-150;
+        @apply fill-none stroke-white transition-all delay-150 duration-200;
         stroke-dashoffset: -1;
       }
     }
 
     & input[checked] + svg {
       & circle:first-child {
-        @apply stroke-transparent fill-current;
+        @apply fill-current stroke-transparent;
       }
       & circle:nth-child(2) {
         @apply fill-current stroke-current;
@@ -95,14 +95,16 @@ body {
 }
 
 .popup-modal[open] {
-  @apply opacity-100 scale-100;
+  opacity: 1;
+  transform: scale(1);
   @starting-style {
     opacity: 0;
     transform: scale(0.9);
   }
 }
 .popup-modal {
-  @apply opacity-0 scale-90;
+  opacity: 0;
+  transform: scale(0.9);
   transition:
     opacity 150ms ease-in-out,
     transform 150ms ease-in-out,

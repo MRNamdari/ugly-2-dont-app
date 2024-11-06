@@ -1,7 +1,13 @@
 import Icon from "@/app/_components/icon";
 import { date2display } from "@/app/_components/util";
 import { ISubTask, ITask, Priority } from "@/app/_store/data";
-import { isSelectionStarted, modals, store } from "@/app/_store/state";
+import {
+  AddToSelection,
+  isSelectionStarted,
+  modals,
+  RemoveFromSelection,
+  store,
+} from "@/app/_store/state";
 import { useSignalEffect } from "@preact/signals-react";
 import { motion, PanInfo } from "framer-motion";
 import Link from "next/link";
@@ -19,17 +25,21 @@ export default function TaskTicket(props: ITask) {
   const category = categories.find((c) => c.id === props.categoryId);
   const [isExpanded, setExpansion] = useState<boolean>(false);
   const [isSelected, setSelection] = useState<boolean>(
-    selection.value.includes(props.id)
+    selection.value.includes(props.id),
   );
+  useSignalEffect(() => {
+    if (selection.value.includes(props.id)) setSelection(true);
+    else setSelection(false);
+  });
   const hasSubtasks =
     Array.isArray(props.subtasks) && props.subtasks.length > 0;
   const [status, setStatus] = useState(
-    props.subtasks?.map((st) => st.status) ?? []
+    props.subtasks?.map((st) => st.status) ?? [],
   );
   const subtaskProgress =
     status.reduce((p, c) => p + (c ? 1 : 0), 0) / status.length;
   const [isChecked, setCheckbox] = useState<boolean>(
-    hasSubtasks ? subtaskProgress == 1 : props.status
+    hasSubtasks ? subtaskProgress == 1 : props.status,
   );
 
   const progress = hasSubtasks ? subtaskProgress : isChecked ? 1 : 0;
@@ -66,13 +76,13 @@ export default function TaskTicket(props: ITask) {
   }
   function SubtaskChangeHandlerMapper(st: ISubTask, i: number) {
     return function SubtaskCheckboxChangeHandler(
-      e: ChangeEvent<HTMLInputElement>
+      e: ChangeEvent<HTMLInputElement>,
     ) {
       setStatus(
         status.map((s, idx) => {
           if (idx == i) return e.target.checked;
           return s;
-        })
+        }),
       );
       onSubtaskStatusChange(props.id, st.id, e.target.checked);
     };
@@ -93,10 +103,10 @@ export default function TaskTicket(props: ITask) {
     }
     if (isSelectionStarted.value) {
       if (isSelected) {
-        selection.value = selection.value.filter((id) => id !== props.id);
+        RemoveFromSelection(props.id);
         setSelection(false);
       } else {
-        selection.value = [...selection.value, props.id];
+        AddToSelection(props.id);
         setSelection(true);
       }
       return;
@@ -137,10 +147,10 @@ export default function TaskTicket(props: ITask) {
       id={props.id}
       exit={{ height: 0, opacity: 0, marginBottom: 0 }}
     >
-      <div className="absolute h-5/6 w-1/2 left-2 top-1/2 -translate-y-1/2 -z-10 rounded-l-2xl bg-error-100  flex justify-start items-center p-4">
+      <div className="absolute left-2 top-1/2 -z-10 flex h-5/6 w-1/2 -translate-y-1/2 items-center justify-start rounded-l-2xl bg-error-100 p-4">
         <Icon label="Trash" size={24} className="size-6 text-error-500" />
       </div>
-      <div className="absolute h-5/6 w-1/2 right-2 top-1/2 -translate-y-1/2 -z-10 rounded-r-2xl bg-warning-100  flex justify-end items-center p-4">
+      <div className="absolute right-2 top-1/2 -z-10 flex h-5/6 w-1/2 -translate-y-1/2 items-center justify-end rounded-r-2xl bg-warning-100 p-4">
         <Icon label="Edit" size={24} className="size-6 text-warning-600" />
       </div>
       <motion.div
@@ -150,7 +160,7 @@ export default function TaskTicket(props: ITask) {
         dragElastic={0.3}
         dragTransition={{ bounceStiffness: 400 }}
         aria-selected={isSelected}
-        className="grid gap-2 rounded-3xl p-6 aria-selected:bg-secondary-50 bg-gray-100"
+        className="grid gap-2 rounded-3xl bg-gray-100 p-6 aria-selected:bg-secondary-50"
         onClick={ClickHandler}
         onDoubleClick={DoubleClickHandler}
         onContextMenu={ContextMenuHandler}
@@ -161,7 +171,7 @@ export default function TaskTicket(props: ITask) {
           <span className="relative">
             <input
               type="checkbox"
-              className=" appearance-none absolute inset-0 w-full h-full"
+              className="absolute inset-0 h-full w-full appearance-none"
               defaultChecked={isChecked}
               onChange={MainCheckboxChangeHandler}
             />
@@ -177,7 +187,7 @@ export default function TaskTicket(props: ITask) {
                 className={
                   "transition-all duration-500 " +
                   (progress === 1
-                    ? "stroke-current fill-current"
+                    ? "fill-current stroke-current"
                     : "fill-white stroke-gray-200")
                 }
                 strokeWidth={4}
@@ -186,7 +196,7 @@ export default function TaskTicket(props: ITask) {
                 cx={18}
                 cy={18}
                 r={15}
-                className="fill-none rotate-[200deg] origin-center transition-all duration-500 "
+                className="origin-center rotate-[200deg] fill-none transition-all duration-500"
                 stroke="currentColor"
                 strokeWidth={4}
                 pathLength={0.99}
@@ -195,7 +205,7 @@ export default function TaskTicket(props: ITask) {
                 strokeDashoffset={-1 + progress}
               ></circle>
               <polyline
-                className="fill-none stroke-white transition-all duration-500 delay-300"
+                className="fill-none stroke-white transition-all delay-300 duration-500"
                 pathLength={0.99}
                 strokeWidth={3}
                 strokeLinecap="round"
@@ -207,18 +217,20 @@ export default function TaskTicket(props: ITask) {
             </svg>
           </span>
         </span>
-        <h5 className="text-primary-600 text-base">
-          <Link
-            className="underline"
-            href={"../projects/details/" + project?.id}
-          >
-            {project?.title}
-          </Link>
+        <h5 className="text-base text-primary-600">
+          {project && (
+            <Link
+              className="underline"
+              href={"/pwa/projects/details/" + project.id}
+            >
+              {project.title}
+            </Link>
+          )}
           {category && project && " • "}
           {category && (
             <Link
               className="underline"
-              href={"../categories/details/" + category.id}
+              href={"/pwa/categories/details/" + category.id}
             >
               {category.title}
             </Link>
@@ -230,22 +242,22 @@ export default function TaskTicket(props: ITask) {
             (isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]")
           }
         >
-          <span className="min-h-0 grid gap-[inherit]">
-            <p className="text-primary-700 text-sm">{props.description}</p>
+          <span className="grid min-h-0 gap-[inherit]">
+            <p className="text-sm text-primary-700">{props.description}</p>
             <menu>
               {props.subtasks?.map((st, i, a) => (
                 <li
                   key={st.id}
-                  className="py-1 flex items-center gap-2 text-sm subtask"
+                  className="subtask flex items-center gap-2 py-1 text-sm"
                 >
-                  <div className="bg-primary-600 text-primary-50 inline-flex items-center justify-center rounded-full text-xs font-medium size-5 ">
+                  <div className="inline-flex size-5 items-center justify-center rounded-full bg-primary-600 text-xs font-medium text-primary-50">
                     {i + 1}
                   </div>
                   <p className="flex-grow">{st.title}</p>
                   <span className="relative">
                     <input
                       type="checkbox"
-                      className=" appearance-none absolute inset-0 w-full h-full"
+                      className="absolute inset-0 h-full w-full appearance-none"
                       defaultChecked={status[i]}
                       onChange={SubtaskChangeHandlerMapper(st, i)}
                     />
@@ -271,7 +283,7 @@ export default function TaskTicket(props: ITask) {
             </menu>
           </span>
         </span>
-        <div className="text-sm flex w-full gap-1">
+        <div className="flex w-full gap-1 text-sm">
           <p className="flex-grow text-xs text-primary-600">
             {date2display(new Date(props.due))}
           </p>
@@ -279,24 +291,24 @@ export default function TaskTicket(props: ITask) {
             <Icon
               label="Bell"
               size={14}
-              className="bg-gray-200 size-6 rounded-md text-gray-500"
+              className="size-6 rounded-md bg-gray-200 text-gray-500"
             />
           )}
           {props.subtasks && props.subtasks.length > 0 && (
             <Icon
               label="GitPullRequest"
               size={14}
-              className="bg-gray-200 size-6 rounded-md text-gray-500"
+              className="size-6 rounded-md bg-gray-200 text-gray-500"
             />
           )}
 
           <p
             className={
-              "flex-grow-0 text-center align-middle rounded-md size-6 " +
+              "size-6 flex-grow-0 rounded-md text-center align-middle " +
               (props.priority === "0"
-                ? "bg-error-100 text-error-600 "
+                ? "bg-error-100 text-error-600"
                 : props.priority === "1"
-                  ? "bg-warning-100 text-warning-600 "
+                  ? "bg-warning-100 text-warning-600"
                   : "bg-secondary-100 text-secondary-600")
             }
           >
@@ -311,7 +323,7 @@ export default function TaskTicket(props: ITask) {
 function onSubtaskStatusChange(
   taskId: string,
   subtaskId: string,
-  status: boolean
+  status: boolean,
 ) {
   const pre = tasks.peek();
 

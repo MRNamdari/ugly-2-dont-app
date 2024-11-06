@@ -4,9 +4,12 @@ import Link from "next/link";
 import { ICategory, IProject, ProjectId } from "../_store/data";
 import Icon from "./icon";
 import {
+  AddToSelection,
   isSelectionStarted,
   modals,
   PendingTasksCount,
+  RemoveFromSelection,
+  RemoveProjectById,
   store,
 } from "../_store/state";
 import IconButton from "./icon-button";
@@ -14,6 +17,7 @@ import { motion, PanInfo } from "framer-motion";
 import { useState, MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useSignalEffect } from "@preact/signals-react";
+import ProgressPie from "./progress-pie";
 
 const projects = store.projects;
 const categories = store.categories.value;
@@ -24,7 +28,10 @@ type ProjectTicketProps = IProject & {
 };
 export default function ProjectTicket(props: ProjectTicketProps) {
   const router = useRouter();
-  const project = projects.value.find((p) => p.id === props.projectId);
+
+  const project = projects.value.find((p) => p.id === props.projectId); // Parent project
+  const category = categories.find((c) => c.id === props.categoryId);
+
   const [isSelected, setSelection] = useState<boolean>();
   const [{ allTasks, pendingTasks }, setPendingTasksCount] = useState({
     allTasks: 0,
@@ -32,13 +39,18 @@ export default function ProjectTicket(props: ProjectTicketProps) {
   });
 
   useSignalEffect(() => {
-    const [allTasks, pendingTasks] = PendingTasksCount(props.id).value;
-    setPendingTasksCount({ allTasks, pendingTasks });
+    new Promise<number[]>((resolve) =>
+      resolve(PendingTasksCount(props.id).value),
+    ).then(([allTasks, pendingTasks]) =>
+      setPendingTasksCount({ allTasks, pendingTasks }),
+    );
+    if (selection.value.includes(props.id)) setSelection(true);
+    else setSelection(false);
   });
 
   const progress =
     allTasks === 0 ? 0 : ((allTasks - pendingTasks) / allTasks) * 100;
-  const category = categories.find((c) => c.id === props.categoryId);
+
   function ContextMenuHandler(e: MouseEvent<HTMLDivElement>) {
     e.preventDefault();
     setSelection(true);
@@ -51,11 +63,11 @@ export default function ProjectTicket(props: ProjectTicketProps) {
         : router.push(`/pwa/projects/edit/${props.id}`);
   }
   function onDelete() {
-    modals.delete.message.value = `Sure wanna delete “${props.title}” project?`;
+    modals.delete.message.value = `Sure wanna delete “${props.title}” and all its tasks and projects?`;
     const deleteModal = document.getElementById("delete") as HTMLDialogElement;
     deleteModal.onclose = (e) => {
       if (deleteModal.returnValue === "true") {
-        projects.value = projects.value.filter((p) => p.id !== props.id);
+        RemoveProjectById(props.id);
       }
     };
     deleteModal.showModal();
@@ -68,10 +80,10 @@ export default function ProjectTicket(props: ProjectTicketProps) {
       exit={{ height: 0, opacity: 0, marginBottom: 0 }}
       className="relative mb-4"
     >
-      <div className="absolute h-5/6 w-1/2 left-2 top-1/2 -translate-y-1/2 -z-10 rounded-l-2xl bg-error-100  flex justify-start items-center p-4">
+      <div className="absolute left-2 top-1/2 -z-10 flex h-5/6 w-1/2 -translate-y-1/2 items-center justify-start rounded-l-2xl bg-error-100 p-4">
         <Icon label="Trash" size={24} className="size-6 text-error-500" />
       </div>
-      <div className="absolute h-5/6 w-1/2 right-2 top-1/2 -translate-y-1/2 -z-10 rounded-r-2xl bg-warning-100  flex justify-end items-center p-4">
+      <div className="absolute right-2 top-1/2 -z-10 flex h-5/6 w-1/2 -translate-y-1/2 items-center justify-end rounded-r-2xl bg-warning-100 p-4">
         <Icon label="Edit" size={24} className="size-6 text-warning-600" />
       </div>
       <motion.div
@@ -80,15 +92,15 @@ export default function ProjectTicket(props: ProjectTicketProps) {
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.3}
         dragTransition={{ bounceStiffness: 400 }}
-        className="rounded-3xl p-6 pt-2 aria-selected:bg-secondary-50 bg-gray-100"
+        className="rounded-3xl bg-gray-100 p-6 pt-2 aria-selected:bg-secondary-50"
         aria-selected={isSelected}
         onClick={() => {
           if (isSelectionStarted.value) {
             if (isSelected) {
-              selection.value = selection.value.filter((id) => id !== props.id);
+              RemoveFromSelection(props.id);
               setSelection(false);
             } else {
-              selection.value = [...selection.value, props.id];
+              AddToSelection(props.id);
               setSelection(true);
             }
             return;
@@ -98,36 +110,38 @@ export default function ProjectTicket(props: ProjectTicketProps) {
         onDragEnd={DragEndHandler}
       >
         <span className="grid grid-cols-[auto_2rem]">
-          <h4 className="font-medium text-lg self-center">{props.title}</h4>
+          <h4 className="self-center text-lg font-medium">{props.title}</h4>
           <Link
             href={"/pwa/projects/details/" + props.id}
             onClick={(e) => props.onOpen && props.onOpen(e, props.id)}
           >
             <IconButton
               icon="ExternalLink"
-              className="ico-md tap-gray-200 text-primary-700"
+              className="tap-gray-200 ico-md text-primary-700"
             />
           </Link>
         </span>
-        <h5 className="text-primary-600 text-base">
-          <Link
-            className="underline"
-            href={"../projects/details/" + project?.id}
-            onClick={(e) => props.onOpen && props.onOpen(e, props.id)}
-          >
-            {project?.title}
-          </Link>
+        <h5 className="text-base text-primary-600">
+          {project && (
+            <Link
+              className="underline"
+              href={"/pwa/projects/details/" + project.id}
+              onClick={(e) => props.onOpen && props.onOpen(e, props.id)}
+            >
+              {project.title}
+            </Link>
+          )}
           {category && project && " • "}
           {category && (
             <Link
               className="underline"
-              href={"../categories/details/" + category.id}
+              href={"/pwa/categories/details/" + category.id}
             >
               {category.title}
             </Link>
           )}
         </h5>
-        <div className="flex justify-between items-center text-primary-700 pt-2">
+        <div className="flex items-center justify-between pt-2 text-primary-700">
           <ProgressPie {...{ progress }} />
           <PendingTasks pending={pendingTasks} />
           <DueTime due={new Date(props.due)} />
@@ -174,17 +188,17 @@ export function DueTime(props: { due: Date }) {
 
   if (RemainedInSec > 0) {
     const RemainedInUnit = Array.from(DividedBy, (d) =>
-      Math.floor(RemainedInSec / d)
+      Math.floor(RemainedInSec / d),
     );
     const index = RemainedInUnit.findIndex((r, i) => UnitFilter[i](r));
     const count = RemainedInUnit[index];
     const unit = count > 1 ? UnitArray[index] + "s" : UnitArray[index];
     return (
       <div className="grid grid-cols-2">
-        <span className="row-span-2 text-[2rem] leading-8 place-self-end pr-1">
+        <span className="row-span-2 place-self-end pr-1 text-[2rem] leading-8">
           {count}
         </span>
-        <div className="row-span-1 text-xs leading-3 self-center">
+        <div className="row-span-1 self-center text-xs leading-3">
           {unit} To
         </div>
         <div className="row-span-1 text-xs leading-3">Deadline</div>
@@ -196,10 +210,10 @@ export function DueTime(props: { due: Date }) {
     const year = props.due.getFullYear();
     return (
       <div className="grid grid-cols-2">
-        <span className="row-span-2 text-[2rem] leading-8 place-self-end pr-1">
+        <span className="row-span-2 place-self-end pr-1 text-[2rem] leading-8">
           {day}
         </span>
-        <span className="row-span-1 text-xs leading-3 self-center">
+        <span className="row-span-1 self-center text-xs leading-3">
           {month}
         </span>
         <span className="row-span-1 text-xs leading-3">{year}</span>
@@ -211,49 +225,11 @@ export function DueTime(props: { due: Date }) {
 export function PendingTasks(props: { pending: number }) {
   return (
     <div className="grid grid-cols-2">
-      <span className="row-span-2 text-[2rem] leading-8 place-self-end pr-1">
+      <span className="row-span-2 place-self-end pr-1 text-[2rem] leading-8">
         {props.pending}
       </span>
-      <div className="row-span-1 text-xs leading-3 self-center">Pending</div>
+      <div className="row-span-1 self-center text-xs leading-3">Pending</div>
       <div className="row-span-1 text-xs leading-3">Tasks</div>
-    </div>
-  );
-}
-
-export function ProgressPie(props: { progress: number }) {
-  return (
-    <div className="flex items-end">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="22"
-        height="22"
-        viewBox="0 0 22 22"
-        fill="none"
-        stroke="currentColor"
-        className="mr-1 place-self-center"
-      >
-        <circle
-          cx="11"
-          cy="11"
-          r="5.5"
-          className="-rotate-90 origin-center transition-[stroke-dashoffset] duration-500"
-          pathLength={100.01}
-          strokeWidth={11}
-          strokeDasharray="100 100"
-          strokeDashoffset={`${100 - props.progress}`}
-        ></circle>
-
-        <polyline
-          className="transition-[stroke-dashoffset] delay-500 stroke-secondary-100"
-          pathLength="1"
-          strokeDasharray="1 1"
-          strokeDashoffset={props.progress === 100 ? "0" : "1"}
-          strokeWidth={2}
-          strokeLinecap="round"
-          points="6.1 10.9 9.1 13.9 15.7 7.3"
-        ></polyline>
-      </svg>
-      <div className="text-3xl leading-8">{props.progress}</div>%
     </div>
   );
 }

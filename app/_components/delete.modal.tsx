@@ -15,7 +15,7 @@ export default function DeleteModal() {
   return (
     <dialog
       id="delete"
-      className="popup-modal p-4 bg-primary-700 text-white rounded-3xl"
+      className="popup-modal rounded-3xl bg-primary-700 p-4 text-white"
       onClick={handleCancel}
     >
       <form method="dialog">
@@ -23,13 +23,13 @@ export default function DeleteModal() {
         <div className="flex gap-2">
           <Button
             value="false"
-            className="btn-md w-full border-2 border-primary-800 justify-center tap-primary-800"
+            className="tap-primary-800 btn-md w-full justify-center border-2 border-primary-800"
           >
             nope
           </Button>
           <Button
             value="true"
-            className="btn-md w-full justify-center bg-primary-800 tap-primary-900"
+            className="tap-primary-900 btn-md w-full justify-center bg-primary-800"
           >
             yup!
           </Button>

@@ -54,27 +54,27 @@ export default function Clock() {
       ref={ref}
       id="clock"
       onClick={handleCancel}
-      className="dropdown-modal min-w-0 w-full max-w-screen-sm bg-primary-700 pb-8 mt-0 rounded-3xl rounded-t-none relative after:block after:absolute after:w-1/4 after:h-1 after:bg-primary-800 after:rounded-sm after:left-1/2 after:-translate-x-1/2 after:bottom-4"
+      className="dropdown-modal relative mt-0 w-full min-w-0 max-w-screen-sm rounded-3xl rounded-t-none bg-primary-700 pb-8 after:absolute after:bottom-4 after:left-1/2 after:block after:h-1 after:w-1/4 after:-translate-x-1/2 after:rounded-sm after:bg-primary-800"
     >
-      <div className="flex items-center w-full justify-between px-4 py-6 text-white">
+      <div className="flex w-full items-center justify-between px-4 py-6 text-white">
         <IconButton
           icon="X"
-          className="ico-md bg-primary-800 tap-primary-900"
+          className="tap-primary-900 ico-md bg-primary-800"
           onClick={handleClose}
           aria-label="Press to close"
         />
         <h3 className="text-lg">Pick A Time</h3>
         <IconButton
           icon="Check"
-          className="ico-md bg-primary-800 tap-primary-900"
+          className="tap-primary-900 ico-md bg-primary-800"
           onClick={handleSubmit}
           aria-label="Press to confirm"
         />
       </div>
-      <form ref={form} method="dialog" className="flex gap-2 justify-center">
-        <div className="flex text-white justify-center items-center text-3xl h-[fill-available] bg-primary-800 rounded-full gap-2 p-2">
+      <form ref={form} method="dialog" className="flex justify-center gap-2">
+        <div className="flex h-[fill-available] items-center justify-center gap-2 rounded-full bg-primary-800 p-2 text-3xl text-white">
           <input
-            className="h-full text-inherit text-3xl font-medium bg-primary-700 text-center  rounded-r-md rounded-[4rem]"
+            className="h-full rounded-[4rem] rounded-r-md bg-primary-700 text-center text-3xl font-medium text-inherit"
             name="hour"
             type="number"
             size={2}
@@ -95,7 +95,7 @@ export default function Clock() {
           :
           <input
             name="minute"
-            className="h-full text-inherit text-3xl font-medium bg-primary-700 text-center  rounded-l-md rounded-[4rem]"
+            className="h-full rounded-[4rem] rounded-l-md bg-primary-700 text-center text-3xl font-medium text-inherit"
             type="number"
             size={2}
             maxLength={2}
@@ -109,21 +109,21 @@ export default function Clock() {
             defaultValue={num2str(time.getMinutes())}
           />
         </div>
-        <div className=" rounded-full bg-primary-800 relative p-2">
+        <div className="relative rounded-full bg-primary-800 p-2">
           <input
             type="checkbox"
             name="ampm"
-            className="absolute w-full h-full inset-0 appearance-none peer z-10 cursor-pointer rounded-full"
+            className="peer absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none rounded-full"
             defaultChecked={time.getHours() > 12}
           />
 
           <Icon
             label="Sunrise"
-            className="text-warning-400 bg-warning-50 p-1 transition-all rounded-full size-8 peer-checked:opacity-0 peer-checked:translate-y-full"
+            className="size-8 rounded-full bg-warning-50 p-1 text-warning-400 transition-all peer-checked:translate-y-full peer-checked:opacity-0"
           />
           <Icon
             label="Sunset"
-            className="text-error-400 bg-error-50 p-1 transition-all rounded-full size-8 opacity-0 -translate-y-full peer-checked:opacity-100 peer-checked:-translate-y-0"
+            className="size-8 -translate-y-full rounded-full bg-error-50 p-1 text-error-400 opacity-0 transition-all peer-checked:-translate-y-0 peer-checked:opacity-100"
           />
         </div>
       </form>

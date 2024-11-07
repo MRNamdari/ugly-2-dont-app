@@ -28,7 +28,7 @@ export default function Icon({
   let SpecifiedIcon = FeatherIcon[label];
   return (
     <div
-      className={`flex justify-center items-center aspect-square ${className ?? ""}`}
+      className={`flex aspect-square items-center justify-center ${className ?? ""}`}
     >
       <SpecifiedIcon {...props} />
     </div>

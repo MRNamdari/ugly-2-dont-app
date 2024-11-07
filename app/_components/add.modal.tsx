@@ -38,50 +38,50 @@ export default function AddModal() {
     <dialog
       ref={ref}
       id="add"
-      className="popup-modal bg-transparent ml-auto mt-auto mb-24 mr-6 absolute text-primary-800 origin-bottom-right"
+      className="popup-modal absolute mb-24 ml-auto mr-6 mt-auto origin-bottom-right bg-transparent text-primary-800"
       onClick={handleCancel}
     >
       {buttons.category && (
-        <div className="flex gap-2 justify-end py-1">
+        <div className="flex justify-end gap-2 py-1">
           <Button
-            className="btn-md font-medium bg-zinc-50 tap-zinc-200 w-fit"
+            className="tap-zinc-200 btn-md w-fit bg-zinc-50 font-medium"
             onClick={handleClick(buttons.category)}
           >
             Category
           </Button>
           <IconButton
             icon="FolderPlus"
-            className="ico-md bg-zinc-50 tap-zinc-200"
+            className="tap-zinc-200 ico-md bg-zinc-50"
             onClick={handleClick(buttons.category)}
           />
         </div>
       )}
       {buttons.project && (
-        <div className="flex gap-2 justify-end py-1">
+        <div className="flex justify-end gap-2 py-1">
           <Button
-            className="btn-md font-medium bg-zinc-50 tap-zinc-200 w-fit"
+            className="tap-zinc-200 btn-md w-fit bg-zinc-50 font-medium"
             onClick={handleClick(buttons.project)}
           >
             Project
           </Button>
           <IconButton
             icon="Crosshair"
-            className="ico-md bg-zinc-50 tap-zinc-200"
+            className="tap-zinc-200 ico-md bg-zinc-50"
             onClick={handleClick(buttons.project)}
           />
         </div>
       )}
       {buttons.task && (
-        <div className="flex gap-2 justify-end py-1">
+        <div className="flex justify-end gap-2 py-1">
           <Button
-            className="btn-md font-medium bg-zinc-50 tap-zinc-200 w-fit"
+            className="tap-zinc-200 btn-md w-fit bg-zinc-50 font-medium"
             onClick={handleClick(buttons.task)}
           >
             Task
           </Button>
           <IconButton
             icon="CheckSquare"
-            className="ico-md bg-zinc-50 tap-zinc-200"
+            className="tap-zinc-200 ico-md bg-zinc-50"
             onClick={handleClick(buttons.task)}
           />
         </div>

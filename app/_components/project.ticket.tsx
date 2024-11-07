@@ -39,7 +39,7 @@ export default function ProjectTicket(props: ProjectTicketProps) {
   });
 
   useSignalEffect(() => {
-    new Promise<number[]>((resolve) =>
+    new Promise<Readonly<[number, number]>>((resolve) =>
       resolve(PendingTasksCount(props.id).value),
     ).then(([allTasks, pendingTasks]) =>
       setPendingTasksCount({ allTasks, pendingTasks }),
@@ -49,7 +49,7 @@ export default function ProjectTicket(props: ProjectTicketProps) {
   });
 
   const progress =
-    allTasks === 0 ? 0 : ((allTasks - pendingTasks) / allTasks) * 100;
+    allTasks === 0 ? 100 : ((allTasks - pendingTasks) / allTasks) * 100;
 
   function ContextMenuHandler(e: MouseEvent<HTMLDivElement>) {
     e.preventDefault();
@@ -126,7 +126,6 @@ export default function ProjectTicket(props: ProjectTicketProps) {
             <Link
               className="underline"
               href={"/pwa/projects/details/" + project.id}
-              onClick={(e) => props.onOpen && props.onOpen(e, props.id)}
             >
               {project.title}
             </Link>

@@ -11,6 +11,7 @@ import ProjectsCarousel, {
 import { AnimatePresence, motion } from "framer-motion";
 import TaskTicket from "@/app/_components/task.ticket";
 import Icon from "@/app/_components/icon";
+import { useRouter } from "next/navigation";
 
 const projectsSignal = store.projects;
 const tasksSignal = store.tasks;
@@ -19,8 +20,9 @@ export default function ProjectDetailPage({
 }: {
   params: { id?: ProjectId };
 }) {
+  const router = useRouter();
   const [active, setActive] = useState<ProjectId>(
-    params.id ? params.id : projectsSignal.value[0].id
+    params.id ? params.id : projectsSignal.value[0].id,
   );
   const [projects, setProjects] = useState<IProject[]>([]);
   const carousel = useRef<ProjectCarouselRef>(null);
@@ -47,18 +49,19 @@ export default function ProjectDetailPage({
   ];
   return (
     <>
-      <header className="grid grid-cols-[3rem_1fr_3rem] p-4  justify-center items-center">
+      <header className="grid grid-cols-[3rem_1fr_3rem] items-center justify-center p-4">
         <div>
           <IconButton
-            className="ico-lg tap-zinc-100 text-primary-900"
+            className="tap-zinc-100 ico-lg text-primary-900"
             icon="ArrowLeft"
+            onClick={() => router.back()}
           />
         </div>
         <motion.h1
           initial={{ transform: "translate(0,-200%)", opacity: 0 }}
           animate={{ transform: "translate(0,0)", opacity: 1 }}
           exit={{ transform: "translate(0,-200%)", opacity: 0 }}
-          className="text-3xl text-center self-end font-medium whitespace-nowrap overflow-hidden text-ellipsis"
+          className="self-end overflow-hidden text-ellipsis whitespace-nowrap text-center text-3xl font-medium"
         >
           Projects
         </motion.h1>
@@ -68,7 +71,7 @@ export default function ProjectDetailPage({
         exit={{ opacity: 0 }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="pt-4 h-full overflow-auto"
+        className="h-full overflow-auto pt-4"
       >
         <ProjectsCarousel
           ref={carousel}
@@ -79,7 +82,7 @@ export default function ProjectDetailPage({
             window.history.replaceState(
               window.history.state,
               "",
-              "/pwa/projects/details/" + id
+              "/pwa/projects/details/" + id,
             );
           }}
         />
@@ -88,7 +91,7 @@ export default function ProjectDetailPage({
             {children.length > 0 ? (
               children
             ) : (
-              <div className="flex w-full bg-zinc-100 rounded-3xl items-center justify-center text-zinc-500 font-medium">
+              <div className="flex w-full items-center justify-center rounded-3xl bg-zinc-100 font-medium text-zinc-500">
                 Press <Icon label="PlusCircle" className="ico-md" /> to add
               </div>
             )}
@@ -101,14 +104,14 @@ export default function ProjectDetailPage({
           exit={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           icon="Plus"
-          className="ico-xl bg-primary-800 text-white tap-primary-700 w-fit"
+          className="tap-primary-700 ico-xl w-fit bg-primary-800 text-white"
           onClick={() => {
             modals.add.buttons.value = {
               project: "/pwa/projects/add?project=" + active,
               task: "/pwa/tasks/add?project=" + active,
             };
             const addModal = document.querySelector(
-              "#add"
+              "#add",
             ) as HTMLDialogElement | null;
             if (addModal) addModal.showModal();
           }}

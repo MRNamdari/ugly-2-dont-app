@@ -10,10 +10,10 @@ export default function EditTaskPage({
   params: { id: string };
   searchParams: ITaskFormData;
 }) {
-  const task =
-    Object.keys(searchParams).length > 0
-      ? searchParams
-      : TaskToFormData(store.tasks.value.find((t) => t.id == params.id));
-  if (task) return <AddTaskPage params={params} searchParams={task} />;
-  return <p>Task was not found</p>;
+  // const task =
+  //   Object.keys(searchParams).length > 0
+  //     ? searchParams
+  //     : TaskToFormData(store.tasks.value.find((t) => t.id == params.id));
+  /*if (task)*/ return <AddTaskPage params={params} /*searchParams={task}*/ />;
+  // return <p>Task was not found</p>;
 }

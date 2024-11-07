@@ -20,7 +20,6 @@ export default forwardRef<ProjectCarouselRef, ProjectsCarouselProps>(
 
     useSignalEffect(() => {
       setProjects(projectsSignal.value);
-      console.log(projectsSignal.value);
     });
 
     useEffect(() => {

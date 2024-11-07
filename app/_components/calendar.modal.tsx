@@ -173,13 +173,13 @@ export default function Calendar(): JSX.Element {
       <dialog
         id="calendar"
         onClick={handleCancel}
-        className="dropdown-modal min-w-0 w-full max-w-screen-sm bg-primary-700 pb-8 mt-0 rounded-3xl rounded-t-none relative after:block after:absolute after:w-1/4 after:h-1 after:bg-primary-800 after:rounded-sm after:left-1/2 after:-translate-x-1/2 after:bottom-4"
+        className="dropdown-modal relative mt-0 w-full min-w-0 max-w-screen-sm rounded-3xl rounded-t-none bg-primary-700 pb-8 after:absolute after:bottom-4 after:left-1/2 after:block after:h-1 after:w-1/4 after:-translate-x-1/2 after:rounded-sm after:bg-primary-800"
       >
-        <div className="flex items-center w-full justify-between px-4 py-6 text-white">
+        <div className="flex w-full items-center justify-between px-4 py-6 text-white">
           <IconButton
             aria-label="Click to go previous month"
             icon="ChevronLeft"
-            className="ico-md bg-primary-800 tap-primary-900"
+            className="tap-primary-900 ico-md bg-primary-800"
             onClick={handleGoToPrevMonth}
           />
           <h3 className="text-lg">
@@ -188,11 +188,11 @@ export default function Calendar(): JSX.Element {
           <IconButton
             aria-label="Click to go next month"
             icon="ChevronRight"
-            className="ico-md bg-primary-800 tap-primary-900"
+            className="tap-primary-900 ico-md bg-primary-800"
             onClick={handleGoToNextMonth}
           />
         </div>
-        <div className="grid grid-cols-7 text-center text-warning-100 px-2">
+        <div className="grid grid-cols-7 px-2 text-center text-warning-100">
           {dayNames.map((d, i) => (
             <span key={i} className="day-name">
               {d}
@@ -217,7 +217,7 @@ export default function Calendar(): JSX.Element {
               {previousDayNumbers.map((n, i) => (
                 <Button
                   key={-i}
-                  className="btn-sm text-primary-900 tap-primary-800 justify-center"
+                  className="tap-primary-800 btn-sm justify-center text-primary-900"
                   value={[year, month, n].join("-")}
                   onClick={handlePreviousMonthDayClick(year, month, n)}
                 >
@@ -231,7 +231,7 @@ export default function Calendar(): JSX.Element {
                       key={i}
                       value={[year, month, n].join("-")}
                       className={
-                        "btn-sm text-white justify-center bg-primary-900 tap-primary-900 " +
+                        "tap-primary-900 btn-sm justify-center bg-primary-900 text-white " +
                         (isToday(year, month, n) ? "border-2 border-white" : "")
                       }
                     >
@@ -246,7 +246,7 @@ export default function Calendar(): JSX.Element {
                       key={i}
                       value={[year, month, n].join("-")}
                       onClick={handleClick(year, month, n)}
-                      className="btn-sm text-white border-2 border-white justify-center tap-primary-800"
+                      className="tap-primary-800 btn-sm justify-center border-2 border-white text-white"
                     >
                       {wildCard(n)}
                     </Button>
@@ -258,7 +258,7 @@ export default function Calendar(): JSX.Element {
                     key={i}
                     value={[year, month, n].join("-")}
                     onClick={handleClick(year, month, n)}
-                    className="btn-sm text-white tap-primary-800 justify-center"
+                    className="tap-primary-800 btn-sm justify-center text-white"
                   >
                     {wildCard(n)}
                   </Button>
@@ -269,44 +269,44 @@ export default function Calendar(): JSX.Element {
                   key={-i}
                   value={[year, month, n].join("-")}
                   onClick={handleNextMonthDayClick(year, month, n)}
-                  className="btn-sm text-primary-900 tap-primary-800 justify-center"
+                  className="tap-primary-800 btn-sm justify-center text-primary-900"
                 >
                   {wildCard(n)}
                 </Button>
               ))}
             </motion.div>
           </AnimatePresence>
-          <div className="flex text-nowrap overflow-x-auto gap-2 px-4 pt-4 pb-2">
+          <div className="flex gap-2 overflow-x-auto text-nowrap px-4 pb-2 pt-4">
             <Button
-              className="btn-sm bg-secondary-200 text-primary-800 min-w-fit tap-secondary-100"
+              className="tap-secondary-100 btn-sm min-w-fit bg-secondary-200 text-primary-800"
               onClick={handleToToday}
               aria-label="Go to today"
             >
               Today
             </Button>
             <Button
-              className="btn-sm bg-secondary-200 text-primary-800 min-w-fit tap-secondary-100"
+              className="tap-secondary-100 btn-sm min-w-fit bg-secondary-200 text-primary-800"
               onClick={handleToTomorrow}
               aria-label="Go to tomorrow"
             >
               Tomorrow
             </Button>
             <Button
-              className="btn-sm bg-secondary-200 text-primary-800 min-w-fit tap-secondary-100"
+              className="tap-secondary-100 btn-sm min-w-fit bg-secondary-200 text-primary-800"
               onClick={handleToNextWeek}
               aria-label="Go to next week"
             >
               Next Week
             </Button>
             <Button
-              className="btn-sm bg-secondary-200 text-primary-800 min-w-fit tap-secondary-100"
+              className="tap-secondary-100 btn-sm min-w-fit bg-secondary-200 text-primary-800"
               onClick={handleToNextMonth}
               aria-label="Go to next month"
             >
               Next Month
             </Button>
             <Button
-              className="btn-sm bg-secondary-200 text-primary-800 min-w-fit tap-secondary-100"
+              className="tap-secondary-100 btn-sm min-w-fit bg-secondary-200 text-primary-800"
               onClick={handleToNextYear}
               aria-label="Go to next year"
             >
@@ -322,14 +322,14 @@ export default function Calendar(): JSX.Element {
 function nextMonth(date: Date) {
   const [year, month] = [date.getFullYear(), date.getMonth() + 1];
   return new Date(
-    `${month + 1 > 12 ? year + 1 : year}-${month + 1 > 12 ? 1 : month + 1}-1`
+    `${month + 1 > 12 ? year + 1 : year}-${month + 1 > 12 ? 1 : month + 1}-1`,
   );
 }
 
 function previousMonth(date: Date) {
   const [year, month] = [date.getFullYear(), date.getMonth() + 1];
   return new Date(
-    `${month - 1 < 1 ? year - 1 : year}-${month - 1 < 1 ? 12 : month - 1}-1`
+    `${month - 1 < 1 ? year - 1 : year}-${month - 1 < 1 ? 12 : month - 1}-1`,
   );
 }
 

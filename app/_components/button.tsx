@@ -11,7 +11,7 @@ export type ButtonProps = HTMLMotionProps<"button"> & {
 };
 export default forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   props: ButtonProps,
-  ref
+  ref,
 ): JSX.Element {
   const { children, leadingIcon, trailingIcon, className, disabled, ...rest } =
     props;
@@ -31,7 +31,7 @@ export default forwardRef<HTMLButtonElement, ButtonProps>(function Button(
       {...rest}
     >
       {leadingIcon ? <Icon label={leadingIcon} /> : null}
-      <p className="text-ellipsis overflow-hidden whitespace-nowrap">
+      <p className="overflow-hidden text-ellipsis whitespace-nowrap">
         {children}
       </p>
       {trailingIcon ? <Icon label={trailingIcon} /> : null}

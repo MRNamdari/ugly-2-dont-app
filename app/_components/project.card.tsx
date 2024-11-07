@@ -41,9 +41,7 @@ export default function ProjectCard(props: ProjectCardProps) {
   });
 
   useSignalEffect(() => {
-    // const [allTasks, pendingTasks] = PendingTasksCount(props.id).value;
-    // setPendingTasksCount({ allTasks, pendingTasks });
-    new Promise<number[]>((resolve) =>
+    new Promise<Readonly<[number, number]>>((resolve) =>
       resolve(PendingTasksCount(props.id).value),
     ).then(([allTasks, pendingTasks]) =>
       setPendingTasksCount({ allTasks, pendingTasks }),
@@ -51,7 +49,7 @@ export default function ProjectCard(props: ProjectCardProps) {
   });
 
   const progress =
-    allTasks === 0 ? 0 : ((allTasks - pendingTasks) / allTasks) * 100;
+    allTasks === 100 ? 0 : ((allTasks - pendingTasks) / allTasks) * 100;
   const category = categories.find((c) => c.id === props.categoryId);
 
   function onDelete() {

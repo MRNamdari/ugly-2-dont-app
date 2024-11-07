@@ -205,7 +205,10 @@ export function PendingTasksCount(projectId: ProjectId) {
   return computed(() => {
     const projectList = ExtractProjects(projectId);
     const allTasks = SelectTasksByProjectId(projectList);
-    return [allTasks.length, allTasks.filter((t) => t.status === false).length];
+    return [
+      allTasks.length,
+      allTasks.filter((t) => t.status === false).length,
+    ] as const;
   });
 }
 
@@ -271,6 +274,12 @@ export function SelectProjectByCategoryId(
   }
 }
 
+export function SelectCategoryByCategoryId(id?: CategoryId) {
+  return computed(() =>
+    store.categories.value.filter((c) => c.categoryId === id),
+  );
+}
+
 export function RemoveProjectById(id: ProjectId) {
   const projects = ExtractProjects(id);
   const tasks = SelectTasksByProjectId(projects).map((t) => t.id);
@@ -315,20 +324,17 @@ export function TasksProgressByCategory(id?: CategoryId) {
 export function ProjectProgressByCategory(id?: CategoryId) {
   return computed(() => {
     const categories = ExtractCategories(id);
-    const projects = categories
-      .map((cid) => SelectProjectByCategoryId(cid))
-      .flat();
-    const tasks = [
+    const projects = [
       ...new Set(
-        SelectTasksByProjectId(projects.map((p) => p.id)).concat(
-          SelectTasksByCategoryId(categories),
-        ),
+        categories.map((cid) => SelectProjectByCategoryId(cid)).flat(),
       ),
     ];
-    return [
-      tasks.length,
-      tasks.reduce((a, c) => a + Number(c.status), 0),
-    ] as const;
+    const prog = projects.map((p) => {
+      const [a, i] = PendingTasksCount(p.id).value;
+      return a == 0 ? 1 : ((i > 0 ? 0 : 1) as number);
+    });
+    // debugger;
+    return [prog.length, prog.reduce((a, c) => a + c, 0)] as const;
   });
 }
 

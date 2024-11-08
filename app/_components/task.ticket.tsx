@@ -143,9 +143,11 @@ export default function TaskTicket(props: ITask) {
   }
   return (
     <motion.article
-      className="relative mb-4"
+      className="relative"
       id={props.id}
-      exit={{ height: 0, opacity: 0, marginBottom: 0 }}
+      initial={{ opacity: 0, marginBottom: 0 }}
+      animate={{ opacity: 1, marginBottom: "1rem" }}
+      exit={{ opacity: 0, marginBottom: 0 }}
     >
       <div className="absolute left-2 top-1/2 -z-10 flex h-5/6 w-1/2 -translate-y-1/2 items-center justify-start rounded-l-2xl bg-error-100 p-4">
         <Icon label="Trash" size={24} className="size-6 text-error-500" />

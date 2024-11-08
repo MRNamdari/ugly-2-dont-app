@@ -5,11 +5,13 @@ import { ITask } from "@/app/_store/data";
 import { store } from "@/app/_store/state";
 import { useSignalEffect } from "@preact/signals-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const Tasks = store.tasks;
 
 export default function TaskBrowserPage() {
+  const router = useRouter();
   const [tasks, setTasks] = useState<ITask[]>([]);
   useSignalEffect(() => {
     setTasks(Tasks.value);
@@ -21,6 +23,7 @@ export default function TaskBrowserPage() {
           <IconButton
             className="tap-zinc-100 ico-lg text-primary-900"
             icon="ArrowLeft"
+            onClick={() => router.back()}
           ></IconButton>
         </div>
         <motion.h1

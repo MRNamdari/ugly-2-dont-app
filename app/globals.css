@@ -130,3 +130,93 @@ body {
     background-color: rgb(0 0 0 / 0%);
   }
 }
+
+@keyframes fadeOut {
+  25% {
+    transform: scale(0.8);
+  }
+  40%,
+  to {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+}
+
+.loading {
+  width: 50px;
+  height: 30px;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  & .circle,
+  & .shadow {
+    width: 10px;
+    position: absolute;
+    border-radius: 50%;
+    left: 0%;
+    transform-origin: 50%;
+    animation-duration: 400ms;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease;
+    animation-direction: alternate;
+  }
+  & .circle {
+    height: 10px;
+    background-color: black;
+    animation-name: circle;
+  }
+  & .shadow {
+    height: 4px;
+    background-color: rgba(0, 0, 0, 0.5);
+    bottom: 0;
+    z-index: -1;
+    animation-name: shadow;
+  }
+
+  & .circle:nth-child(2),
+  & .shadow:nth-child(4) {
+    left: calc(50% - 5px);
+    animation-delay: 0.1s;
+  }
+  & .circle:nth-child(3),
+  & .shadow:nth-child(5) {
+    left: auto;
+    right: 0%;
+    animation-delay: 0.2s;
+  }
+}
+
+@keyframes circle {
+  0% {
+    top: calc(100% - 5px);
+    height: 5px;
+    border-radius: 50px 50px 25px 25px;
+    transform: scaleX(1.7);
+  }
+  30% {
+    height: 10px;
+    border-radius: 50%;
+    transform: scaleX(1);
+  }
+  100% {
+    top: 0%;
+  }
+}
+
+@keyframes shadow {
+  0% {
+    transform: scaleX(1.5, 1);
+    filter: blur(0);
+  }
+  30% {
+    transform: scale(1, 1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(0.2, 0.5);
+    opacity: 0.4;
+    filter: blur(4px);
+  }
+}

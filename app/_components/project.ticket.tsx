@@ -77,7 +77,7 @@ export default function ProjectTicket(props: ProjectTicketProps) {
       id={props.id}
       initial={{ opacity: 0, marginBottom: 0 }}
       animate={{ opacity: 1, marginBottom: "1rem" }}
-      exit={{ height: 0, opacity: 0, marginBottom: 0 }}
+      exit={{ opacity: 0, marginBottom: 0 }}
       className="relative mb-4"
     >
       <div className="absolute left-2 top-1/2 -z-10 flex h-5/6 w-1/2 -translate-y-1/2 items-center justify-start rounded-l-2xl bg-error-100 p-4">

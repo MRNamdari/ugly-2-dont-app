@@ -7,7 +7,7 @@ import { ICategory, IProject, ITask } from "../_store/data";
 import { useSignalEffect } from "@preact/signals-react";
 import { CategoryInfo, PendingTasksCount, store } from "../_store/state";
 import TaskTicket from "../_components/task.ticket";
-
+import { motion, useScroll } from "framer-motion";
 export default function PWAHomePage() {
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [projects, setProjects] = useState<IProject[]>([]);
@@ -17,6 +17,7 @@ export default function PWAHomePage() {
     setProjects(store.projects.value);
     setTasks(store.tasks.value);
   });
+
   return (
     <>
       <search className="sticky top-0 w-full bg-secondary-100 p-4">
@@ -107,22 +108,26 @@ export default function PWAHomePage() {
           </Link>
         </div>
       </section>
-      <section
-        className="sticky max-h-svh w-full -translate-y-12"
-        style={{ top: "10.25rem" }}
-      >
+      <section className="w-full -translate-y-12">
         <Link
           href="/pwa/tasks"
-          className="flex w-full items-center justify-between rounded-t-3xl bg-white px-4 pt-2"
+          className="sticky flex h-36 w-full justify-between rounded-t-3xl bg-white px-4 pt-2"
+          style={{ top: "13.25rem" }}
         >
           <h2 className="text-xl font-medium">Tasks</h2>
           <span className="whitespace-nowrap">see all</span>
         </Link>
-        <div className="sticky w-full bg-white p-4">
-          {tasks.map((t) => (
-            <span key={t.id} className="sticky" style={{ top: "4.5rem" }}>
+        <div className="w-full -translate-y-20">
+          {tasks.map((t, i) => (
+            <motion.div
+              key={t.id}
+              className="animatio sticky px-4 [animation-duration:1ms] [animation-name:fadeOut] [animation-timeline:view(block_25rem)] [animation-timing-function:ease-out]"
+              style={{
+                top: `21rem`,
+              }}
+            >
               <TaskTicket {...t} />
-            </span>
+            </motion.div>
           ))}
         </div>
       </section>

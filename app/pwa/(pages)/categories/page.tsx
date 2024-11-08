@@ -1,4 +1,5 @@
 "use client";
+import { AddCategoryContext } from "@/app/_components/addCategory.modal";
 import Button from "@/app/_components/button";
 import CategoryTicket from "@/app/_components/category.ticket";
 import IconButton from "@/app/_components/icon-button";
@@ -7,6 +8,7 @@ import ProjectTicket from "@/app/_components/project.ticket";
 import TaskTicket from "@/app/_components/task.ticket";
 import { CategoryId, ICategory, IProject, ITask } from "@/app/_store/data";
 import {
+  AddCategory,
   ProjectProgressByCategory,
   SelectCategoryByCategoryId,
   SelectProjectByCategoryId,
@@ -15,9 +17,9 @@ import {
   TasksProgressByCategory,
 } from "@/app/_store/state";
 import { useSignalEffect } from "@preact/signals-react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 const categoriesSignal = store.categories;
 
@@ -27,10 +29,16 @@ export default function CategoryBrowserPage({
   params: { id?: CategoryId };
 }) {
   const router = useRouter();
+  const addCat = useContext(AddCategoryContext);
   const [categories, setCategories] = useState<ICategory[]>([]);
+  const current = categoriesSignal.value.find((c) => c.id === params.id);
   const [projects, setProjects] = useState<IProject[]>([]);
   const [tasks, setTasks] = useState<ITask[]>([]);
   useSignalEffect(() => {
+    store.categories;
+    store.projects;
+    store.tasks;
+    store.selection;
     new Promise<ICategory[]>((resolve) =>
       resolve(SelectCategoryByCategoryId(params.id).value),
     ).then(setCategories);
@@ -59,7 +67,7 @@ export default function CategoryBrowserPage({
           exit={{ transform: "translate(0,-200%)", opacity: 0 }}
           className="self-end overflow-hidden text-ellipsis whitespace-nowrap text-center text-3xl font-medium"
         >
-          Categories
+          {current ? current.title : "Categories"}
         </motion.h1>
         <div></div>
       </header>
@@ -70,17 +78,35 @@ export default function CategoryBrowserPage({
         </div>
         <Breadcrum id={params.id} />
         <div className="h-full overflow-auto px-4">
-          {categories.map((c) => (
-            <CategoryTicket key={c.id} {...c} />
-          ))}
-          {projects.map((p) => (
-            <ProjectTicket key={p.id} {...p} />
-          ))}
-          {tasks.map((t) => (
-            <TaskTicket key={t.id} {...t} />
-          ))}
+          <AnimatePresence>
+            {categories.map((c) => (
+              <CategoryTicket key={c.id} {...c} />
+            ))}
+            {projects.map((p) => (
+              <ProjectTicket key={p.id} {...p} />
+            ))}
+            {tasks.map((t) => (
+              <TaskTicket key={t.id} {...t} />
+            ))}
+          </AnimatePresence>
         </div>
       </section>
+      <div className="fixed bottom-4 right-4">
+        <IconButton
+          initial={{ opacity: 0, scale: 0.9 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          icon="Plus"
+          className="tap-primary-700 ico-xl w-fit bg-primary-800 text-white"
+          onClick={() => {
+            addCat.onClose = (e: Event) => {
+              const value = (e.target as HTMLDialogElement).returnValue;
+              if (value.length > 0) AddCategory(value, params.id);
+            };
+            addCat.showModal();
+          }}
+        />
+      </div>
     </>
   );
 }
@@ -163,18 +189,12 @@ function Breadcrum(props: { id?: CategoryId }) {
         <div className="flex px-4 text-primary-800">
           <Button
             leadingIcon="ArrowLeft"
-            className="tap-secondary-50 btn-sm w-fit rounded-r-none bg-secondary-100"
+            className="tap-secondary-50 btn-sm w-fit bg-secondary-100"
             onClick={() =>
               router.replace("/pwa/categories/details/" + parent.id)
             }
           >
             {parent.title}
-          </Button>
-          <Button
-            disabled
-            className="btn-sm w-fit rounded-l-none border-2 border-secondary-100"
-          >
-            {cat.title}
           </Button>
         </div>
       );
@@ -183,18 +203,12 @@ function Breadcrum(props: { id?: CategoryId }) {
         <div className="flex px-4 text-primary-800">
           <Button
             leadingIcon="ArrowLeft"
-            className="tap-secondary-50 btn-sm w-fit rounded-r-none bg-secondary-100"
+            className="tap-secondary-50 btn-sm w-fit bg-secondary-100"
             onClick={() => {
               router.replace("/pwa/categories/");
             }}
           >
             Home
-          </Button>
-          <Button
-            disabled
-            className="btn-sm w-fit rounded-l-none border-2 border-secondary-100"
-          >
-            {cat.title}
           </Button>
         </div>
       );

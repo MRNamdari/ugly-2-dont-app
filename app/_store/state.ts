@@ -2,6 +2,7 @@ import { signal, effect, computed } from "@preact/signals-react";
 import {
   categories,
   CategoryId,
+  ICategory,
   IProject,
   IProjectFormData,
   ISubTask,
@@ -361,4 +362,13 @@ export function CategoryInfo(id?: CategoryId) {
       categories: categories.length,
     };
   });
+}
+
+export function AddCategory(
+  title: ICategory["title"],
+  categoryId: ICategory["categoryId"],
+) {
+  const cats = store.categories.value;
+  const id: CategoryId = `c${cats.length + 1}`;
+  store.categories.value = cats.concat({ id, title });
 }

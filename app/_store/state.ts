@@ -81,126 +81,126 @@ export function encodeURL(struct: any) {
   return "?" + url;
 }
 
-export function TaskToFormData(t?: ITask): ITaskFormData | undefined {
-  if (!t) return;
-  const {
-    title,
-    categoryId: category,
-    description,
-    due,
-    priority,
-    projectId: project,
-    subtasks,
-  } = t;
-  const date = new Date(due);
-  modals.calendar.signal.value = date;
-  modals.clock.signal.value = date;
-  const flatSubtasks = {};
-  subtasks?.map((s) => {
-    Object.assign(flatSubtasks, {
-      ["st" + s.id]: s.title,
-      ["ss" + s.id]: s.status ? "1" : "0",
-    });
-  });
-  return {
-    title,
-    description,
-    project,
-    category,
-    time: `${wildCard(date.getHours())}:${wildCard(date.getMinutes())}`,
-    date: `${date.getFullYear()}-${wildCard(date.getMonth() + 1)}-${wildCard(date.getDate())}`,
-    priority,
-    ...flatSubtasks,
-  };
-}
+// export function TaskToFormData(t?: ITask): ITaskFormData | undefined {
+//   if (!t) return;
+//   const {
+//     title,
+//     categoryId: category,
+//     description,
+//     due,
+//     priority,
+//     projectId: project,
+//     subtasks,
+//   } = t;
+//   const date = new Date(due);
+//   modals.calendar.signal.value = date;
+//   modals.clock.signal.value = date;
+//   const flatSubtasks = {};
+//   subtasks?.map((s) => {
+//     Object.assign(flatSubtasks, {
+//       ["st" + s.id]: s.title,
+//       ["ss" + s.id]: s.status ? "1" : "0",
+//     });
+//   });
+//   return {
+//     title,
+//     description,
+//     project,
+//     category,
+//     time: `${wildCard(date.getHours())}:${wildCard(date.getMinutes())}`,
+//     date: `${date.getFullYear()}-${wildCard(date.getMonth() + 1)}-${wildCard(date.getDate())}`,
+//     priority,
+//     ...flatSubtasks,
+//   };
+// }
 
-export function FormDataToTask(fd: ITaskFormData): ITask {
-  const {
-    category,
-    date,
-    description,
-    id,
-    priority,
-    project,
-    // reminder,
-    time,
-    title,
-  } = fd;
-  const due = new Date(date!);
-  const [h, m] = time!.split(":").map((i) => parseInt(i));
-  due.setHours(h, m);
-  const subtasks: ISubTask[] = Object.keys(fd)
-    .filter((k) => /^st[0-9]+$/.test(k))
-    .map((key) => {
-      const id = key.slice(2);
-      return {
-        id,
-        title: fd[key as `st${string}`]!,
-        status: fd[`ss${id}`] == "0" ? false : true,
-      };
-    });
-  return {
-    id: (id as TaskId) ?? "t" + store.tasks.peek().length + 1,
-    title: title ?? "",
-    description,
-    projectId: project as ProjectId,
-    categoryId: category as CategoryId,
-    due: due.toISOString(),
-    priority,
-    status: false,
-    subtasks,
-  };
-}
+// export function FormDataToTask(fd: ITaskFormData): ITask {
+//   const {
+//     category,
+//     date,
+//     description,
+//     id,
+//     priority,
+//     project,
+//     // reminder,
+//     time,
+//     title,
+//   } = fd;
+//   const due = new Date(date!);
+//   const [h, m] = time!.split(":").map((i) => parseInt(i));
+//   due.setHours(h, m);
+//   const subtasks: ISubTask[] = Object.keys(fd)
+//     .filter((k) => /^st[0-9]+$/.test(k))
+//     .map((key) => {
+//       const id = key.slice(2);
+//       return {
+//         id,
+//         title: fd[key as `st${string}`]!,
+//         status: fd[`ss${id}`] == "0" ? false : true,
+//       };
+//     });
+//   return {
+//     id: (id as TaskId) ?? "t" + store.tasks.peek().length + 1,
+//     title: title ?? "",
+//     description,
+//     projectId: project as ProjectId,
+//     categoryId: category as CategoryId,
+//     due: due.toISOString(),
+//     priority,
+//     status: false,
+//     subtasks,
+//   };
+// }
 
-export function ProjectToFormData(p?: IProject): IProjectFormData | undefined {
-  if (!p) return;
-  const {
-    title,
-    categoryId: category,
-    description,
-    due,
-    projectId: project,
-    priority,
-  } = p;
-  const date = new Date(due);
-  modals.calendar.signal.value = date;
-  modals.clock.signal.value = date;
-  return {
-    title,
-    description,
-    project,
-    category,
-    time: `${wildCard(date.getHours())}:${wildCard(date.getMinutes())}`,
-    date: `${date.getFullYear()}-${wildCard(date.getMonth() + 1)}-${wildCard(date.getDate())}`,
-    priority,
-  };
-}
+// export function ProjectToFormData(p?: IProject): IProjectFormData | undefined {
+//   if (!p) return;
+//   const {
+//     title,
+//     categoryId: category,
+//     description,
+//     due,
+//     projectId: project,
+//     priority,
+//   } = p;
+//   const date = new Date(due);
+//   modals.calendar.signal.value = date;
+//   modals.clock.signal.value = date;
+//   return {
+//     title,
+//     description,
+//     project,
+//     category,
+//     time: `${wildCard(date.getHours())}:${wildCard(date.getMinutes())}`,
+//     date: `${date.getFullYear()}-${wildCard(date.getMonth() + 1)}-${wildCard(date.getDate())}`,
+//     priority,
+//   };
+// }
 
-export function FormDataToProject(fd: IProjectFormData): IProject {
-  const {
-    category,
-    date,
-    description,
-    id,
-    priority,
-    project,
-    // reminder,
-    time,
-    title,
-  } = fd;
-  const due = new Date(date!);
-  const [h, m] = time!.split(":").map((i) => parseInt(i));
-  due.setHours(h, m);
-  return {
-    id: (id as ProjectId) ?? "p" + store.tasks.peek().length + 1,
-    title: title ?? "",
-    description,
-    projectId: project as ProjectId,
-    categoryId: category as CategoryId,
-    due: due.toISOString(),
-    priority,
-  };
-}
+// export function FormDataToProject(fd: IProjectFormData): IProject {
+//   const {
+//     category,
+//     date,
+//     description,
+//     id,
+//     priority,
+//     project,
+//     // reminder,
+//     time,
+//     title,
+//   } = fd;
+//   const due = new Date(date!);
+//   const [h, m] = time!.split(":").map((i) => parseInt(i));
+//   due.setHours(h, m);
+//   return {
+//     id: (id as ProjectId) ?? "p" + store.tasks.peek().length + 1,
+//     title: title ?? "",
+//     description,
+//     projectId: project as ProjectId,
+//     categoryId: category as CategoryId,
+//     due: due.toISOString(),
+//     priority,
+//   };
+// }
 
 export function PendingTasksCount(projectId: ProjectId) {
   return computed(() => {
@@ -261,6 +261,11 @@ export function SelectTasksByCategoryId(
     return store.tasks.value.filter((t) => t.categoryId === undefined);
   }
 }
+
+export function SelectTaskById(id?: TaskId): Partial<ITask> {
+  return store.tasks.value.find((t) => t.id === id) ?? {};
+}
+
 export function SelectProjectByCategoryId(id?: CategoryId): IProject[];
 export function SelectProjectByCategoryId(id: CategoryId[]): IProject[];
 export function SelectProjectByCategoryId(
@@ -305,7 +310,8 @@ export function AddToSelection(fid: FeatureID) {
   store.selection.value = store.selection.value.concat(fid);
 }
 
-export const TaskFormDataSignal = signal<ITaskFormData>({});
+// export const TaskFormDataSignal = signal<ITaskFormData>({});
+export const TaskFormDataSignal = signal<Partial<ITask>>({});
 
 export function TasksProgressByCategory(id?: CategoryId) {
   return computed(() => {

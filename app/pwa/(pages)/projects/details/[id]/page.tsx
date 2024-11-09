@@ -87,7 +87,7 @@ export default function ProjectDetailPage({
           }}
         />
         <div className="px-4">
-          <AnimatePresence>
+          <AnimatePresence mode="wait">
             {children.length > 0 ? (
               children
             ) : (

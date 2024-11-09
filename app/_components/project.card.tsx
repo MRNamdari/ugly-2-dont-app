@@ -176,7 +176,7 @@ export default function ProjectCard(props: ProjectCardProps) {
       <div className="flex items-center justify-between justify-self-end pt-2 text-primary-700">
         <ProgressPie {...{ progress }} />
         <PendingTasks pending={pendingTasks} />
-        <DueTime due={new Date(props.due)} />
+        <DueTime due={new Date(props.date)} />
       </div>
     </motion.article>
   );

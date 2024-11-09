@@ -22,7 +22,7 @@ export type MenuProps<T extends MenuOption> = {
 export default function Menu<T extends MenuOption>(props: MenuProps<T>) {
   const [expanded, setExpansion] = useState<boolean>(false); // is closed
   const [label, setLabel] = useState<string | null>(
-    props.defaultValue?.name ?? null
+    props.defaultValue?.name ?? null,
   );
   const [value, setValue] = useState<string>(props.defaultValue?.value ?? "");
 
@@ -61,7 +61,7 @@ export default function Menu<T extends MenuOption>(props: MenuProps<T>) {
         onClick={ClickHandler}
       >
         {props.leadingIcon && <Icon label={props.leadingIcon} />}
-        <p className="w-full text-left text-ellipsis overflow-hidden whitespace-nowrap">
+        <p className="w-full overflow-hidden text-ellipsis whitespace-nowrap text-left">
           {label ?? props.label}
         </p>
         <motion.span
@@ -79,11 +79,11 @@ export default function Menu<T extends MenuOption>(props: MenuProps<T>) {
   );
 }
 
-type MenuItemProps = {
-  value: string;
+type MenuItemProps<V extends string> = {
+  value: V;
   children: string;
   className: string;
-  onSelect?: (item: MenuItemProps["value"]) => any;
+  onSelect?: (item: MenuItemProps<V>["value"]) => any;
 };
 type MenuDisabledItemProps = {
   children: string;
@@ -115,8 +115,8 @@ type MenuSearchbarProps = {
                 {"name"}
             </MenuItem>
  */
-export function MenuItem(
-  props: MenuItemProps | MenuDisabledItemProps | MenuSearchbarProps
+export function MenuItem<T extends string>(
+  props: MenuItemProps<T> | MenuDisabledItemProps | MenuSearchbarProps,
 ) {
   if ("value" in props)
     return (

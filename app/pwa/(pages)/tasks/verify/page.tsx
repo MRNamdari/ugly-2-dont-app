@@ -1,16 +1,16 @@
 "use client";
 import IconButton from "@/app/_components/icon-button";
 import {
-  FormDataToTask,
+  // FormDataToTask,
   store,
   TaskFormDataSignal,
-  TaskToFormData,
+  // TaskToFormData,
 } from "@/app/_store/state";
 import Link from "next/link";
 import TextInput from "@/app/_components/text-input";
 import Icon from "@/app/_components/icon";
 import Button from "@/app/_components/button";
-import { Priority } from "@/app/_store/data";
+import { ITask, Priority } from "@/app/_store/data";
 import { useRouter } from "next/navigation";
 import { date2display, dateToLocalTime } from "@/app/_components/util";
 import { MouseEvent, useState } from "react";
@@ -23,17 +23,15 @@ export default function VerifyTaskPage() {
   useSignalEffect(() => {
     setState(TaskFormDataSignal.value);
   });
-  const project = store.projects.value.find((p) => p.id == state.project);
+  const project = store.projects.value.find((p) => p.id == state.projectId);
 
-  const category = store.categories.value.find((c) => c.id == state.category);
+  const category = store.categories.value.find((c) => c.id == state.categoryId);
 
-  const subtasks = Object.entries(state).filter(([key, value]) =>
-    /^st[0-9]+$/.test(key),
-  );
+  const subtasks = state.subtasks;
 
   function handleSubmit(e: MouseEvent<HTMLButtonElement>) {
     const tasks = store.tasks.value;
-    const newTask = FormDataToTask(state);
+    const newTask = state as ITask;
     if (state.id) {
       const index = tasks.findIndex((t) => t.id == state.id);
       tasks[index] = newTask;
@@ -97,22 +95,15 @@ export default function VerifyTaskPage() {
           )}
           <p className="text-sm text-primary-700">{state.description}</p>
         </article>
-        {subtasks.length > 0 && (
+        {subtasks && subtasks.length > 0 && (
           <section className="w-full rounded-3xl bg-secondary-50">
-            {subtasks.map(([key, value]) => (
-              <span key={key} className="group">
-                <TextInput
-                  key={key}
-                  className="group text-input-md border-2 border-b-2 border-transparent border-b-secondary-100 bg-secondary-50 text-zinc-600 *:transition-colors group-last:border-b-transparent"
-                >
+            {subtasks.map((st) => (
+              <span key={st.id} className="group">
+                <TextInput className="group text-input-md border-2 border-b-2 border-transparent border-b-secondary-100 bg-secondary-50 text-zinc-600 *:transition-colors group-last:border-b-transparent">
                   <Icon label="Hash" className="ico-md text-secondary-600" />
-                  <p className="w-full">{value}</p>
+                  <p className="w-full">{st.title}</p>
                   <Icon
-                    label={
-                      state[key.replace("t", "s") as `st${string}`] === "0"
-                        ? "Circle"
-                        : "CheckCircle"
-                    }
+                    label={st.status ? "Circle" : "CheckCircle"}
                     className="ico-md text-secondary-600"
                   />
                 </TextInput>

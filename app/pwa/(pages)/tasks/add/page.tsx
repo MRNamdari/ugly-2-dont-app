@@ -4,23 +4,17 @@ import type {
   IProject,
   ISubTask,
   ICategory,
-  ITaskFormData,
+  ITask,
+  TaskId,
 } from "@/app/_store/data";
 import { Priority } from "@/app/_store/data";
 // Signals
-import { useSignalEffect } from "@preact/signals-react/runtime";
-import { batch, computed } from "@preact/signals-react";
-import {
-  encodeURL,
-  TaskFormDataSignal,
-  modals,
-  store,
-  TaskToFormData,
-} from "@/app/_store/state";
+import { computed } from "@preact/signals-react";
+import { SelectTaskById, TaskFormDataSignal, store } from "@/app/_store/state";
 // Hooks
 import Fuse from "fuse.js";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 // Components
 import Menu, { MenuItem } from "@/app/_components/menu";
 import IconButton from "@/app/_components/icon-button";
@@ -28,6 +22,9 @@ import Button from "@/app/_components/button";
 import TextInput from "@/app/_components/text-input";
 import Icon from "@/app/_components/icon";
 import { motion } from "framer-motion";
+import { CalendarContext } from "@/app/_components/calendar.modal";
+import { date2display, timeToLocalTime } from "@/app/_components/util";
+import { ClockContext } from "@/app/_components/clock.modal";
 
 const cats = computed(() => store.categories.value);
 const fuseCats = new Fuse(cats.value, { keys: ["title"] });
@@ -35,25 +32,13 @@ const fuseCats = new Fuse(cats.value, { keys: ["title"] });
 const prjs = computed(() => store.projects.value);
 const fusePrjs = new Fuse(prjs.value, { keys: ["title", "description"] });
 
-export default function AddTaskPage({
-  params,
-  // searchParams,
-}: {
-  params: { id: string };
-  // searchParams: ITaskFormData;
-}) {
+export default function AddTaskPage({ params }: { params: { id: TaskId } }) {
   const router = useRouter();
-  const [state, setState] = useState<ITaskFormData>(TaskFormDataSignal.value);
+  const calendar = useContext(CalendarContext);
+  const clock = useContext(ClockContext);
+  const [state, setState] = useState<Partial<ITask>>(SelectTaskById(params.id));
   const form = useRef<HTMLFormElement>(null);
   const subtaskInput = useRef<HTMLInputElement>(null);
-  const subtasks: ISubTask[] = Object.keys(state)
-    .filter((k) => /^st[0-9]+$/.test(k))
-    .map((k) => {
-      const id = k.slice(2);
-      const title = state[`st${id}` as const]!;
-      const status = state[`ss${id}` as const];
-      return { title, status: status == "0" ? false : true, id };
-    });
 
   const [catSearch, setCatSearch] = useState<string>("");
   const [prjSearch, setPrjSearch] = useState<string>("");
@@ -64,35 +49,12 @@ export default function AddTaskPage({
     time: false,
   });
 
-  if (state.date && !modals.calendar.signal.peek())
-    modals.calendar.signal.value = new Date(state.date);
-
-  if (state.time && !modals.clock.signal.peek())
-    modals.clock.signal.value = new Date("0 " + state.time);
-
-  useSignalEffect(() => {
-    if (params.id) {
-      const task = store.tasks.value.find((t) => t.id == params.id);
-      task && setState(TaskToFormData(task) ?? {});
-    }
-    const time = modals.clock.value.value;
-    if (time.length > 0 && state.time !== time) {
-      setError((e) => ({ ...e, time: false }));
-      setState((s) => ({ ...s, time }));
-    }
-    const date = modals.calendar.value.value;
-    if (date.length > 0 && date !== state.date) {
-      setError((e) => ({ ...e, date: false }));
-      setState((s) => ({ ...s, date }));
-    }
-  });
-
   function mapCats<T extends { item: ICategory }>({ item }: T) {
     return (
       <MenuItem
         key={item.id}
         value={item.id}
-        onSelect={(category) => setState({ ...state, category })}
+        onSelect={(categoryId) => setState({ ...state, categoryId })}
         className="menu-item-zinc-100 tap-zinc-300 hover:menu-item-zinc-200 active:menu-item-zinc-300"
       >
         {item.title}
@@ -104,7 +66,7 @@ export default function AddTaskPage({
       <MenuItem
         key={item.id}
         value={item.id}
-        onSelect={(project) => setState({ ...state, project })}
+        onSelect={(projectId) => setState({ ...state, projectId })}
         className="menu-item-zinc-100 tap-zinc-300 hover:menu-item-zinc-200 active:menu-item-zinc-300"
       >
         {item.title}
@@ -141,7 +103,7 @@ export default function AddTaskPage({
               const f = form.current;
               if (!f) return;
               if (f.checkValidity()) {
-                TaskFormDataSignal.value = state;
+                if (state !== undefined) TaskFormDataSignal.value = state;
                 router.push("/pwa/tasks/verify");
               }
             }}
@@ -177,7 +139,7 @@ export default function AddTaskPage({
             <input
               type="text"
               name="title"
-              defaultValue={state.title}
+              defaultValue={state?.title}
               required
               onInvalid={(e) => {
                 err.title = true;
@@ -205,7 +167,7 @@ export default function AddTaskPage({
             <input
               type="text"
               name="description"
-              defaultValue={state.description}
+              defaultValue={state?.description}
               placeholder="Description"
               onBlur={(e) => {
                 const val = e.target.value.trim();
@@ -227,21 +189,15 @@ export default function AddTaskPage({
                 }
                 onClick={(e) => {
                   e.preventDefault();
-                  if (state.date)
-                    modals.calendar.signal.value = new Date(state.date);
-                  const cal = document.querySelector(
-                    "#calendar",
-                  ) as HTMLDialogElement;
-                  cal.showModal();
+                  calendar.onClose = (d) => {
+                    console.log(d);
+                    setError((e) => ({ ...e, date: d === undefined }));
+                    setState((s) => ({ ...s, date: d?.toISOString() }));
+                  };
+                  calendar.showModal(state?.date);
                 }}
-                onTap={(e) =>
-                  setTimeout(
-                    () => (e.target as HTMLElement).removeAttribute("style"),
-                    600,
-                  )
-                }
               >
-                {modals.calendar.display}
+                {state?.date ? date2display(state.date) : "Date*"}
                 <input
                   type="date"
                   required
@@ -253,7 +209,7 @@ export default function AddTaskPage({
                       date: true,
                     }));
                   }}
-                  defaultValue={state.date}
+                  defaultValue={state?.date}
                 />
               </Button>
               <Error visible={err.date}>* add a due date</Error>
@@ -269,19 +225,14 @@ export default function AddTaskPage({
                 }
                 onClick={(e) => {
                   e.preventDefault();
-                  const clk = document.querySelector(
-                    "#clock",
-                  ) as HTMLDialogElement;
-                  clk.showModal();
+                  clock.showModal(state.time);
+                  clock.onClose = (time) => {
+                    console.log("%o", time);
+                    if (time) setState((s) => ({ ...s, time }));
+                  };
                 }}
-                onTap={(e) =>
-                  setTimeout(
-                    () => (e.target as HTMLElement).removeAttribute("style"),
-                    600,
-                  )
-                }
               >
-                {modals.clock.display}
+                {state.time ? timeToLocalTime(state.time) : "Time*"}
                 <input
                   type="time"
                   required
@@ -293,7 +244,7 @@ export default function AddTaskPage({
                       time: true,
                     }));
                   }}
-                  defaultValue={state.time}
+                  defaultValue={state?.time}
                 />
               </Button>
               <Error visible={err.time}>* add a due time</Error>
@@ -305,8 +256,8 @@ export default function AddTaskPage({
             label="Project"
             name="project"
             defaultValue={{
-              name: prjs.value.find((p) => p.id == state.project)?.title,
-              value: state.project,
+              name: prjs.value.find((p) => p.id == state?.projectId)?.title,
+              value: state?.projectId,
             }}
             className="menu-zinc-100 tap-zinc-200 menu-md menu-filled text-zinc-600"
           >
@@ -335,8 +286,8 @@ export default function AddTaskPage({
             label="Category"
             name="category"
             defaultValue={{
-              name: cats.value.find((c) => c.id == state.category)?.title,
-              value: state.category,
+              name: cats.value.find((c) => c.id == state?.categoryId)?.title,
+              value: state?.categoryId,
             }}
             className="menu-zinc-100 tap-zinc-200 menu-md menu-filled text-zinc-600"
           >
@@ -372,7 +323,7 @@ export default function AddTaskPage({
               label="Priority"
               name="priority"
               defaultValue={
-                state.priority !== undefined
+                state?.priority !== undefined
                   ? {
                       name: Priority[state.priority ?? "2"],
                       value: Priority[Priority[state.priority ?? "2"]],
@@ -406,47 +357,54 @@ export default function AddTaskPage({
           </div>
         </section>
         <section className="flex h-full w-full flex-col justify-end place-self-end">
-          {subtasks.map((st) => (
-            <TextInput
-              key={st.id}
-              className="group text-input-sm rounded-none border-b-2 border-primary-600 bg-primary-800 px-1 text-white *:transition-colors"
-            >
-              <Icon
-                label="Hash"
-                className="ico-sm group-focus-within:text-primary-400"
-              />
-              <input
-                type="text"
-                name={`st${st.id}`}
-                defaultValue={st.title}
-                onBlur={(e) => {
-                  e.preventDefault();
-                  const input = e.target;
-                  const value = input.value;
-                  const storedValue = subtasks.find((t) => t.id == st.id);
-                  if (storedValue && value !== storedValue?.title) {
-                    setState({ ...state, [`st${st.id}`]: value.trim() });
-                  }
-                }}
-                className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-primary-400"
-              />
-              <input
-                type="hidden"
-                name={`ss${st.id}`}
-                defaultValue={st.status ? "1" : "0"}
-              />
-              <IconButton
-                icon="X"
-                className="tap-primary-600 ico-sm rounded-none"
-                onClick={(e) => {
-                  e.preventDefault();
-                  delete state[`st${st.id}`];
-                  delete state[`ss${st.id}`];
-                  setState(state);
-                }}
-              />
-            </TextInput>
-          ))}
+          {state?.subtasks &&
+            state?.subtasks.map((st) => (
+              <TextInput
+                key={st.id}
+                className="group text-input-sm rounded-none border-b-2 border-primary-600 bg-primary-800 px-1 text-white *:transition-colors"
+              >
+                <Icon
+                  label="Hash"
+                  className="ico-sm group-focus-within:text-primary-400"
+                />
+                <input
+                  type="text"
+                  name={`st${st.id}`}
+                  defaultValue={st.title}
+                  onBlur={(e) => {
+                    e.preventDefault();
+                    const input = e.target;
+                    const value = input.value;
+                    const storedValue = state.subtasks?.find(
+                      (t) => t.id == st.id,
+                    );
+                    if (storedValue && value !== storedValue?.title) {
+                      setState({ ...state, [`st${st.id}`]: value.trim() });
+                    }
+                  }}
+                  className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-primary-400"
+                />
+                <input
+                  type="hidden"
+                  name={`ss${st.id}`}
+                  defaultValue={st.status ? "1" : "0"}
+                />
+                <IconButton
+                  icon="X"
+                  className="tap-primary-600 ico-sm rounded-none"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    let subtasks: ISubTask[] | undefined;
+                    if ((subtasks = state.subtasks)) {
+                      setState((state) => ({
+                        ...state,
+                        subtasks: subtasks?.filter((s) => s.id !== st.id),
+                      }));
+                    }
+                  }}
+                />
+              </TextInput>
+            ))}
 
           <TextInput className="group text-input-md rounded-none bg-primary-800 text-white *:transition-colors">
             <input
@@ -462,16 +420,20 @@ export default function AddTaskPage({
                 e.preventDefault();
                 const val = subtaskInput.current?.value;
                 if (val) {
+                  const subtasks = state?.subtasks || [];
                   const id =
                     subtasks.reduce(
                       (p, c) => (p > parseInt(c.id) ? p : parseInt(c.id)),
                       0,
                     ) + 1;
-
+                  subtasks.push({
+                    id: id.toString(),
+                    status: false,
+                    title: val.trim(),
+                  });
                   setState({
                     ...state,
-                    [`st${id}`]: val.trim(),
-                    [`ss${id}`]: 0,
+                    subtasks,
                   });
 
                   subtaskInput.current.value = "";

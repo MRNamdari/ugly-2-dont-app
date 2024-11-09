@@ -7,7 +7,7 @@ import { ICategory, IProject, ITask } from "../_store/data";
 import { useSignalEffect } from "@preact/signals-react";
 import { CategoryInfo, PendingTasksCount, store } from "../_store/state";
 import TaskTicket from "../_components/task.ticket";
-import { motion, useScroll } from "framer-motion";
+import { motion } from "framer-motion";
 export default function PWAHomePage() {
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [projects, setProjects] = useState<IProject[]>([]);

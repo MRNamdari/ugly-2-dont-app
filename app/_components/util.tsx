@@ -24,7 +24,7 @@ export function styleConfig(props: StyleProps, callFn: any): string {
   switch (ButtonStyle.length) {
     case 0:
       err = SyntaxError(
-        `Expected 1 styling configuration for '${callFn.name}', received 0.`
+        `Expected 1 styling configuration for '${callFn.name}', received 0.`,
       );
       Error.captureStackTrace(err, callFn);
       throw err;
@@ -32,7 +32,7 @@ export function styleConfig(props: StyleProps, callFn: any): string {
       return ButtonStyle[0];
     default:
       err = SyntaxError(
-        `Expected 1 styling configuration for '${callFn.name}', received ${ButtonStyle.length}.`
+        `Expected 1 styling configuration for '${callFn.name}', received ${ButtonStyle.length}.`,
       );
       Error.captureStackTrace(err, callFn);
       throw err;
@@ -64,7 +64,7 @@ export function sizeConfig(props: SizeProps, callFn: any): string {
   switch (ButtonSize.length) {
     case 0:
       err = SyntaxError(
-        `Expected 1 sizing configuration for '${callFn.name}', received 0.`
+        `Expected 1 sizing configuration for '${callFn.name}', received 0.`,
       );
       Error.captureStackTrace(err, callFn);
       throw err;
@@ -72,7 +72,7 @@ export function sizeConfig(props: SizeProps, callFn: any): string {
       return ButtonSize[0];
     default:
       err = SyntaxError(
-        `Expected 1 sizing configuration for '${callFn.name}', received ${ButtonSize.length}.`
+        `Expected 1 sizing configuration for '${callFn.name}', received ${ButtonSize.length}.`,
       );
       Error.captureStackTrace(err, callFn);
       throw err;
@@ -361,7 +361,7 @@ export function* useDoubleTap<T extends HTMLElement>(ref: MutableRefObject<T>) {
   /* Regex test to determine if user is on mobile */
   if (
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      navigator.userAgent
+      navigator.userAgent,
     )
   ) {
     // initiallizing an abort controller and pass it to callBackFn
@@ -487,7 +487,7 @@ export function quickSort<T>(
   array: T[],
   high: number,
   low: number,
-  extract?: (arg: T) => number | string | T
+  extract?: (arg: T) => number | string | T,
 ): T[] {
   if (low < high) {
     // find pivot element such that
@@ -550,7 +550,7 @@ export function quickSort<T>(
  */
 export function IdCheck<T extends CategoryId | ProjectId | TaskId>(
   id: any,
-  init: "c" | "p" | "t"
+  init: "c" | "p" | "t",
 ): id is T {
   return id.slice(0, 1) === init;
 }
@@ -694,7 +694,7 @@ export type DueTime = { time: ClockTime };
  */
 export function decodeNavigationParams<Q extends keyof NavigationQueryList>(
   query: Q,
-  params: ParsedUrlQuery
+  params: ParsedUrlQuery,
 ) {
   const pop = "pop" in params ? (params.pop == "true" ? true : false) : false;
   const refer = "refer" in params ? params.refer : undefined;
@@ -736,7 +736,7 @@ export function decodeNavigationParams<Q extends keyof NavigationQueryList>(
               : undefined
             : undefined,
         selectedItems: Number(
-          "selectedItems" in params ? params.selectedItems : 0
+          "selectedItems" in params ? params.selectedItems : 0,
         ),
       };
       break;
@@ -750,7 +750,7 @@ export function decodeNavigationParams<Q extends keyof NavigationQueryList>(
               : undefined
             : undefined,
         selectedItems: Number(
-          "selectedItems" in params ? params.selectedItems : 0
+          "selectedItems" in params ? params.selectedItems : 0,
         ),
       };
       break;
@@ -764,7 +764,7 @@ export function decodeNavigationParams<Q extends keyof NavigationQueryList>(
               : undefined
             : undefined,
         selectedItems: Number(
-          "selectedItems" in params ? params.selectedItems : 0
+          "selectedItems" in params ? params.selectedItems : 0,
         ),
       };
       break;
@@ -846,7 +846,7 @@ export function decodeNavigationParams<Q extends keyof NavigationQueryList>(
             title: params[key] as string,
             id: Number(key.slice(1)),
             status: false,
-          })
+          }),
         );
 
       newParams = {
@@ -878,7 +878,7 @@ export function decodeNavigationParams<Q extends keyof NavigationQueryList>(
             title: params[key] as string,
             status: params["s" + key] == "false" ? false : true,
             id: Number(key.slice(1)),
-          })
+          }),
         );
       newParams = {
         id: isTaskId(params.id) ? params.id : undefined,
@@ -977,7 +977,7 @@ export function decodeNavigationParams<Q extends keyof NavigationQueryList>(
  */
 export function encodeNavigationParams<T>(
   navigationQuery: RouteNavigation<T>,
-  untouchedQuery: ParsedUrlQuery
+  untouchedQuery: ParsedUrlQuery,
 ) {
   // in AddTaskPage and EditTaskPage subtasks title and status
   // must be removed from untouchedQuery before adding new ones
@@ -1042,7 +1042,7 @@ export function flattenTaskData<T extends EditTaskFormData | ITask>(fd: T) {
  * @returns flattened data
  */
 export function flattenProjectData<P extends EditProjectFormData | IProject>(
-  fd: P
+  fd: P,
 ) {
   const flat = {
     id: fd.id,
@@ -1070,7 +1070,7 @@ export function flattenProjectData<P extends EditProjectFormData | IProject>(
 
 type FilterFn = {
   [Property in keyof TaskFilter]: (
-    arg: TaskFilter[Property]
+    arg: TaskFilter[Property],
   ) => (arg: ITask) => boolean;
 };
 
@@ -1187,7 +1187,7 @@ type FilterFn = {
 export function date2str(date: Date | string): CalendarDate {
   if (typeof date === "string") date = new Date(date);
   return `${date.getFullYear()}-${num2str(date.getMonth() + 1)}-${num2str(
-    date.getDate()
+    date.getDate(),
   )}`;
 }
 
@@ -1289,8 +1289,9 @@ export function localTimeToTime(s: string) {
  * @param s
  * @returns time in format "HH:MM AM/PM"
  */
-export function timeToLocalTime(s: string | any) {
-  return dateToLocalTime(new Date(s));
+export function timeToLocalTime(s: string) {
+  const d = new Date("0 " + s);
+  return d.toLocaleTimeString().replace(":00", "");
 }
 
 /**
@@ -1334,13 +1335,13 @@ export function isClockTime(queryParams: any): queryParams is ClockTime {
   return /[0-9]{2}:[0-9]{2}/.test(queryParams);
 }
 export function isCategoryAction(
-  queryParams: any
+  queryParams: any,
 ): queryParams is "move" | "delete" {
   return /(move)|(delete)/.test(queryParams);
 }
 
 export function isTaskAction(
-  queryParams: any
+  queryParams: any,
 ): queryParams is "edit" | "delete" {
   return /(edit)|(delete)/.test(queryParams);
 }

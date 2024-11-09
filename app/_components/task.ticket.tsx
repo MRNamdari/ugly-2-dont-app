@@ -287,7 +287,7 @@ export default function TaskTicket(props: ITask) {
         </span>
         <div className="flex w-full gap-1 text-sm">
           <p className="flex-grow text-xs text-primary-600">
-            {date2display(new Date(props.due))}
+            {props.date && date2display(new Date(props.date))}
           </p>
           {props.notification && (
             <Icon

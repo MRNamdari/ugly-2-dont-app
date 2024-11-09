@@ -4,12 +4,12 @@ import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { LayoutTransition } from "@/app/_components/layout-transition";
 
-const Calendar = dynamic(() => import("@/app/_components/calendar.modal"), {
-  ssr: false,
-});
-const Clock = dynamic(() => import("@/app/_components/clock.modal"), {
-  ssr: false,
-});
+// const Calendar = dynamic(() => import("@/app/_components/calendar.modal"), {
+//   ssr: false,
+// });
+// const Clock = dynamic(() => import("@/app/_components/clock.modal"), {
+//   ssr: false,
+// });
 const DeleteModal = dynamic(() => import("@/app/_components/delete.modal"), {
   ssr: false,
 });
@@ -23,8 +23,8 @@ export default function PagesLayout({
 }) {
   return (
     <>
-      <Calendar />
-      <Clock />
+      {/* <Calendar /> */}
+      {/* <Clock /> */}
       <DeleteModal />
       <AddModal />
       <LayoutTransition>
@@ -32,7 +32,7 @@ export default function PagesLayout({
           initial={{ opacity: 0 }}
           exit={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="h-dvh grid grid-rows-[5rem_1fr] max-w-screen-sm mx-auto"
+          className="mx-auto grid h-dvh max-w-screen-sm grid-rows-[5rem_1fr]"
         >
           {children}
         </motion.main>

@@ -143,7 +143,7 @@ export default function ProjectTicket(props: ProjectTicketProps) {
         <div className="flex items-center justify-between pt-2 text-primary-700">
           <ProgressPie {...{ progress }} />
           <PendingTasks pending={pendingTasks} />
-          <DueTime due={new Date(props.due)} />
+          <DueTime due={new Date(props.date)} />
         </div>
       </motion.div>
     </motion.article>
@@ -197,7 +197,7 @@ export function DueTime(props: { due: Date }) {
         <span className="row-span-2 place-self-end pr-1 text-[2rem] leading-8">
           {count}
         </span>
-        <div className="row-span-1 self-center text-xs leading-3">
+        <div className="row-span-1 self-center whitespace-nowrap text-xs leading-3">
           {unit} To
         </div>
         <div className="row-span-1 text-xs leading-3">Deadline</div>

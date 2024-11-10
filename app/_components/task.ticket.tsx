@@ -1,6 +1,6 @@
 import Icon from "@/app/_components/icon";
 import { date2display } from "@/app/_components/util";
-import { ISubTask, ITask, Priority } from "@/app/_store/data";
+import { db, ISubTask, ITask, Priority } from "@/app/_store/db";
 import {
   AddToSelection,
   isSelectionStarted,
@@ -9,6 +9,7 @@ import {
   store,
 } from "@/app/_store/state";
 import { useSignalEffect } from "@preact/signals-react";
+import { useLiveQuery } from "dexie-react-hooks";
 import { motion, PanInfo } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -21,14 +22,18 @@ const selection = store.selection;
 
 export default function TaskTicket(props: ITask) {
   const router = useRouter();
-  const project = projects.find((p) => p.id === props.projectId);
-  const category = categories.find((c) => c.id === props.categoryId);
+  const project = useLiveQuery(async () => {
+    if (props.project) return await db.projects.get(props.project);
+  });
+  const category = useLiveQuery(async () => {
+    if (props.category) return await db.categories.get(props.category);
+  });
   const [isExpanded, setExpansion] = useState<boolean>(false);
   const [isSelected, setSelection] = useState<boolean>(
-    selection.value.includes(props.id),
+    selection.value.task.includes(props.id),
   );
   useSignalEffect(() => {
-    if (selection.value.includes(props.id)) setSelection(true);
+    if (selection.value.task.includes(props.id)) setSelection(true);
     else setSelection(false);
   });
   const hasSubtasks =
@@ -46,36 +51,26 @@ export default function TaskTicket(props: ITask) {
 
   const clickEvent = useRef({ timeStamp: 0 });
 
-  function MainCheckboxChangeHandler(e: ChangeEvent<HTMLInputElement>) {
+  async function MainCheckboxChangeHandler(e: ChangeEvent<HTMLInputElement>) {
     const chk = e.target.checked;
     if (hasSubtasks) {
       setStatus(Array.from(status).fill(chk));
-      tasks.value = tasks.value.map((t) => {
-        if (t.id == props.id)
-          return {
-            ...props,
-            status: chk,
-            subtasks: props.subtasks?.map((st) => ({
-              ...st,
-              status: chk,
-            })),
-          };
-        return t;
+      await db.tasks.update(props.id, {
+        status: chk,
+        subtasks: props.subtasks?.map((st) => ({
+          ...st,
+          status: chk,
+        })),
       });
     } else {
-      tasks.value = tasks.value.map((t) => {
-        if (t.id == props.id)
-          return {
-            ...props,
-            status: chk,
-          };
-        return t;
+      await db.tasks.update(props.id, {
+        status: chk,
       });
     }
     setCheckbox(chk);
   }
   function SubtaskChangeHandlerMapper(st: ISubTask, i: number) {
-    return function SubtaskCheckboxChangeHandler(
+    return async function SubtaskCheckboxChangeHandler(
       e: ChangeEvent<HTMLInputElement>,
     ) {
       setStatus(
@@ -84,7 +79,7 @@ export default function TaskTicket(props: ITask) {
           return s;
         }),
       );
-      onSubtaskStatusChange(props.id, st.id, e.target.checked);
+      await onSubtaskStatusChange(props.id, st.id, e.target.checked);
     };
   }
   function ClickHandler(e: MouseEvent<HTMLDivElement>) {
@@ -103,10 +98,10 @@ export default function TaskTicket(props: ITask) {
     }
     if (isSelectionStarted.value) {
       if (isSelected) {
-        RemoveFromSelection(props.id);
+        RemoveFromSelection("task", props.id);
         setSelection(false);
       } else {
-        AddToSelection(props.id);
+        AddToSelection("task", props.id);
         setSelection(true);
       }
       return;
@@ -123,7 +118,7 @@ export default function TaskTicket(props: ITask) {
   function ContextMenuHandler(e: MouseEvent<HTMLDivElement>) {
     e.preventDefault();
     setSelection(true);
-    selection.value = [...selection.value, props.id];
+    AddToSelection("task", props.id);
   }
   function DragEndHandler(e: any, info: PanInfo) {
     if (Math.abs(info.offset.x) > 90)
@@ -136,7 +131,8 @@ export default function TaskTicket(props: ITask) {
     const deleteModal = document.getElementById("delete") as HTMLDialogElement;
     deleteModal.onclose = (e) => {
       if (deleteModal.returnValue === "true") {
-        tasks.value = tasks.value.filter((t) => t.id !== props.id);
+        db.tasks.delete(props.id);
+        // tasks.value = tasks.value.filter((t) => t.id !== props.id);
       }
     };
     deleteModal.showModal();
@@ -144,7 +140,7 @@ export default function TaskTicket(props: ITask) {
   return (
     <motion.article
       className="relative"
-      id={props.id}
+      id={props.id.toString()}
       initial={{ opacity: 0, marginBottom: 0 }}
       animate={{ opacity: 1, marginBottom: "1rem" }}
       exit={{ opacity: 0, marginBottom: 0 }}
@@ -307,14 +303,14 @@ export default function TaskTicket(props: ITask) {
           <p
             className={
               "size-6 flex-grow-0 rounded-md text-center align-middle " +
-              (props.priority === "0"
+              (props.priority === 0
                 ? "bg-error-100 text-error-600"
-                : props.priority === "1"
+                : props.priority === 1
                   ? "bg-warning-100 text-warning-600"
                   : "bg-secondary-100 text-secondary-600")
             }
           >
-            {Priority[props.priority as string].slice(0, 1)}
+            {Priority[props.priority!.toString()].slice(0, 1)}
           </p>
         </div>
       </motion.div>
@@ -322,25 +318,20 @@ export default function TaskTicket(props: ITask) {
   );
 }
 
-function onSubtaskStatusChange(
-  taskId: string,
-  subtaskId: string,
+async function onSubtaskStatusChange(
+  taskId: number,
+  subtaskId: number,
   status: boolean,
 ) {
-  const pre = tasks.peek();
+  const task = await db.tasks.get(taskId);
+  if (!task) return;
+  const subtasks = task.subtasks?.map((s) => {
+    if (s.id == subtaskId) return { ...s, status };
+    return s;
+  });
 
-  tasks.value = pre.map((t) => {
-    if (t.id === taskId) {
-      const subtasks = t.subtasks?.map((s) => {
-        if (s.id == subtaskId) return { ...s, status };
-        return s;
-      });
-      return {
-        ...t,
-        status: subtasks?.every((s) => s.status) ?? t.status,
-        subtasks,
-      };
-    }
-    return t;
+  return await db.tasks.update(taskId, {
+    status: subtasks?.every((s) => s.status) ?? task.status,
+    subtasks,
   });
 }

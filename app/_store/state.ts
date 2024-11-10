@@ -63,17 +63,19 @@ export const modals = (function modal() {
   };
 })();
 
-type FeatureID = `p${number}` | `t${number}` | `c${number}`;
-
 export const store = {
   tasks: signal(tasks),
   projects: signal(projects),
   categories: signal(categories),
-  selection: signal<FeatureID[]>([]),
+  selection: signal<{ category: number[]; project: number[]; task: number[] }>({
+    category: [],
+    project: [],
+    task: [],
+  }),
 };
 
-export const isSelectionStarted = computed(
-  () => store.selection.value.length > 0,
+export const isSelectionStarted = computed(() =>
+  Object.values(store.selection.value).some((f) => f.length > 0),
 );
 
 export function encodeURL(struct: any) {
@@ -296,18 +298,27 @@ export function RemoveProjectById(id: ProjectId) {
 }
 export function RemoveCategoryById(id: CategoryId) {}
 
-export function RemoveFromSelection(id: CategoryId): void;
-export function RemoveFromSelection(id: ProjectId): void;
-export function RemoveFromSelection(id: TaskId): void;
-export function RemoveFromSelection(fid: FeatureID) {
-  store.selection.value = store.selection.value.filter((id) => fid !== id);
+export function RemoveFromSelection(feature: "category", id: number): void;
+export function RemoveFromSelection(feature: "project", id: number): void;
+export function RemoveFromSelection(feature: "task", id: number): void;
+export function RemoveFromSelection(
+  feature: "category" | "project" | "task",
+  fid: number,
+) {
+  const selMgr = store.selection.value;
+  selMgr[feature].filter((id) => fid !== id);
+  store.selection.value = selMgr;
 }
-
-export function AddToSelection(id: CategoryId): void;
-export function AddToSelection(id: ProjectId): void;
-export function AddToSelection(id: TaskId): void;
-export function AddToSelection(fid: FeatureID) {
-  store.selection.value = store.selection.value.concat(fid);
+export function AddToSelection(feature: "category", id: number): void;
+export function AddToSelection(feature: "project", id: number): void;
+export function AddToSelection(feature: "task", id: number): void;
+export function AddToSelection(
+  feature: "category" | "project" | "task",
+  fid: number,
+) {
+  const selMgr = store.selection.value;
+  selMgr[feature].concat(fid);
+  store.selection.value = selMgr;
 }
 
 // export const TaskFormDataSignal = signal<ITaskFormData>({});

@@ -2,20 +2,27 @@
 import Link from "next/link";
 import IconButton from "../_components/icon-button";
 import TextInput from "../_components/text-input";
-import { useState } from "react";
-import { ICategory, IProject, ITask } from "../_store/data";
-import { useSignalEffect } from "@preact/signals-react";
-import { CategoryInfo, PendingTasksCount, store } from "../_store/state";
+// import { CategoryInfo, store } from "../_store/state";
 import TaskTicket from "../_components/task.ticket";
 import { motion } from "framer-motion";
+import { useLiveQuery } from "dexie-react-hooks";
+import { CategorySummary, db, PendingTasksCount } from "../_store/db";
+
 export default function PWAHomePage() {
-  const [categories, setCategories] = useState<ICategory[]>([]);
-  const [projects, setProjects] = useState<IProject[]>([]);
-  const [tasks, setTasks] = useState<ITask[]>([]);
-  useSignalEffect(() => {
-    setCategories(store.categories.value);
-    setProjects(store.projects.value);
-    setTasks(store.tasks.value);
+  const tasks = useLiveQuery(async () => await db.tasks.toArray());
+
+  const projects = useLiveQuery(async () => {
+    const p = await db.projects.toArray();
+    return await Promise.all(
+      p.map(async (p) => [p, await PendingTasksCount(p.id)] as const),
+    );
+  });
+
+  const categories = useLiveQuery(async () => {
+    const c = await db.categories.toArray();
+    return await Promise.all(
+      c.map(async (c) => [c, await CategorySummary(c.id)] as const),
+    );
   });
 
   return (
@@ -50,8 +57,7 @@ export default function PWAHomePage() {
           <span className="whitespace-nowrap">see all</span>
         </Link>
         <div className="flex w-full overflow-x-auto pb-12 pt-4">
-          {categories.map((c) => {
-            const { projects, tasks } = CategoryInfo(c.id).value;
+          {categories?.map(([c, { projects, tasks }]) => {
             return (
               <Link
                 href={"/pwa/categories/details/" + c.id}
@@ -61,11 +67,11 @@ export default function PWAHomePage() {
                 <p className="h-full font-medium leading-8">{c.title}</p>
 
                 <div className="w-full rounded-lg rounded-b-none bg-error-100 px-2 text-xs text-error-700">
-                  {projects} Projects
+                  {projects.length} Projects
                 </div>
 
                 <div className="w-full rounded-lg rounded-t-none bg-warning-100 px-2 text-xs text-warning-800">
-                  {tasks} Tasks
+                  {tasks.length} Tasks
                 </div>
               </Link>
             );
@@ -84,8 +90,7 @@ export default function PWAHomePage() {
           <span className="whitespace-nowrap">see all</span>
         </Link>
         <div className="flex w-full overflow-x-auto bg-primary-800 pb-12 pt-4">
-          {projects.map((p) => {
-            const [all, pending] = PendingTasksCount(p.id).value;
+          {projects?.map(([p, [all, pending]], i) => {
             return (
               <Link
                 href={"/pwa/projects/details/" + p.id}
@@ -118,7 +123,7 @@ export default function PWAHomePage() {
           <span className="whitespace-nowrap">see all</span>
         </Link>
         <div className="w-full -translate-y-20">
-          {tasks.map((t, i) => (
+          {tasks?.map((t) => (
             <motion.div
               key={t.id}
               className="animatio sticky px-4 [animation-duration:1ms] [animation-name:fadeOut] [animation-timeline:view(block_25rem)] [animation-timing-function:ease-out]"

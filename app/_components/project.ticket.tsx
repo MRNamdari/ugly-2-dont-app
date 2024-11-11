@@ -1,80 +1,81 @@
 "use client";
 
 import Link from "next/link";
-import { ICategory, IProject, ProjectId } from "../_store/data";
+import { IProject, PendingTasksCount } from "../_store/db";
 import Icon from "./icon";
 import {
   AddToSelection,
   isSelectionStarted,
-  modals,
-  PendingTasksCount,
   RemoveFromSelection,
-  RemoveProjectById,
   store,
 } from "../_store/state";
 import IconButton from "./icon-button";
 import { motion, PanInfo } from "framer-motion";
-import { useState, MouseEvent } from "react";
+import { useState, MouseEvent, useContext, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSignalEffect } from "@preact/signals-react";
 import ProgressPie from "./progress-pie";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "../_store/db";
+import { DeleteContext } from "./delete.modal";
 
-const projects = store.projects;
-const categories = store.categories.value;
 const selection = store.selection;
 
 type ProjectTicketProps = IProject & {
-  onOpen?: (e: MouseEvent, id: ProjectId) => void;
+  onOpen?: (e: MouseEvent, id: IProject["id"]) => void;
 };
 export default function ProjectTicket(props: ProjectTicketProps) {
   const router = useRouter();
 
-  const project = projects.value.find((p) => p.id === props.projectId); // Parent project
-  const category = categories.find((c) => c.id === props.categoryId);
+  const deleteModal = useContext(DeleteContext);
+  const project = useLiveQuery(async () => {
+    if (props.project) return await db.projects.get(props.project);
+  });
+  const category = useLiveQuery(async () => {
+    if (props.category) return await db.categories.get(props.category);
+  });
+  const [allTasks, pendingTasks] = useLiveQuery(async () => {
+    return await PendingTasksCount(props.id);
+  }) ?? [0, 0];
 
   const [isSelected, setSelection] = useState<boolean>();
-  const [{ allTasks, pendingTasks }, setPendingTasksCount] = useState({
-    allTasks: 0,
-    pendingTasks: 0,
-  });
 
   useSignalEffect(() => {
-    new Promise<Readonly<[number, number]>>((resolve) =>
-      resolve(PendingTasksCount(props.id).value),
-    ).then(([allTasks, pendingTasks]) =>
-      setPendingTasksCount({ allTasks, pendingTasks }),
-    );
-    if (selection.value.includes(props.id)) setSelection(true);
+    if (selection.value.project.includes(props.id)) setSelection(true);
     else setSelection(false);
   });
-
+  const dragEnded = useRef<{ info: PanInfo | null }>({ info: null });
   const progress =
     allTasks === 0 ? 100 : ((allTasks - pendingTasks) / allTasks) * 100;
 
   function ContextMenuHandler(e: MouseEvent<HTMLDivElement>) {
     e.preventDefault();
     setSelection(true);
-    selection.value = [...selection.value, props.id];
+    AddToSelection("project", props.id);
   }
   function DragEndHandler(e: any, info: PanInfo) {
-    if (Math.abs(info.offset.x) > 90)
+    dragEnded.current.info = info;
+  }
+  function DragTransitionEndHandler() {
+    const info = dragEnded.current.info;
+    if (info && Math.abs(info.offset.x) > 90)
       info.offset.x > 0
         ? onDelete()
-        : router.push(`/pwa/projects/edit/${props.id}`);
+        : router.push(`/pwa/tasks/edit/${props.id}`);
   }
   function onDelete() {
-    modals.delete.message.value = `Sure wanna delete “${props.title}” and all its tasks and projects?`;
-    const deleteModal = document.getElementById("delete") as HTMLDialogElement;
-    deleteModal.onclose = (e) => {
-      if (deleteModal.returnValue === "true") {
-        RemoveProjectById(props.id);
+    deleteModal.onClose = (value) => {
+      if (value === "true") {
+        db.projects.delete(props.id);
       }
     };
-    deleteModal.showModal();
+    deleteModal.showModal(
+      `Sure wanna delete “${props.title}” and all its tasks and projects?`,
+    );
   }
   return (
     <motion.article
-      id={props.id}
+      id={props.id.toString()}
       initial={{ opacity: 0, marginBottom: 0 }}
       animate={{ opacity: 1, marginBottom: "1rem" }}
       exit={{ opacity: 0, marginBottom: 0 }}
@@ -97,10 +98,10 @@ export default function ProjectTicket(props: ProjectTicketProps) {
         onClick={() => {
           if (isSelectionStarted.value) {
             if (isSelected) {
-              RemoveFromSelection(props.id);
+              RemoveFromSelection("project", props.id);
               setSelection(false);
             } else {
-              AddToSelection(props.id);
+              AddToSelection("project", props.id);
               setSelection(true);
             }
             return;
@@ -108,6 +109,7 @@ export default function ProjectTicket(props: ProjectTicketProps) {
         }}
         onContextMenu={ContextMenuHandler}
         onDragEnd={DragEndHandler}
+        onDragTransitionEnd={DragTransitionEndHandler}
       >
         <span className="grid grid-cols-[auto_2rem]">
           <h4 className="self-center text-lg font-medium">{props.title}</h4>
@@ -143,16 +145,22 @@ export default function ProjectTicket(props: ProjectTicketProps) {
         <div className="flex items-center justify-between pt-2 text-primary-700">
           <ProgressPie {...{ progress }} />
           <PendingTasks pending={pendingTasks} />
-          <DueTime due={new Date(props.date)} />
+          <DueTime date={props.date} time={props.time} />
         </div>
       </motion.div>
     </motion.article>
   );
 }
 
-export function DueTime(props: { due: Date }) {
-  if (!props.due) return null;
-  const RemainedInSec = (props.due.getTime() - Date.now()) / 1000;
+export function DueTime(props: { date: Date; time: Date }) {
+  props.date.setHours(
+    props.time.getUTCHours(),
+    props.time.getUTCMinutes(),
+    0,
+    0,
+  );
+  if (!props.date) return null;
+  const RemainedInSec = (props.date.getTime() - Date.now()) / 1000;
   const UnitArray = ["Second", "Minute", "Hour", "Day", "Month", "Year"];
   const monthNames = [
     "January",
@@ -204,9 +212,9 @@ export function DueTime(props: { due: Date }) {
       </div>
     );
   } else {
-    const day = props.due.getDate();
-    const month = monthNames[props.due.getMonth()];
-    const year = props.due.getFullYear();
+    const day = props.date.getDate();
+    const month = monthNames[props.date.getMonth()];
+    const year = props.date.getFullYear();
     return (
       <div className="grid grid-cols-2">
         <span className="row-span-2 place-self-end pr-1 text-[2rem] leading-8">

@@ -1,21 +1,17 @@
 "use client";
 import IconButton from "@/app/_components/icon-button";
 import TaskTicket from "@/app/_components/task.ticket";
-import { ITask } from "@/app/_store/data";
-import { store } from "@/app/_store/state";
-import { useSignalEffect } from "@preact/signals-react";
+import { db } from "@/app/_store/db";
+import { useLiveQuery } from "dexie-react-hooks";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-
-const Tasks = store.tasks;
 
 export default function TaskBrowserPage() {
   const router = useRouter();
-  const [tasks, setTasks] = useState<ITask[]>([]);
-  useSignalEffect(() => {
-    setTasks(Tasks.value);
-  });
+  const tasks =
+    useLiveQuery(async () => {
+      return await db.tasks.toArray();
+    }) ?? [];
   return (
     <>
       <header className="grid grid-cols-[3rem_1fr_3rem] items-center justify-center p-4">

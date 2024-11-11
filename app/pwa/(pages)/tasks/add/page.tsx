@@ -1,12 +1,6 @@
 "use client";
 // Types and Constants
-import type {
-  IProject,
-  ISubTask,
-  ICategory,
-  ITask,
-  TaskId,
-} from "@/app/_store/data";
+import type { IProject, ISubTask, ICategory, ITask } from "@/app/_store/db";
 import { Priority } from "@/app/_store/data";
 // Signals
 import { computed } from "@preact/signals-react";
@@ -25,21 +19,31 @@ import { motion } from "framer-motion";
 import { CalendarContext } from "@/app/_components/calendar.modal";
 import { date2display, timeToLocalTime } from "@/app/_components/util";
 import { ClockContext } from "@/app/_components/clock.modal";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "@/app/_store/db";
 
-const cats = computed(() => store.categories.value);
-const fuseCats = new Fuse(cats.value, { keys: ["title"] });
-
-const prjs = computed(() => store.projects.value);
-const fusePrjs = new Fuse(prjs.value, { keys: ["title", "description"] });
-
-export default function AddTaskPage({ params }: { params: { id: TaskId } }) {
+export default function AddTaskPage({
+  params,
+}: {
+  params: { id: ITask["id"] };
+}) {
   const router = useRouter();
   const calendar = useContext(CalendarContext);
   const clock = useContext(ClockContext);
-  const [state, setState] = useState<Partial<ITask>>(SelectTaskById(params.id));
+  const initialTask: Partial<ITask> =
+    useLiveQuery(async () => {
+      if (params.id === undefined) return {};
+      return await db.tasks.get(params.id);
+    }) ?? {};
+  const [state, setState] = useState(initialTask);
   const form = useRef<HTMLFormElement>(null);
   const subtaskInput = useRef<HTMLInputElement>(null);
 
+  const project = useLiveQuery(async () => await db.projects.toArray()) ?? [];
+  const category =
+    useLiveQuery(async () => await db.categories.toArray()) ?? [];
+  const fuseCats = new Fuse(category, { keys: ["title"] });
+  const fusePrjs = new Fuse(project, { keys: ["title", "description"] });
   const [catSearch, setCatSearch] = useState<string>("");
   const [prjSearch, setPrjSearch] = useState<string>("");
 
@@ -53,8 +57,10 @@ export default function AddTaskPage({ params }: { params: { id: TaskId } }) {
     return (
       <MenuItem
         key={item.id}
-        value={item.id}
-        onSelect={(categoryId) => setState({ ...state, categoryId })}
+        value={item.id.toString()}
+        onSelect={(category) =>
+          setState({ ...state, category: parseInt(category) })
+        }
         className="menu-item-zinc-100 tap-zinc-300 hover:menu-item-zinc-200 active:menu-item-zinc-300"
       >
         {item.title}
@@ -65,8 +71,10 @@ export default function AddTaskPage({ params }: { params: { id: TaskId } }) {
     return (
       <MenuItem
         key={item.id}
-        value={item.id}
-        onSelect={(projectId) => setState({ ...state, projectId })}
+        value={item.id.toString()}
+        onSelect={(project) =>
+          setState({ ...state, project: parseInt(project) })
+        }
         className="menu-item-zinc-100 tap-zinc-300 hover:menu-item-zinc-200 active:menu-item-zinc-300"
       >
         {item.title}
@@ -192,7 +200,7 @@ export default function AddTaskPage({ params }: { params: { id: TaskId } }) {
                   calendar.onClose = (d) => {
                     console.log(d);
                     setError((e) => ({ ...e, date: d === undefined }));
-                    setState((s) => ({ ...s, date: d?.toISOString() }));
+                    setState((s) => ({ ...s, date: d }));
                   };
                   calendar.showModal(state?.date);
                 }}
@@ -209,7 +217,7 @@ export default function AddTaskPage({ params }: { params: { id: TaskId } }) {
                       date: true,
                     }));
                   }}
-                  defaultValue={state?.date}
+                  defaultValue={state?.date?.toISOString().slice(0, 10)}
                 />
               </Button>
               <Error visible={err.date}>* add a due date</Error>
@@ -244,7 +252,7 @@ export default function AddTaskPage({ params }: { params: { id: TaskId } }) {
                       time: true,
                     }));
                   }}
-                  defaultValue={state?.time}
+                  defaultValue={state?.time?.toTimeString().slice(0, 8)}
                 />
               </Button>
               <Error visible={err.time}>* add a due time</Error>
@@ -256,8 +264,8 @@ export default function AddTaskPage({ params }: { params: { id: TaskId } }) {
             label="Project"
             name="project"
             defaultValue={{
-              name: prjs.value.find((p) => p.id == state?.projectId)?.title,
-              value: state?.projectId,
+              name: project.find((p) => p.id == state?.project)?.title,
+              value: state?.project?.toString(),
             }}
             className="menu-zinc-100 tap-zinc-200 menu-md menu-filled text-zinc-600"
           >
@@ -278,7 +286,7 @@ export default function AddTaskPage({ params }: { params: { id: TaskId } }) {
             </MenuItem>
             {prjSearch.length
               ? fusePrjs.search(prjSearch).map(mapPrjs)
-              : prjs.value.map((v) => mapPrjs({ item: v }))}
+              : project.map((v) => mapPrjs({ item: v }))}
           </Menu>
           {/* Categories */}
           <Menu
@@ -286,8 +294,8 @@ export default function AddTaskPage({ params }: { params: { id: TaskId } }) {
             label="Category"
             name="category"
             defaultValue={{
-              name: cats.value.find((c) => c.id == state?.categoryId)?.title,
-              value: state?.categoryId,
+              name: category.find((c) => c.id == state?.category)?.title,
+              value: state?.category?.toString(),
             }}
             className="menu-zinc-100 tap-zinc-200 menu-md menu-filled text-zinc-600"
           >
@@ -308,16 +316,73 @@ export default function AddTaskPage({ params }: { params: { id: TaskId } }) {
             </MenuItem>
             {catSearch.length
               ? fuseCats.search(catSearch).map(mapCats)
-              : cats.value.map((v) => mapCats({ item: v }))}
+              : category.map((v) => mapCats({ item: v }))}
           </Menu>
           {/* Reminder & Priority */}
           <div className="grid grid-cols-2 gap-[inherit]">
-            <Button
+            <Menu
               leadingIcon="Bell"
-              className="tap-zinc-200 btn-md bg-zinc-100 text-zinc-600"
+              label="Reminder"
+              name="reminder"
+              className="menu-zinc-100 tap-zinc-200 menu-md menu-filled text-zinc-600"
+              expanded
+              onClick={(e) => {
+                calendar.onClose = (d) => {
+                  if (d) {
+                    console.log(typeof d);
+                    clock.onClose = (t) => {
+                      if (t) {
+                        d.setHours(t.getUTCHours(), t.getUTCMinutes(), 0, 0);
+                        setState({ ...state, reminder: d });
+                      }
+                    };
+                    clock.showModal();
+                  }
+                };
+                calendar.showModal();
+              }}
             >
-              Reminder
-            </Button>
+              {state.reminder && (
+                <>
+                  <MenuItem
+                    value="date"
+                    onSelect={() => {
+                      const r = state.reminder!;
+                      calendar.onClose = (d) => {
+                        if (d && d !== r) {
+                          d.setHours(r.getHours(), r.getMinutes(), 0, 0);
+                          setState({ ...state, reminder: d });
+                        } else {
+                          setState({ ...state, reminder: undefined });
+                        }
+                      };
+                      calendar.showModal(state.reminder);
+                    }}
+                    className="menu-item-amber-50 tap-amber-100 text-warning-600"
+                  >
+                    {state.reminder.toDateString()}
+                  </MenuItem>
+                  <MenuItem
+                    value="time"
+                    onSelect={() => {
+                      clock.onClose = (t) => {
+                        if (t) {
+                          const r = state.reminder!;
+                          r.setHours(t.getUTCHours(), t.getUTCMinutes(), 0, 0);
+                          setState({ ...state, reminder: r });
+                        } else {
+                          setState({ ...state, reminder: undefined });
+                        }
+                      };
+                      clock.showModal();
+                    }}
+                    className="menu-item-amber-50 tap-amber-100 text-warning-600"
+                  >
+                    {state.reminder.toLocaleTimeString()}
+                  </MenuItem>
+                </>
+              )}
+            </Menu>
             <Menu
               leadingIcon="TrendingUp"
               label="Priority"
@@ -334,21 +399,21 @@ export default function AddTaskPage({ params }: { params: { id: TaskId } }) {
             >
               <MenuItem
                 value="2"
-                onSelect={(priority) => setState({ ...state, priority })}
+                onSelect={(priority) => setState({ ...state, priority: 2 })}
                 className="menu-item-secondary-50 tap-secondary-100"
               >
                 Low
               </MenuItem>
               <MenuItem
                 value="1"
-                onSelect={(priority) => setState({ ...state, priority })}
+                onSelect={(priority) => setState({ ...state, priority: 1 })}
                 className="menu-item-warning-50 tap-warning-100"
               >
                 Medium
               </MenuItem>
               <MenuItem
                 value="0"
-                onSelect={(priority) => setState({ ...state, priority })}
+                onSelect={(priority) => setState({ ...state, priority: 0 })}
                 className="menu-item-error-50 tap-error-100"
               >
                 High
@@ -422,12 +487,9 @@ export default function AddTaskPage({ params }: { params: { id: TaskId } }) {
                 if (val) {
                   const subtasks = state?.subtasks || [];
                   const id =
-                    subtasks.reduce(
-                      (p, c) => (p > parseInt(c.id) ? p : parseInt(c.id)),
-                      0,
-                    ) + 1;
+                    subtasks.reduce((p, c) => (p > c.id ? p : c.id), 0) + 1;
                   subtasks.push({
-                    id: id.toString(),
+                    id,
                     status: false,
                     title: val.trim(),
                   });

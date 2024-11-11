@@ -1289,9 +1289,13 @@ export function localTimeToTime(s: string) {
  * @param s
  * @returns time in format "HH:MM AM/PM"
  */
-export function timeToLocalTime(s: string) {
-  const d = new Date("0 " + s);
-  return d.toLocaleTimeString().replace(":00", "");
+export function timeToLocalTime(time: Date) {
+  let h = time.getUTCHours();
+  const ap = h < 12 ? "AM" : "PM";
+  h = h == 0 ? 12 : h;
+  h -= h > 12 ? 12 : 0;
+  let m = time.getUTCMinutes();
+  return `${num2str(h)}:${num2str(m)} ${ap}`;
 }
 
 /**

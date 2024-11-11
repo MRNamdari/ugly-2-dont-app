@@ -1,26 +1,23 @@
 import { useState, useEffect, useImperativeHandle, forwardRef } from "react";
-import { IProject, ProjectId } from "../_store/data";
+import { db, IProject } from "../_store/db";
 import { AnimatePresence, useMotionValue } from "framer-motion";
 import ProjectCard from "./project.card";
-import { store } from "../_store/state";
-import { useSignalEffect } from "@preact/signals-react";
+import { useLiveQuery } from "dexie-react-hooks";
 
-const projectsSignal = store.projects;
 type ProjectsCarouselProps = {
-  default: ProjectId;
-  value?: ProjectId;
-  onChange: (id: ProjectId) => void;
+  default: IProject["id"];
+  value?: IProject["id"];
+  onChange: (id: IProject["id"]) => void;
 };
-export type ProjectCarouselRef = { setActive: (id: ProjectId) => void };
+export type ProjectCarouselRef = { setActive: (id: IProject["id"]) => void };
 export default forwardRef<ProjectCarouselRef, ProjectsCarouselProps>(
   function ProjectsCarousel(props: ProjectsCarouselProps, ref) {
-    const [projects, setProjects] = useState<IProject[]>([]);
-    const [active, setActiveProject] = useState<ProjectId>(props.default);
+    const projects =
+      useLiveQuery(async () => {
+        return await db.projects.toArray();
+      }) ?? [];
+    const [active, setActiveProject] = useState<IProject["id"]>(props.default);
     const offset = projects.findIndex((p) => p.id === active);
-
-    useSignalEffect(() => {
-      setProjects(projectsSignal.value);
-    });
 
     useEffect(() => {
       props.onChange(active);
@@ -29,7 +26,7 @@ export default forwardRef<ProjectCarouselRef, ProjectsCarouselProps>(
     const x = useMotionValue(0);
     useImperativeHandle(ref, () => {
       return {
-        setActive(id: ProjectId) {
+        setActive(id: IProject["id"]) {
           setActiveProject(id);
         },
       };

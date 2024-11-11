@@ -14,34 +14,39 @@ import Icon from "./icon";
 import IconButton from "./icon-button";
 
 export const ClockContext = createContext({
-  showModal(time?: string) {},
+  showModal(time?: Date) {},
   close() {},
-  onClose(time?: string) {},
+  onClose(time?: Date) {},
 });
 
 export default function ClockModal(props: { children: React.ReactNode }) {
   // hooks
-  const [time, setTime] = useState<Date>(new Date());
-  const value = time.toTimeString().replace(/\s.*/, "");
+  const initialTime = new Date(0);
+
+  const [time, setTime] = useState<Date>(initialTime);
+  const value = `${num2str(time.getUTCHours())}:${num2str(time.getUTCMinutes())}`;
 
   const ref = useRef<HTMLDialogElement>(null);
+  const form = useRef<HTMLFormElement>(null);
   const hour = useRef<HTMLInputElement>(null);
   const min = useRef<HTMLInputElement>(null);
   const ampm = useRef<HTMLInputElement>(null);
-  const constant = useRef({ cb: (time?: string) => {}, time: "" });
+  const constant = useRef({ cb: (time?: Date) => {}, time: initialTime });
 
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
     dialog.onclose = () => {
-      constant.current.cb(dialog.returnValue);
+      if (dialog.returnValue !== "false") constant.current.cb(time);
+      else constant.current.cb();
+      form.current?.reset();
     };
-  }, []);
+  }, [time]);
 
-  function showModal(time?: string) {
+  function showModal(time?: Date) {
     if (time) {
       constant.current.time = time;
-      setTime(new Date("0 " + time));
+      setTime(time);
     }
     const dialog = ref.current;
     if (!dialog) return;
@@ -51,20 +56,25 @@ export default function ClockModal(props: { children: React.ReactNode }) {
   function close(e?: MouseEvent<HTMLButtonElement>) {
     const dialog = ref.current;
     if (!dialog) return;
-    dialog.close(dialog.returnValue);
+    dialog.close("false");
+    form.current?.reset();
   }
 
   function localTimeToDate() {
     if (!hour.current || !min.current || !ampm.current) return;
     const ap = ampm.current.checked;
-    return new Date(
-      "0 " +
-        hour.current.value +
-        ":" +
-        min.current.value +
-        " " +
-        (ap ? "PM" : "AM"),
-    );
+    let h = parseInt(hour.current.value);
+    h = h < 1 ? 1 : h;
+    h = h > 12 ? 12 : h;
+    if (ap) {
+      h += h == 12 ? 0 : 12; // PM
+    } else {
+      h -= h == 12 ? 12 : 0; // AM
+    }
+    let m = parseInt(min.current.value);
+    m = m < 0 ? 0 : m;
+    m = m > 59 ? 59 : m;
+    return new Date((h * 60 * 60 + m * 60) * 1000);
   }
 
   function handleCancel(e: MouseEvent<HTMLDialogElement>) {
@@ -122,6 +132,7 @@ export default function ClockModal(props: { children: React.ReactNode }) {
           />
         </div>
         <form
+          ref={form}
           id="clock-form"
           method="dialog"
           className="flex justify-center gap-2"
@@ -136,11 +147,7 @@ export default function ClockModal(props: { children: React.ReactNode }) {
               max={12}
               min={1}
               inputMode="numeric"
-              defaultValue={
-                time.getHours() > 12
-                  ? num2str(time.getHours() - 12)
-                  : num2str(time.getHours())
-              }
+              defaultValue={12}
               onBlur={handleBlur}
               onChange={handleChange}
             />
@@ -156,7 +163,7 @@ export default function ClockModal(props: { children: React.ReactNode }) {
               inputMode="numeric"
               onBlur={handleBlur}
               onChange={handleChange}
-              defaultValue={num2str(time.getMinutes())}
+              defaultValue={"00"}
             />
           </div>
           <div className="relative rounded-full bg-primary-800 p-2">
@@ -164,7 +171,7 @@ export default function ClockModal(props: { children: React.ReactNode }) {
               ref={ampm}
               type="checkbox"
               className="peer absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none rounded-full"
-              defaultChecked={time.getHours() > 12}
+              defaultChecked={false}
               onChange={handleChange}
             />
 

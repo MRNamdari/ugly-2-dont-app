@@ -11,7 +11,7 @@ export type IProject = {
   date: Date;
   time: Date;
   description?: string;
-  priority?: number;
+  priority?: 0 | 1 | 2;
   category?: number;
   project?: number;
 };
@@ -25,8 +25,8 @@ export type ITask = {
   category?: number;
   date?: Date;
   time?: Date;
-  notification?: Date;
-  priority?: number;
+  reminder?: Date;
+  priority?: 0 | 1 | 2;
 };
 
 export type ISubTask = { title: string; id: number; status: boolean };
@@ -38,13 +38,13 @@ export enum IPriority {
 }
 
 export const Priority = {
-  "0": "High",
-  "1": "Medium",
-  "2": "Low",
-  High: "2",
-  Medium: "1",
-  Low: "0",
-} as Record<string, string>;
+  0: "High",
+  1: "Medium",
+  2: "Low",
+  High: 2,
+  Medium: 1,
+  Low: 0,
+} as const;
 
 function time2date(t: string) {
   const d = new Date();
@@ -68,7 +68,7 @@ export const tasks: ITask[] = [
       category: 1,
       date: string2date("2024-10-13"),
       time: time2date("09:00"),
-      notification: string2date("2023-08-25T18:00:00"),
+      reminder: string2date("2023-08-25T18:00:00"),
       priority: 2,
     },
     {
@@ -107,7 +107,7 @@ export const tasks: ITask[] = [
       category: 2,
       date: string2date("2024-09-29"),
       time: time2date("14:00"),
-      notification: string2date("2023-08-28T12:00:00"),
+      reminder: string2date("2023-08-28T12:00:00"),
       priority: 2,
     },
     {
@@ -221,7 +221,7 @@ export const tasks: ITask[] = [
       status: false,
       category: 0,
       description: "Monitor, Mice, Keyboard, Speaker",
-      notification: string2date("2023-09-25T18:00:00"),
+      reminder: string2date("2023-09-25T18:00:00"),
       date: string2date("2025-02-25"),
       time: time2date("13:45"),
       priority: 2,
@@ -314,9 +314,9 @@ class UglyDB extends Dexie {
 
 export const db = new UglyDB();
 console.log(db);
-ExtractProjects(4).then((v) => console.log(v));
-ExtractCategories(2).then((v) => console.log(v));
-PendingTasksCount(2).then((v) => console.log(v));
+// ExtractProjects(4).then((v) => console.log(v));
+// ExtractCategories(2).then((v) => console.log(v));
+// PendingTasksCount(2).then((v) => console.log(v));
 
 db.on("populate", async (trans) => {
   console.log("populate");

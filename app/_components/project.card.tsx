@@ -1,13 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { IProject, Priority } from "../_store/data";
-import {
-  modals,
-  PendingTasksCount,
-  RemoveProjectById,
-  store,
-} from "../_store/state";
+import { db, IProject, PendingTasksCount, Priority } from "../_store/db";
+import { RemoveProjectById, store } from "../_store/state";
 import IconButton from "./icon-button";
 import {
   motion,
@@ -15,13 +10,14 @@ import {
   PanInfo,
   TargetAndTransition,
 } from "framer-motion";
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DueTime, PendingTasks } from "./project.ticket";
 import Button from "./button";
-import { ProjectId } from "./util";
 import { useSignalEffect } from "@preact/signals-react";
 import ProgressPie from "./progress-pie";
+import { useLiveQuery } from "dexie-react-hooks";
+import { DeleteContext } from "./delete.modal";
 
 const projects = store.projects;
 const categories = store.categories.value;
@@ -34,39 +30,35 @@ type ProjectCardProps = IProject & {
 export default function ProjectCard(props: ProjectCardProps) {
   const router = useRouter();
   const menu = useRef<HTMLDialogElement>(null);
-  const project = projects.value.find((p) => p.id === props.projectId);
-  const [{ allTasks, pendingTasks }, setPendingTasksCount] = useState({
-    allTasks: 0,
-    pendingTasks: 0,
+  const deleteModal = useContext(DeleteContext);
+  const project = useLiveQuery(async () => {
+    if (props.project) return await db.projects.get(props.project);
   });
-
-  useSignalEffect(() => {
-    new Promise<Readonly<[number, number]>>((resolve) =>
-      resolve(PendingTasksCount(props.id).value),
-    ).then(([allTasks, pendingTasks]) =>
-      setPendingTasksCount({ allTasks, pendingTasks }),
-    );
+  const category = useLiveQuery(async () => {
+    if (props.category) return await db.categories.get(props.category);
   });
+  const [allTasks, pendingTasks] = useLiveQuery(async () => {
+    return await PendingTasksCount(props.id);
+  }) ?? [0, 0];
 
   const progress =
     allTasks === 100 ? 0 : ((allTasks - pendingTasks) / allTasks) * 100;
-  const category = categories.find((c) => c.id === props.categoryId);
 
   function onDelete() {
-    modals.delete.message.value = `Sure wanna delete “${props.title}” and all its tasks and projects?`;
-    const deleteModal = document.getElementById("delete") as HTMLDialogElement;
-    deleteModal.onclose = (e) => {
-      if (deleteModal.returnValue === "true") {
+    deleteModal.onClose = (value) => {
+      if (value === "true") {
         props.onDelete && props.onDelete();
-        RemoveProjectById(props.id);
+        db.projects.delete(props.id);
       }
     };
     menu.current?.close();
-    deleteModal.showModal();
+    deleteModal.showModal(
+      `Sure wanna delete “${props.title}” and all its tasks and projects?`,
+    );
   }
   return (
     <motion.article
-      id={props.id}
+      id={props.id.toString()}
       exit={{ width: 0, opacity: 0, marginBottom: 0 }}
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
@@ -155,9 +147,9 @@ export default function ProjectCard(props: ProjectCardProps) {
           <label
             className={
               "float-end rounded-sm px-1 text-xs " +
-              (props.priority === "0"
+              (props.priority === 0
                 ? "bg-error-100 text-error-600"
-                : props.priority === "1"
+                : props.priority === 1
                   ? "bg-warning-100 text-warning-600"
                   : "bg-secondary-200 text-secondary-800")
             }
@@ -176,7 +168,7 @@ export default function ProjectCard(props: ProjectCardProps) {
       <div className="flex items-center justify-between justify-self-end pt-2 text-primary-700">
         <ProgressPie {...{ progress }} />
         <PendingTasks pending={pendingTasks} />
-        <DueTime due={new Date(props.date)} />
+        <DueTime date={props.date} time={props.time} />
       </div>
     </motion.article>
   );

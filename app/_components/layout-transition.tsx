@@ -5,7 +5,7 @@ import { useSelectedLayoutSegment } from "next/navigation";
 import { LayoutRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { useContext, useEffect, useRef } from "react";
 
-function usePreviousValue<T>(value: T): T | undefined {
+export function usePreviousValue<T>(value: T): T | undefined {
   const prevValue = useRef<T>();
 
   useEffect(() => {

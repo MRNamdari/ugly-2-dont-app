@@ -13,7 +13,15 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { motion, PanInfo } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChangeEvent, MouseEvent, useEffect, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  MouseEvent,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { DeleteContext } from "./delete.modal";
 
 const tasks = store.tasks;
 const projects = store.projects.value;
@@ -22,6 +30,7 @@ const selection = store.selection;
 
 export default function TaskTicket(props: ITask) {
   const router = useRouter();
+  const deleteModal = useContext(DeleteContext);
   const project = useLiveQuery(async () => {
     if (props.project) return await db.projects.get(props.project);
   });
@@ -36,6 +45,7 @@ export default function TaskTicket(props: ITask) {
     if (selection.value.task.includes(props.id)) setSelection(true);
     else setSelection(false);
   });
+  const dragEnded = useRef<{ info: PanInfo | null }>({ info: null });
   const hasSubtasks =
     Array.isArray(props.subtasks) && props.subtasks.length > 0;
   const [status, setStatus] = useState(
@@ -121,21 +131,22 @@ export default function TaskTicket(props: ITask) {
     AddToSelection("task", props.id);
   }
   function DragEndHandler(e: any, info: PanInfo) {
-    if (Math.abs(info.offset.x) > 90)
+    dragEnded.current.info = info;
+  }
+  function DragTransitionEndHandler() {
+    const info = dragEnded.current.info;
+    if (info && Math.abs(info.offset.x) > 90)
       info.offset.x > 0
         ? onDelete()
         : router.push(`/pwa/tasks/edit/${props.id}`);
   }
   function onDelete() {
-    modals.delete.message.value = `Sure wanna delete “${props.title}” task?`;
-    const deleteModal = document.getElementById("delete") as HTMLDialogElement;
-    deleteModal.onclose = (e) => {
-      if (deleteModal.returnValue === "true") {
+    deleteModal.onClose = (value) => {
+      if (value === "true") {
         db.tasks.delete(props.id);
-        // tasks.value = tasks.value.filter((t) => t.id !== props.id);
       }
     };
-    deleteModal.showModal();
+    deleteModal.showModal(`Sure wanna delete “${props.title}” task?`);
   }
   return (
     <motion.article
@@ -157,6 +168,7 @@ export default function TaskTicket(props: ITask) {
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.3}
         dragTransition={{ bounceStiffness: 400 }}
+        onDragTransitionEnd={DragTransitionEndHandler}
         aria-selected={isSelected}
         className="grid gap-2 rounded-3xl bg-gray-100 p-6 aria-selected:bg-secondary-50"
         onClick={ClickHandler}
@@ -285,7 +297,7 @@ export default function TaskTicket(props: ITask) {
           <p className="flex-grow text-xs text-primary-600">
             {props.date && date2display(new Date(props.date))}
           </p>
-          {props.notification && (
+          {props.reminder && (
             <Icon
               label="Bell"
               size={14}
@@ -310,7 +322,8 @@ export default function TaskTicket(props: ITask) {
                   : "bg-secondary-100 text-secondary-600")
             }
           >
-            {Priority[props.priority!.toString()].slice(0, 1)}
+            {(props.priority as 0 | 1 | 2 | undefined) &&
+              Priority[props.priority as 0 | 1 | 2].slice(0, 1)}
           </p>
         </div>
       </motion.div>

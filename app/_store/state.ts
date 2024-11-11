@@ -1,18 +1,13 @@
 import { signal, effect, computed } from "@preact/signals-react";
 import {
   categories,
-  CategoryId,
   ICategory,
   IProject,
-  IProjectFormData,
   ISubTask,
   ITask,
-  ITaskFormData,
-  ProjectId,
   projects,
-  TaskId,
   tasks,
-} from "./data";
+} from "./db";
 import { date2display, timeToLocalTime, wildCard } from "../_components/util";
 
 // export const modals = {

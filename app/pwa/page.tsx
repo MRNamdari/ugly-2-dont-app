@@ -4,7 +4,7 @@ import IconButton from "../_components/icon-button";
 import TextInput from "../_components/text-input";
 // import { CategoryInfo, store } from "../_store/state";
 import TaskTicket from "../_components/task.ticket";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useLiveQuery } from "dexie-react-hooks";
 import { CategorySummary, db, PendingTasksCount } from "../_store/db";
 
@@ -123,17 +123,19 @@ export default function PWAHomePage() {
           <span className="whitespace-nowrap">see all</span>
         </Link>
         <div className="w-full -translate-y-20">
-          {tasks?.map((t) => (
-            <motion.div
-              key={t.id}
-              className="animatio sticky px-4 [animation-duration:1ms] [animation-name:fadeOut] [animation-timeline:view(block_25rem)] [animation-timing-function:ease-out]"
-              style={{
-                top: `21rem`,
-              }}
-            >
-              <TaskTicket {...t} />
-            </motion.div>
-          ))}
+          <AnimatePresence>
+            {tasks?.map((t) => (
+              <motion.div
+                key={t.id}
+                className="animatio sticky px-4 [animation-duration:1ms] [animation-name:fadeOut] [animation-timeline:view(block_25rem)] [animation-timing-function:ease-out]"
+                style={{
+                  top: `21rem`,
+                }}
+              >
+                <TaskTicket {...t} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       </section>
     </>

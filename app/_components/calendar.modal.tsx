@@ -87,21 +87,30 @@ export const CalendarContext = createContext<{
 export default function CalendarModal(props: { children: React.ReactNode }) {
   const [date, setDate] = useState(new Date());
   const ref = useRef<HTMLDialogElement>(null);
-  const onClose = useRef({ cb(date?: Date) {} });
+  const constant = useRef<{
+    cb: (date?: Date) => any;
+    initial?: Date;
+  }>({ cb(date?: Date) {}, initial: undefined });
   const [isPending, startTransition] = useTransition();
   useEffect(() => {
     const dialog = ref.current;
     if (dialog) {
       dialog.onclose = (e) => {
         const str = ref.current?.returnValue;
-        if (str && str.length > 0) onClose.current.cb(new Date(str));
+        if (str) {
+          if (str !== "false") constant.current.cb(new Date(str));
+          else constant.current.cb(constant.current.initial);
+        }
       };
     }
   }, []);
 
-  function showModal(date: Date | string = new Date()) {
+  function showModal(date?: Date | string) {
+    constant.current.initial = undefined;
     startTransition(() => {
       if (typeof date === "string") date = new Date(date);
+      if (date !== undefined) constant.current.initial = date;
+      else date = new Date();
       setDate(date);
       const dialog = ref.current;
       if (dialog) dialog.showModal();
@@ -110,7 +119,7 @@ export default function CalendarModal(props: { children: React.ReactNode }) {
 
   function close() {
     const dialog = ref.current;
-    if (dialog) dialog.close();
+    if (dialog) dialog.close("false");
   }
 
   const month = date.getMonth() + 1,
@@ -254,7 +263,7 @@ export default function CalendarModal(props: { children: React.ReactNode }) {
         showModal,
         close,
         set onClose(cb: (date?: Date) => any) {
-          onClose.current.cb = cb;
+          constant.current.cb = cb;
         },
       }}
     >

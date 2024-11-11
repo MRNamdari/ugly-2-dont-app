@@ -1,5 +1,5 @@
 import Icon, { IconLable } from "./icon";
-import React, { useRef, useState, MouseEvent } from "react";
+import React, { useRef, useState, MouseEvent, MouseEventHandler } from "react";
 import { motion } from "framer-motion";
 
 export type MenuOption = { name?: string; value?: string };
@@ -11,6 +11,8 @@ export type MenuProps<T extends MenuOption> = {
   name?: string;
   defaultValue?: T;
   children?: React.ReactNode;
+  expanded?: boolean;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
 };
 /**
  * @example <Menu
@@ -20,7 +22,7 @@ export type MenuProps<T extends MenuOption> = {
         ></Menu>
  */
 export default function Menu<T extends MenuOption>(props: MenuProps<T>) {
-  const [expanded, setExpansion] = useState<boolean>(false); // is closed
+  const [expanded, setExpansion] = useState<boolean>(props.expanded ?? false); // is closed by default
   const [label, setLabel] = useState<string | null>(
     props.defaultValue?.name ?? null,
   );
@@ -35,17 +37,22 @@ export default function Menu<T extends MenuOption>(props: MenuProps<T>) {
         !e.target.ariaInvalid &&
         !e.target.ariaDisabled
       )
-        setLabel((e.target as HTMLElement).ariaLabel);
+        // Label is set only if menu is not set to expanded by default
+        props.expanded === undefined &&
+          setLabel((e.target as HTMLElement).ariaLabel);
       if (expanded) {
         const newvalue = (e.target as HTMLElement).ariaValueText ?? value;
         setValue(newvalue);
       }
-      setExpansion(!expanded);
+      // Expansion is set only if menu is not set to expanded by default
+      props.expanded === undefined && setExpansion(!expanded);
     }
   }
   function ClickHandler(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
-    setExpansion(!expanded);
+    // Expansion is set only if menu is not set to expanded by default
+    if (!props.expanded) setExpansion(!expanded);
+    if (props.onClick) props.onClick(e);
   }
   return (
     <div
@@ -64,17 +71,23 @@ export default function Menu<T extends MenuOption>(props: MenuProps<T>) {
         <p className="w-full overflow-hidden text-ellipsis whitespace-nowrap text-left">
           {label ?? props.label}
         </p>
-        <motion.span
-          animate={expanded ? "open" : "closed"}
-          variants={{ open: { rotate: 180 }, closed: { rotate: 0 } }}
-        >
-          <Icon label="ChevronDown" />
-        </motion.span>
+        {/* Icon is required only if menu is expandable */}
+        {props.expanded === undefined && (
+          <motion.span
+            animate={expanded ? "open" : "closed"}
+            variants={{ open: { rotate: 180 }, closed: { rotate: 0 } }}
+          >
+            <Icon label="ChevronDown" />
+          </motion.span>
+        )}
       </motion.button>
       <div aria-invalid className="menu-list-wrapper">
         <ol className="menu-list">{props.children}</ol>
       </div>
-      <div className={`overlay ${expanded ? "" : "hidden"}`}></div>
+      {/* Overlay is required only if menu is expandable */}
+      {props.expanded === undefined && (
+        <div className={`overlay ${expanded ? "" : "hidden"}`}></div>
+      )}
     </div>
   );
 }

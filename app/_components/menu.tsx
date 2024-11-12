@@ -1,5 +1,11 @@
 import Icon, { IconLable } from "./icon";
-import React, { useRef, useState, MouseEvent, MouseEventHandler } from "react";
+import React, {
+  useRef,
+  useState,
+  MouseEvent,
+  MouseEventHandler,
+  useEffect,
+} from "react";
 import { motion } from "framer-motion";
 
 export type MenuOption = { name?: string; value?: string };
@@ -26,7 +32,13 @@ export default function Menu<T extends MenuOption>(props: MenuProps<T>) {
   const [label, setLabel] = useState<string | null>(
     props.defaultValue?.name ?? null,
   );
+
   const [value, setValue] = useState<string>(props.defaultValue?.value ?? "");
+
+  useEffect(() => {
+    setLabel(props.defaultValue?.name ?? null);
+    setValue(props.defaultValue?.value ?? "");
+  }, [props.defaultValue]);
 
   function ExpansionHandler(e: MouseEvent<HTMLDivElement>) {
     // Checking if input[type=text] is clicked to dismiss the event

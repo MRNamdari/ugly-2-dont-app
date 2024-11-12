@@ -3,12 +3,11 @@
 import type { IProject, ISubTask, ICategory, ITask } from "@/app/_store/db";
 import { Priority } from "@/app/_store/data";
 // Signals
-import { computed } from "@preact/signals-react";
-import { SelectTaskById, TaskFormDataSignal, store } from "@/app/_store/state";
+import { TaskFormDataSignal } from "@/app/_store/state";
 // Hooks
 import Fuse from "fuse.js";
 import { useRouter } from "next/navigation";
-import { useContext, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 // Components
 import Menu, { MenuItem } from "@/app/_components/menu";
 import IconButton from "@/app/_components/icon-button";
@@ -25,25 +24,56 @@ import { db } from "@/app/_store/db";
 export default function AddTaskPage({
   params,
 }: {
-  params: { id: ITask["id"] };
+  params: { id: `${ITask["id"]}` };
 }) {
   const router = useRouter();
   const calendar = useContext(CalendarContext);
   const clock = useContext(ClockContext);
-  const initialTask: Partial<ITask> =
-    useLiveQuery(async () => {
-      if (params.id === undefined) return {};
-      return await db.tasks.get(params.id);
-    }) ?? {};
-  const [state, setState] = useState(initialTask);
+
+  const res = useLiveQuery(
+    async () => {
+      const results: {
+        projects: IProject[];
+        categories: ICategory[];
+        initial?: ITask;
+        project?: IProject;
+        category?: ICategory;
+      } = {
+        projects: await db.projects.toArray(),
+        categories: await db.categories.toArray(),
+      };
+
+      const initial = await db.tasks.get(parseInt(params.id));
+      if (initial) {
+        results.initial = initial;
+        if (initial.category)
+          results.category = await db.categories.get(initial.category);
+        if (initial.project)
+          results.project = await db.projects.get(initial.project);
+      }
+      return results;
+    },
+    [params.id],
+    {
+      projects: [],
+      categories: [],
+      initial: undefined,
+      project: undefined,
+      category: undefined,
+    },
+  );
+
+  const [state, setState] = useState<Partial<ITask>>(res.initial ?? {});
+
+  useEffect(() => {
+    if (res.initial) setState(res.initial);
+  }, [res.initial]);
+
   const form = useRef<HTMLFormElement>(null);
   const subtaskInput = useRef<HTMLInputElement>(null);
 
-  const project = useLiveQuery(async () => await db.projects.toArray()) ?? [];
-  const category =
-    useLiveQuery(async () => await db.categories.toArray()) ?? [];
-  const fuseCats = new Fuse(category, { keys: ["title"] });
-  const fusePrjs = new Fuse(project, { keys: ["title", "description"] });
+  const fuseCats = new Fuse(res.categories, { keys: ["title"] });
+  const fusePrjs = new Fuse(res.projects, { keys: ["title", "description"] });
   const [catSearch, setCatSearch] = useState<string>("");
   const [prjSearch, setPrjSearch] = useState<string>("");
 
@@ -264,7 +294,7 @@ export default function AddTaskPage({
             label="Project"
             name="project"
             defaultValue={{
-              name: project.find((p) => p.id == state?.project)?.title,
+              name: res.project?.title,
               value: state?.project?.toString(),
             }}
             className="menu-zinc-100 tap-zinc-200 menu-md menu-filled text-zinc-600"
@@ -286,7 +316,7 @@ export default function AddTaskPage({
             </MenuItem>
             {prjSearch.length
               ? fusePrjs.search(prjSearch).map(mapPrjs)
-              : project.map((v) => mapPrjs({ item: v }))}
+              : res.projects.map((v) => mapPrjs({ item: v }))}
           </Menu>
           {/* Categories */}
           <Menu
@@ -294,7 +324,7 @@ export default function AddTaskPage({
             label="Category"
             name="category"
             defaultValue={{
-              name: category.find((c) => c.id == state?.category)?.title,
+              name: res.category?.title,
               value: state?.category?.toString(),
             }}
             className="menu-zinc-100 tap-zinc-200 menu-md menu-filled text-zinc-600"
@@ -316,7 +346,7 @@ export default function AddTaskPage({
             </MenuItem>
             {catSearch.length
               ? fuseCats.search(catSearch).map(mapCats)
-              : category.map((v) => mapCats({ item: v }))}
+              : res.categories.map((v) => mapCats({ item: v }))}
           </Menu>
           {/* Reminder & Priority */}
           <div className="grid grid-cols-2 gap-[inherit]">
@@ -360,7 +390,7 @@ export default function AddTaskPage({
                     }}
                     className="menu-item-amber-50 tap-amber-100 text-warning-600"
                   >
-                    {state.reminder.toDateString()}
+                    {date2display(state.reminder)}
                   </MenuItem>
                   <MenuItem
                     value="time"

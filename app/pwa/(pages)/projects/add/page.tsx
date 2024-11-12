@@ -1,15 +1,11 @@
 "use client";
 // Types and Constants
-import type { IProject, ICategory, IProjectFormData } from "@/app/_store/data";
+import type { IProject, ICategory } from "@/app/_store/db";
 import { Priority } from "@/app/_store/data";
-// Signals
-import { useSignalEffect } from "@preact/signals-react/runtime";
-import { computed } from "@preact/signals-react";
-import { FormDataToProject, modals, store } from "@/app/_store/state";
 // Hooks
 import Fuse from "fuse.js";
 import { useRouter } from "next/navigation";
-import { MouseEvent, useRef, useState } from "react";
+import { MouseEvent, useContext, useEffect, useRef, useState } from "react";
 // Components
 import Menu, { MenuItem } from "@/app/_components/menu";
 import IconButton from "@/app/_components/icon-button";
@@ -17,22 +13,64 @@ import Button from "@/app/_components/button";
 import TextInput from "@/app/_components/text-input";
 import Icon from "@/app/_components/icon";
 import { motion } from "framer-motion";
-const cats = computed(() => store.categories.value);
-const fuseCats = new Fuse(cats.value, { keys: ["title"] });
+import { db } from "@/app/_store/db";
+import { useLiveQuery } from "dexie-react-hooks";
+import { CalendarContext } from "@/app/_components/calendar.modal";
+import { ClockContext } from "@/app/_components/clock.modal";
 
-const prjs = computed(() => store.projects.value);
-const fusePrjs = new Fuse(prjs.value, { keys: ["title", "description"] });
-
+import { date2display, timeToLocalTime } from "@/app/_components/util";
 export default function AddProjectPage({
   params,
-  searchParams,
 }: {
-  params: { id: string };
-  searchParams: IProjectFormData;
+  params: { id: `${IProject["id"]}` };
 }) {
   const router = useRouter();
-  const [state, setState] = useState<IProjectFormData>(searchParams);
+  const calendar = useContext(CalendarContext);
+  const clock = useContext(ClockContext);
+
+  const res = useLiveQuery(
+    async () => {
+      const results: {
+        projects: IProject[];
+        categories: ICategory[];
+        initial?: IProject;
+        project?: IProject;
+        category?: ICategory;
+      } = {
+        projects: await db.projects.toArray(),
+        categories: await db.categories.toArray(),
+      };
+
+      const initial = await db.projects.get(parseInt(params.id));
+      if (initial) {
+        results.initial = initial;
+        if (initial.category)
+          results.category = await db.categories.get(initial.category);
+        if (initial.project)
+          results.project = await db.projects.get(initial.project);
+      }
+      return results;
+    },
+    [params.id],
+    {
+      projects: [],
+      categories: [],
+      initial: undefined,
+      project: undefined,
+      category: undefined,
+    },
+  );
+
+  const [state, setState] = useState<Partial<IProject>>(res.initial ?? {});
+
+  useEffect(() => {
+    if (res.initial) setState(res.initial);
+  }, [res.initial]);
+
   const form = useRef<HTMLFormElement>(null);
+
+  const fuseCats = new Fuse(res.categories, { keys: ["title"] });
+  const fusePrjs = new Fuse(res.projects, { keys: ["title", "description"] });
 
   const [catSearch, setCatSearch] = useState<string>("");
   const [prjSearch, setPrjSearch] = useState<string>("");
@@ -43,32 +81,15 @@ export default function AddProjectPage({
     time: false,
   });
 
-  if (state.date && !modals.calendar.signal.peek())
-    modals.calendar.signal.value = new Date(state.date);
-
-  if (state.time && !modals.clock.signal.peek())
-    modals.clock.signal.value = new Date("0 " + state.time);
-
-  useSignalEffect(() => {
-    const time = modals.clock.value.value;
-    if (time.length > 0 && state.time !== time) {
-      setError((e) => ({ ...e, time: false }));
-      setState((s) => ({ ...s, time }));
-    }
-    const date = modals.calendar.value.value;
-    if (date.length > 0 && date !== state.date) {
-      setError((e) => ({ ...e, date: false }));
-      setState((s) => ({ ...s, date }));
-    }
-  });
-
   function mapCats<T extends { item: ICategory }>({ item }: T) {
     return (
       <MenuItem
         key={item.id}
-        value={item.id}
-        onSelect={(category) => setState({ ...state, category })}
-        className="menu-item-zinc-100 hover:menu-item-zinc-200 active:menu-item-zinc-300 tap-zinc-300"
+        value={item.id.toString()}
+        onSelect={(category) =>
+          setState({ ...state, category: parseInt(category) })
+        }
+        className="menu-item-zinc-100 tap-zinc-300 hover:menu-item-zinc-200 active:menu-item-zinc-300"
       >
         {item.title}
       </MenuItem>
@@ -78,38 +99,36 @@ export default function AddProjectPage({
     return (
       <MenuItem
         key={item.id}
-        value={item.id}
-        onSelect={(project) => setState({ ...state, project })}
-        className="menu-item-zinc-100 hover:menu-item-zinc-200 active:menu-item-zinc-300 tap-zinc-300"
+        value={item.id.toString()}
+        onSelect={(project) =>
+          setState({ ...state, project: parseInt(project) })
+        }
+        className="menu-item-zinc-100 tap-zinc-300 hover:menu-item-zinc-200 active:menu-item-zinc-300"
       >
         {item.title}
       </MenuItem>
     );
   }
-  function handleSubmit(e: MouseEvent<HTMLButtonElement>) {
+  async function handleSubmit(e: MouseEvent<HTMLButtonElement>) {
     const f = form.current;
     if (!f) return;
     if (f.checkValidity()) {
-      const projects = store.projects.value;
       if (params.id) {
-        const index = projects.findIndex((t) => t.id == state.id);
-        projects[index] = FormDataToProject({
-          id: params.id,
-          ...state,
-        });
+        // On Edit Project Page
+        await db.projects.update(parseInt(params.id), state);
       } else {
-        projects.push(FormDataToProject(state));
+        // On Add Project Page
+        await db.projects.add(state as IProject);
       }
-      store.projects.value = projects;
       router.back();
     }
   }
   return (
     <>
-      <header className="grid grid-cols-[3rem_1fr_3rem] p-4  justify-center items-center">
+      <header className="grid grid-cols-[3rem_1fr_3rem] items-center justify-center p-4">
         <div>
           <IconButton
-            className="ico-lg tap-zinc-100 text-primary-900"
+            className="tap-zinc-100 ico-lg text-primary-900"
             icon="ArrowLeft"
             onClick={() => {
               router.back();
@@ -120,7 +139,7 @@ export default function AddProjectPage({
           initial={{ transform: "translate(0,-200%)", opacity: 0 }}
           animate={{ transform: "translate(0,0)", opacity: 1 }}
           exit={{ transform: "translate(0,-200%)", opacity: 0 }}
-          className="text-3xl text-center self-end font-medium whitespace-nowrap overflow-hidden text-ellipsis"
+          className="self-end overflow-hidden text-ellipsis whitespace-nowrap text-center text-3xl font-medium"
         >
           {params.id ? "Edit" : "New"} Project
         </motion.h1>
@@ -130,7 +149,7 @@ export default function AddProjectPage({
             exit={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             onClick={handleSubmit}
-            className="ico-lg tap-zinc-100 text-primary-900"
+            className="tap-zinc-100 ico-lg text-primary-900"
             icon="Check"
           />
         </div>
@@ -142,20 +161,20 @@ export default function AddProjectPage({
         ref={form}
         action="/pwa/tasks/verify"
         method="GET"
-        className="flex flex-col h-full"
+        className="flex h-full flex-col"
         onSubmit={(e) => e.preventDefault()}
       >
         {params.id && (
           <input type="hidden" name="id" defaultValue={params.id} />
         )}
-        <section className="grid grid-flow-row gap-4 px-4 h-fit pt-10">
+        <section className="grid h-fit grid-flow-row gap-4 px-4 pt-10">
           {/* Title */}
           <TextInput
             className={
               (err.title
-                ? "text-error-600 bg-error-50"
-                : "text-zinc-600 bg-zinc-100") +
-              " text-input-md group *:transition-colors"
+                ? "bg-error-50 text-error-600"
+                : "bg-zinc-100 text-zinc-600") +
+              " group text-input-md *:transition-colors"
             }
             error={<Error visible={err.title}>* add a title</Error>}
           >
@@ -178,11 +197,11 @@ export default function AddProjectPage({
                 }
               }}
               placeholder="Title*"
-              className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-zinc-400 peer"
+              className="peer placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-zinc-400"
             />
           </TextInput>
           {/* Description */}
-          <TextInput className=" text-input-md text-zinc-600 bg-zinc-100 group *:transition-colors">
+          <TextInput className="group text-input-md bg-zinc-100 text-zinc-600 *:transition-colors">
             <Icon
               label="PlusCircle"
               className="ico-md group-focus-within:text-zinc-400"
@@ -205,28 +224,22 @@ export default function AddProjectPage({
               <Button
                 leadingIcon="Calendar"
                 className={
-                  "btn-md tap-zinc-200 " +
+                  "tap-zinc-200 btn-md " +
                   (err.date
                     ? "bg-error-50 text-error-600"
                     : "bg-zinc-100 text-zinc-600")
                 }
                 onClick={(e) => {
                   e.preventDefault();
-                  if (state.date)
-                    modals.calendar.signal.value = new Date(state.date);
-                  const cal = document.querySelector(
-                    "#calendar"
-                  ) as HTMLDialogElement;
-                  cal.showModal();
+                  calendar.onClose = (d) => {
+                    console.log(d);
+                    setError((e) => ({ ...e, date: d === undefined }));
+                    setState((s) => ({ ...s, date: d }));
+                  };
+                  calendar.showModal(state?.date);
                 }}
-                onTap={(e) =>
-                  setTimeout(
-                    () => (e.target as HTMLElement).removeAttribute("style"),
-                    600
-                  )
-                }
               >
-                {modals.calendar.display}
+                {state?.date ? date2display(state.date) : "Date*"}
                 <input
                   type="date"
                   required
@@ -238,7 +251,7 @@ export default function AddProjectPage({
                       date: true,
                     }));
                   }}
-                  defaultValue={state.date}
+                  defaultValue={state?.date?.toISOString().slice(0, 10)}
                 />
               </Button>
               <Error visible={err.date}>* add a due date</Error>
@@ -247,26 +260,21 @@ export default function AddProjectPage({
               <Button
                 leadingIcon="Clock"
                 className={
-                  "btn-md tap-zinc-200 " +
+                  "tap-zinc-200 btn-md " +
                   (err.time
                     ? "bg-error-50 text-error-600"
                     : "bg-zinc-100 text-zinc-600")
                 }
                 onClick={(e) => {
                   e.preventDefault();
-                  const clk = document.querySelector(
-                    "#clock"
-                  ) as HTMLDialogElement;
-                  clk.showModal();
+                  clock.showModal(state.time);
+                  clock.onClose = (time) => {
+                    console.log("%o", time);
+                    if (time) setState((s) => ({ ...s, time }));
+                  };
                 }}
-                onTap={(e) =>
-                  setTimeout(
-                    () => (e.target as HTMLElement).removeAttribute("style"),
-                    600
-                  )
-                }
               >
-                {modals.clock.display}
+                {state.time ? timeToLocalTime(state.time) : "Time*"}
                 <input
                   type="time"
                   required
@@ -278,7 +286,7 @@ export default function AddProjectPage({
                       time: true,
                     }));
                   }}
-                  defaultValue={state.time}
+                  defaultValue={state?.time?.toTimeString().slice(0, 8)}
                 />
               </Button>
               <Error visible={err.time}>* add a due time</Error>
@@ -290,13 +298,13 @@ export default function AddProjectPage({
             label="Project"
             name="project"
             defaultValue={{
-              name: prjs.value.find((p) => p.id == state.project)?.title,
-              value: state.project,
+              name: res.project?.title,
+              value: state.project?.toString(),
             }}
-            className=" menu-zinc-100 menu-md menu-filled tap-zinc-200 text-zinc-600"
+            className="menu-zinc-100 tap-zinc-200 menu-md menu-filled text-zinc-600"
           >
-            <MenuItem searchbar className="">
-              <TextInput className=" text-input-md text-zinc-600 bg-zinc-100 group *:transition-colors rounded-none">
+            <MenuItem searchbar className="border-b-2 border-zinc-200">
+              <TextInput className="group text-input-md rounded-none bg-zinc-100 text-zinc-600 *:transition-colors">
                 <Icon label="Search" className="ico-sm" />
                 <input
                   type="text"
@@ -312,7 +320,7 @@ export default function AddProjectPage({
             </MenuItem>
             {prjSearch.length
               ? fusePrjs.search(prjSearch).map(mapPrjs)
-              : prjs.value.map((v) => mapPrjs({ item: v }))}
+              : res.projects.map((v) => mapPrjs({ item: v }))}
           </Menu>
           {/* Categories */}
           <Menu
@@ -320,13 +328,13 @@ export default function AddProjectPage({
             label="Category"
             name="category"
             defaultValue={{
-              name: cats.value.find((c) => c.id == state.category)?.title,
-              value: state.category,
+              name: res.categories.find((c) => c.id == state?.category)?.title,
+              value: state?.category?.toString(),
             }}
-            className=" menu-zinc-100 menu-md menu-filled tap-zinc-200 text-zinc-600"
+            className="menu-zinc-100 tap-zinc-200 menu-md menu-filled text-zinc-600"
           >
-            <MenuItem searchbar className="">
-              <TextInput className=" text-input-md text-zinc-600 bg-zinc-100 group *:transition-colors rounded-none">
+            <MenuItem searchbar className="border-b-2 border-zinc-200">
+              <TextInput className="group text-input-md rounded-none text-zinc-600 *:transition-colors">
                 <Icon label="Search" className="ico-sm" />
                 <input
                   type="text"
@@ -342,13 +350,14 @@ export default function AddProjectPage({
             </MenuItem>
             {catSearch.length
               ? fuseCats.search(catSearch).map(mapCats)
-              : cats.value.map((v) => mapCats({ item: v }))}
+              : res.categories.map((v) => mapCats({ item: v }))}
           </Menu>
           {/* Reminder & Priority */}
           <div className="grid grid-cols-2 gap-[inherit]">
             <Button
               leadingIcon="Bell"
-              className="btn-md bg-zinc-100 text-zinc-600 tap-zinc-200"
+              className="btn-md border-2 border-zinc-100 text-zinc-300"
+              disabled
             >
               Reminder
             </Button>
@@ -357,33 +366,33 @@ export default function AddProjectPage({
               label="Priority"
               name="priority"
               defaultValue={
-                state.priority !== undefined
+                state?.priority !== undefined
                   ? {
                       name: Priority[state.priority ?? "2"],
                       value: Priority[Priority[state.priority ?? "2"]],
                     }
                   : undefined
               }
-              className=" menu-zinc-100 menu-md menu-filled tap-zinc-200 text-zinc-600"
+              className="menu-zinc-100 tap-zinc-200 menu-md menu-filled text-zinc-600"
             >
               <MenuItem
                 value="2"
-                onSelect={(priority) => setState({ ...state, priority })}
-                className="menu-item-secondary-50 tap-secondary-100"
+                onSelect={(priority) => setState({ ...state, priority: 2 })}
+                className="menu-item-secondary-50 tap-secondary-100 text-secondary-600"
               >
                 Low
               </MenuItem>
               <MenuItem
                 value="1"
-                onSelect={(priority) => setState({ ...state, priority })}
-                className="menu-item-warning-50 tap-warning-100"
+                onSelect={(priority) => setState({ ...state, priority: 1 })}
+                className="menu-item-warning-50 tap-warning-100 text-warning-700"
               >
                 Medium
               </MenuItem>
               <MenuItem
                 value="0"
-                onSelect={(priority) => setState({ ...state, priority })}
-                className="menu-item-error-50 tap-error-100"
+                onSelect={(priority) => setState({ ...state, priority: 0 })}
+                className="menu-item-error-50 tap-error-100 text-error-600"
               >
                 High
               </MenuItem>
@@ -399,7 +408,7 @@ function Error(props: { children: React.ReactNode; visible: boolean }) {
   return (
     <p
       className={
-        "text-sm px-2 text-error-500 transition-[height] overflow-hidden " +
+        "overflow-hidden px-2 text-sm text-error-500 transition-[height] " +
         (props.visible ? "h-5" : "h-0")
       }
     >

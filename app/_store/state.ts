@@ -199,99 +199,99 @@ export function encodeURL(struct: any) {
 //   };
 // }
 
-export function PendingTasksCount(projectId: ProjectId) {
-  return computed(() => {
-    const projectList = ExtractProjects(projectId);
-    const allTasks = SelectTasksByProjectId(projectList);
-    return [
-      allTasks.length,
-      allTasks.filter((t) => t.status === false).length,
-    ] as const;
-  });
-}
+// export function PendingTasksCount(projectId: ProjectId) {
+//   return computed(() => {
+//     const projectList = ExtractProjects(projectId);
+//     const allTasks = SelectTasksByProjectId(projectList);
+//     return [
+//       allTasks.length,
+//       allTasks.filter((t) => t.status === false).length,
+//     ] as const;
+//   });
+// }
 
-export function ExtractProjects(id: ProjectId): ProjectId[] {
-  const directChildren = store.projects.value
-    .filter((p) => p.projectId == id)
-    .map((p) => p.id);
-  if (directChildren.length > 0) {
-    return [id].concat(directChildren.map((id) => ExtractProjects(id)).flat());
-  } else {
-    return [id];
-  }
-}
+// export function ExtractProjects(id: ProjectId): ProjectId[] {
+//   const directChildren = store.projects.value
+//     .filter((p) => p.projectId == id)
+//     .map((p) => p.id);
+//   if (directChildren.length > 0) {
+//     return [id].concat(directChildren.map((id) => ExtractProjects(id)).flat());
+//   } else {
+//     return [id];
+//   }
+// }
 
-export function ExtractCategories(id?: CategoryId): CategoryId[] {
-  const directChildren = id
-    ? store.categories.value.filter((c) => c.categoryId == id).map((c) => c.id)
-    : store.categories.value
-        .filter((c) => c.categoryId === undefined)
-        .map((c) => c.id);
-  const arr = id ? [id] : [];
-  if (directChildren.length > 0) {
-    return arr.concat(directChildren.map((id) => ExtractCategories(id)).flat());
-  } else {
-    return arr;
-  }
-}
+// export function ExtractCategories(id?: CategoryId): CategoryId[] {
+//   const directChildren = id
+//     ? store.categories.value.filter((c) => c.categoryId == id).map((c) => c.id)
+//     : store.categories.value
+//         .filter((c) => c.categoryId === undefined)
+//         .map((c) => c.id);
+//   const arr = id ? [id] : [];
+//   if (directChildren.length > 0) {
+//     return arr.concat(directChildren.map((id) => ExtractCategories(id)).flat());
+//   } else {
+//     return arr;
+//   }
+// }
 
-export function SelectTasksByProjectId(id: ProjectId): ITask[];
-export function SelectTasksByProjectId(id: ProjectId[]): ITask[];
-export function SelectTasksByProjectId(id: ProjectId | ProjectId[]): ITask[] {
-  if (Array.isArray(id)) {
-    return id.map((pid) => SelectTasksByProjectId(pid)).flat();
-  } else {
-    return store.tasks.value.filter((t) => t.projectId === id);
-  }
-}
+// export function SelectTasksByProjectId(id: ProjectId): ITask[];
+// export function SelectTasksByProjectId(id: ProjectId[]): ITask[];
+// export function SelectTasksByProjectId(id: ProjectId | ProjectId[]): ITask[] {
+//   if (Array.isArray(id)) {
+//     return id.map((pid) => SelectTasksByProjectId(pid)).flat();
+//   } else {
+//     return store.tasks.value.filter((t) => t.projectId === id);
+//   }
+// }
 
-export function SelectTasksByCategoryId(id?: CategoryId): ITask[];
-export function SelectTasksByCategoryId(id: CategoryId[]): ITask[];
-export function SelectTasksByCategoryId(
-  id: CategoryId | CategoryId[] | undefined,
-): ITask[] {
-  if (Array.isArray(id)) {
-    return id.map((pid) => SelectTasksByCategoryId(pid)).flat();
-  } else if (id !== undefined) {
-    return store.tasks.value.filter((t) => t.categoryId === id);
-  } else {
-    return store.tasks.value.filter((t) => t.categoryId === undefined);
-  }
-}
+// export function SelectTasksByCategoryId(id?: CategoryId): ITask[];
+// export function SelectTasksByCategoryId(id: CategoryId[]): ITask[];
+// export function SelectTasksByCategoryId(
+//   id: CategoryId | CategoryId[] | undefined,
+// ): ITask[] {
+//   if (Array.isArray(id)) {
+//     return id.map((pid) => SelectTasksByCategoryId(pid)).flat();
+//   } else if (id !== undefined) {
+//     return store.tasks.value.filter((t) => t.categoryId === id);
+//   } else {
+//     return store.tasks.value.filter((t) => t.categoryId === undefined);
+//   }
+// }
 
-export function SelectTaskById(id?: TaskId): Partial<ITask> {
-  return store.tasks.value.find((t) => t.id === id) ?? {};
-}
+// export function SelectTaskById(id?: TaskId): Partial<ITask> {
+//   return store.tasks.value.find((t) => t.id === id) ?? {};
+// }
 
-export function SelectProjectByCategoryId(id?: CategoryId): IProject[];
-export function SelectProjectByCategoryId(id: CategoryId[]): IProject[];
-export function SelectProjectByCategoryId(
-  id: CategoryId | CategoryId[] | undefined,
-) {
-  if (Array.isArray(id)) {
-    return id.map((cid) => SelectProjectByCategoryId(cid)).flat();
-  } else if (id !== undefined) {
-    return store.projects.value.filter((p) => p.categoryId === id);
-  } else {
-    return store.projects.value.filter((p) => p.categoryId === undefined);
-  }
-}
+// export function SelectProjectByCategoryId(id?: CategoryId): IProject[];
+// export function SelectProjectByCategoryId(id: CategoryId[]): IProject[];
+// export function SelectProjectByCategoryId(
+//   id: CategoryId | CategoryId[] | undefined,
+// ) {
+//   if (Array.isArray(id)) {
+//     return id.map((cid) => SelectProjectByCategoryId(cid)).flat();
+//   } else if (id !== undefined) {
+//     return store.projects.value.filter((p) => p.categoryId === id);
+//   } else {
+//     return store.projects.value.filter((p) => p.categoryId === undefined);
+//   }
+// }
 
-export function SelectCategoryByCategoryId(id?: CategoryId) {
-  return computed(() =>
-    store.categories.value.filter((c) => c.categoryId === id),
-  );
-}
+// export function SelectCategoryByCategoryId(id?: CategoryId) {
+//   return computed(() =>
+//     store.categories.value.filter((c) => c.categoryId === id),
+//   );
+// }
 
-export function RemoveProjectById(id: ProjectId) {
-  const projects = ExtractProjects(id);
-  const tasks = SelectTasksByProjectId(projects).map((t) => t.id);
-  store.projects.value = store.projects.value.filter(
-    (p) => !projects.includes(p.id),
-  );
-  store.tasks.value = store.tasks.value.filter((t) => !tasks.includes(t.id));
-}
-export function RemoveCategoryById(id: CategoryId) {}
+// export function RemoveProjectById(id: ProjectId) {
+//   const projects = ExtractProjects(id);
+//   const tasks = SelectTasksByProjectId(projects).map((t) => t.id);
+//   store.projects.value = store.projects.value.filter(
+//     (p) => !projects.includes(p.id),
+//   );
+//   store.tasks.value = store.tasks.value.filter((t) => !tasks.includes(t.id));
+// }
+// export function RemoveCategoryById(id: CategoryId) {}
 
 export function RemoveFromSelection(feature: "category", id: number): void;
 export function RemoveFromSelection(feature: "project", id: number): void;
@@ -319,68 +319,68 @@ export function AddToSelection(
 // export const TaskFormDataSignal = signal<ITaskFormData>({});
 export const TaskFormDataSignal = signal<Partial<ITask>>({});
 
-export function TasksProgressByCategory(id?: CategoryId) {
-  return computed(() => {
-    if (id !== undefined) {
-      const categories = ExtractCategories(id);
-      const tasks = categories
-        .map((cid) => SelectTasksByCategoryId(cid))
-        .flat();
-      return [tasks.length, tasks.filter((t) => t.status).length] as const;
-    } else {
-      const tasks = store.tasks.value;
-      return [tasks.length, tasks.filter((t) => t.status).length] as const;
-    }
-  });
-}
+// export function TasksProgressByCategory(id?: CategoryId) {
+//   return computed(() => {
+//     if (id !== undefined) {
+//       const categories = ExtractCategories(id);
+//       const tasks = categories
+//         .map((cid) => SelectTasksByCategoryId(cid))
+//         .flat();
+//       return [tasks.length, tasks.filter((t) => t.status).length] as const;
+//     } else {
+//       const tasks = store.tasks.value;
+//       return [tasks.length, tasks.filter((t) => t.status).length] as const;
+//     }
+//   });
+// }
 
-export function ProjectProgressByCategory(id?: CategoryId) {
-  return computed(() => {
-    const categories = ExtractCategories(id);
-    const projects = [
-      ...new Set(
-        categories.map((cid) => SelectProjectByCategoryId(cid)).flat(),
-      ),
-    ];
-    const prog = projects.map((p) => {
-      const [a, i] = PendingTasksCount(p.id).value;
-      return a == 0 ? 1 : ((i > 0 ? 0 : 1) as number);
-    });
-    // debugger;
-    return [prog.length, prog.reduce((a, c) => a + c, 0)] as const;
-  });
-}
+// export function ProjectProgressByCategory(id?: CategoryId) {
+//   return computed(() => {
+//     const categories = ExtractCategories(id);
+//     const projects = [
+//       ...new Set(
+//         categories.map((cid) => SelectProjectByCategoryId(cid)).flat(),
+//       ),
+//     ];
+//     const prog = projects.map((p) => {
+//       const [a, i] = PendingTasksCount(p.id).value;
+//       return a == 0 ? 1 : ((i > 0 ? 0 : 1) as number);
+//     });
+//     // debugger;
+//     return [prog.length, prog.reduce((a, c) => a + c, 0)] as const;
+//   });
+// }
 
-export function CategoryInfo(id?: CategoryId) {
-  return computed(() => {
-    const categories = ExtractCategories(id);
-    const projects = [
-      ...new Set(
-        categories
-          .map((cid) => SelectProjectByCategoryId(cid))
-          .flat()
-          .map((p) => p.id),
-      ),
-    ];
-    const tasks = [
-      ...new Set([
-        ...projects.map(SelectTasksByProjectId).flat(),
-        ...categories.map(SelectTasksByCategoryId).flat(),
-      ]),
-    ];
-    return {
-      tasks: tasks.length,
-      projects: projects.length,
-      categories: categories.length,
-    };
-  });
-}
+// export function CategoryInfo(id?: CategoryId) {
+//   return computed(() => {
+//     const categories = ExtractCategories(id);
+//     const projects = [
+//       ...new Set(
+//         categories
+//           .map((cid) => SelectProjectByCategoryId(cid))
+//           .flat()
+//           .map((p) => p.id),
+//       ),
+//     ];
+//     const tasks = [
+//       ...new Set([
+//         ...projects.map(SelectTasksByProjectId).flat(),
+//         ...categories.map(SelectTasksByCategoryId).flat(),
+//       ]),
+//     ];
+//     return {
+//       tasks: tasks.length,
+//       projects: projects.length,
+//       categories: categories.length,
+//     };
+//   });
+// }
 
-export function AddCategory(
-  title: ICategory["title"],
-  categoryId: ICategory["categoryId"],
-) {
-  const cats = store.categories.value;
-  const id: CategoryId = `c${cats.length + 1}`;
-  store.categories.value = cats.concat({ id, title });
-}
+// export function AddCategory(
+//   title: ICategory["title"],
+//   categoryId: ICategory["categoryId"],
+// ) {
+//   const cats = store.categories.value;
+//   const id: CategoryId = `c${cats.length + 1}`;
+//   store.categories.value = cats.concat({ id, title });
+// }

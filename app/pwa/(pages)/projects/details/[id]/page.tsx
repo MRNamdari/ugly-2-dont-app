@@ -1,9 +1,8 @@
 "use client";
 import IconButton from "@/app/_components/icon-button";
 import ProjectTicket from "@/app/_components/project.ticket";
-import { IProject, ProjectId } from "@/app/_store/data";
+import { db, IProject } from "@/app/_store/db";
 import { modals, store } from "@/app/_store/state";
-import { useSignalEffect } from "@preact/signals-react";
 import { useRef, useState } from "react";
 import ProjectsCarousel, {
   ProjectCarouselRef,
@@ -12,41 +11,49 @@ import { AnimatePresence, motion } from "framer-motion";
 import TaskTicket from "@/app/_components/task.ticket";
 import Icon from "@/app/_components/icon";
 import { useRouter } from "next/navigation";
+import { useLiveQuery } from "dexie-react-hooks";
 
-const projectsSignal = store.projects;
-const tasksSignal = store.tasks;
 export default function ProjectDetailPage({
   params,
 }: {
-  params: { id?: ProjectId };
+  params: { id?: `${IProject["id"]}` };
 }) {
   const router = useRouter();
-  const [active, setActive] = useState<ProjectId>(
-    params.id ? params.id : projectsSignal.value[0].id,
+  const projects =
+    useLiveQuery(async () => {
+      return await db.projects.toArray();
+    }) ?? [];
+
+  const [active, setActive] = useState<IProject["id"]>(
+    params.id ? parseInt(params.id) : projects[0].id,
   );
-  const [projects, setProjects] = useState<IProject[]>([]);
   const carousel = useRef<ProjectCarouselRef>(null);
-  useSignalEffect(() => {
-    setProjects(projectsSignal.value);
-  });
-  const children = [
-    ...projects
-      .filter((p) => p.projectId === active)
-      .map((p) => (
-        <ProjectTicket
-          key={p.id}
-          {...p}
-          onOpen={(e, id) => {
-            e.preventDefault();
-            carousel.current?.setActive(id);
-            setActive(id);
-          }}
-        />
-      )),
-    ...tasksSignal.value
-      .filter((t) => t.projectId == active)
-      .map((t) => <TaskTicket key={t.id} {...t} />),
-  ];
+
+  const childFeatures = useLiveQuery(async () => {
+    return await Promise.all([
+      db.projects.where({ project: active }).toArray(),
+      db.tasks.where({ project: active }).toArray(),
+    ]);
+  }, [active]);
+
+  const children: JSX.Element[] =
+    childFeatures !== undefined
+      ? ([] as JSX.Element[]).concat(
+          childFeatures[0].map((p) => (
+            <ProjectTicket
+              key={p.id}
+              {...p}
+              onOpen={(e, id) => {
+                e.preventDefault();
+                carousel.current?.setActive(id);
+                setActive(id);
+              }}
+            />
+          )),
+          childFeatures[1].map((t) => <TaskTicket key={t.id} {...t} />),
+        )
+      : [];
+
   return (
     <>
       <header className="grid grid-cols-[3rem_1fr_3rem] items-center justify-center p-4">
@@ -91,9 +98,14 @@ export default function ProjectDetailPage({
             {children.length > 0 ? (
               children
             ) : (
-              <div className="flex w-full items-center justify-center rounded-3xl bg-zinc-100 font-medium text-zinc-500">
+              <motion.div
+                exit={{ opacity: 0 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex w-full items-center justify-center rounded-3xl bg-zinc-100 font-medium text-zinc-500"
+              >
                 Press <Icon label="PlusCircle" className="ico-md" /> to add
-              </div>
+              </motion.div>
             )}
           </AnimatePresence>
         </div>

@@ -1,6 +1,11 @@
 "use client";
+import { ITask } from "@/app/_store/db";
 import AddTaskPage from "../../add/page";
 
-export default function EditTaskPage({ params }: { params: { id: string } }) {
-  return <AddTaskPage params={{ id: parseInt(params.id) }} />;
+export default function EditTaskPage({
+  params,
+}: {
+  params: { id: `${ITask["id"]}` };
+}) {
+  return <AddTaskPage params={params} />;
 }

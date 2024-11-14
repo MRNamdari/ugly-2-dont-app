@@ -2,8 +2,8 @@
 import IconButton from "@/app/_components/icon-button";
 import ProjectTicket from "@/app/_components/project.ticket";
 import { db, IProject } from "@/app/_store/db";
-import { modals, store } from "@/app/_store/state";
-import { useRef, useState } from "react";
+import { store } from "@/app/_store/state";
+import { useContext, useRef, useState } from "react";
 import ProjectsCarousel, {
   ProjectCarouselRef,
 } from "@/app/_components/project.carousel";
@@ -12,6 +12,7 @@ import TaskTicket from "@/app/_components/task.ticket";
 import Icon from "@/app/_components/icon";
 import { useRouter } from "next/navigation";
 import { useLiveQuery } from "dexie-react-hooks";
+import { AddContext } from "@/app/_components/add.modal";
 
 export default function ProjectDetailPage({
   params,
@@ -19,6 +20,7 @@ export default function ProjectDetailPage({
   params: { id?: `${IProject["id"]}` };
 }) {
   const router = useRouter();
+  const addModal = useContext(AddContext);
   const projects =
     useLiveQuery(async () => {
       return await db.projects.toArray();
@@ -118,14 +120,14 @@ export default function ProjectDetailPage({
           icon="Plus"
           className="tap-primary-700 ico-xl w-fit bg-primary-800 text-white"
           onClick={() => {
-            modals.add.buttons.value = {
-              project: "/pwa/projects/add?project=" + active,
-              task: "/pwa/tasks/add?project=" + active,
-            };
-            const addModal = document.querySelector(
-              "#add",
-            ) as HTMLDialogElement | null;
-            if (addModal) addModal.showModal();
+            addModal.showModal({
+              project() {
+                router.push("/pwa/projects/add/");
+              },
+              task() {
+                router.push("/pwa/tasks/add/");
+              },
+            });
           }}
         />
       </div>

@@ -1,53 +1,74 @@
 "use client";
-import { AddCategoryContext } from "@/app/_components/addCategory.modal";
+import { AddContext } from "@/app/_components/add.modal";
+import { AddEditCategoryContext } from "@/app/_components/addEditCategory.modal";
 import Button from "@/app/_components/button";
 import CategoryTicket from "@/app/_components/category.ticket";
 import IconButton from "@/app/_components/icon-button";
 import ProgressPie from "@/app/_components/progress-pie";
 import ProjectTicket from "@/app/_components/project.ticket";
 import TaskTicket from "@/app/_components/task.ticket";
-import { CategoryId, ICategory, IProject, ITask } from "@/app/_store/data";
 import {
-  AddCategory,
+  db,
+  ICategory,
+  IProject,
+  ITask,
+  TaskProgressByCategory,
   ProjectProgressByCategory,
-  SelectCategoryByCategoryId,
-  SelectProjectByCategoryId,
-  SelectTasksByCategoryId,
-  store,
-  TasksProgressByCategory,
-} from "@/app/_store/state";
-import { useSignalEffect } from "@preact/signals-react";
+} from "@/app/_store/db";
+import { store } from "@/app/_store/state";
+import { batch, useSignalEffect } from "@preact/signals-react";
+import { useLiveQuery } from "dexie-react-hooks";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 
-const categoriesSignal = store.categories;
-
 export default function CategoryBrowserPage({
   params,
 }: {
-  params: { id?: CategoryId };
+  params: { id?: `${ICategory["id"]}` };
 }) {
   const router = useRouter();
-  const addCat = useContext(AddCategoryContext);
-  const [categories, setCategories] = useState<ICategory[]>([]);
-  const current = categoriesSignal.value.find((c) => c.id === params.id);
-  const [projects, setProjects] = useState<IProject[]>([]);
-  const [tasks, setTasks] = useState<ITask[]>([]);
+
+  const addModal = useContext(AddContext);
+  const addCat = useContext(AddEditCategoryContext);
+
+  const categories =
+    useLiveQuery(async () => {
+      return await db.categories
+        .where({
+          category: params.id ? parseInt(params.id) : 0,
+        })
+        .toArray();
+    }) ?? [];
+  const current = useLiveQuery(async () => {
+    if (params.id) return await db.categories.get(parseInt(params.id));
+  });
+  const projects =
+    useLiveQuery(async () => {
+      return await db.projects
+        .where({
+          category: params.id ? parseInt(params.id) : 0,
+        })
+        .toArray();
+    }) ?? [];
+  const tasks =
+    useLiveQuery(async () => {
+      return await db.tasks
+        .where({
+          category: params.id ? parseInt(params.id) : 0,
+        })
+        .toArray();
+    }) ?? [];
+
+  useEffect(() => {
+    batch(() => {
+      store.view.category.value = categories.map((c) => c.id);
+      store.view.project.value = projects.map((c) => c.id);
+      store.view.task.value = tasks.map((c) => c.id);
+    });
+  }, [categories, projects, tasks]);
   useSignalEffect(() => {
-    store.categories;
-    store.projects;
-    store.tasks;
     store.selection;
-    new Promise<ICategory[]>((resolve) =>
-      resolve(SelectCategoryByCategoryId(params.id).value),
-    ).then(setCategories);
-    new Promise<IProject[]>((resolve) =>
-      resolve(SelectProjectByCategoryId(params.id)),
-    ).then(setProjects);
-    new Promise<ITask[]>((resolve) =>
-      resolve(SelectTasksByCategoryId(params.id)),
-    ).then(setTasks);
   });
   return (
     <>
@@ -80,15 +101,16 @@ export default function CategoryBrowserPage({
         <div className="h-full overflow-auto px-4">
           <AnimatePresence>
             {categories.map((c) => (
-              <CategoryTicket key={c.id} {...c} />
+              <CategoryTicket key={"c" + c.id} {...c} />
             ))}
             {projects.map((p) => (
-              <ProjectTicket key={p.id} {...p} />
+              <ProjectTicket key={"p" + p.id} {...p} />
             ))}
             {tasks.map((t) => (
-              <TaskTicket key={t.id} {...t} />
+              <TaskTicket key={"t" + t.id} {...t} />
             ))}
           </AnimatePresence>
+          <div className="h-20 w-full"></div>
         </div>
       </section>
       <div className="fixed bottom-4 right-4">
@@ -99,11 +121,20 @@ export default function CategoryBrowserPage({
           icon="Plus"
           className="tap-primary-700 ico-xl w-fit bg-primary-800 text-white"
           onClick={() => {
-            addCat.onClose = (e: Event) => {
-              const value = (e.target as HTMLDialogElement).returnValue;
-              if (value.length > 0) AddCategory(value, params.id);
-            };
-            addCat.showModal();
+            addModal.showModal({
+              category: function () {
+                addCat.onClose = async (value) => {
+                  if (value.length > 0) {
+                    await db.categories.add({
+                      id: (await db.categories.count()) + 1,
+                      title: value,
+                      category: params.id ? parseInt(params.id) : 0,
+                    });
+                  }
+                };
+                addCat.showModal();
+              },
+            });
           }}
         />
       </div>
@@ -111,17 +142,13 @@ export default function CategoryBrowserPage({
   );
 }
 
-function TasksProgress({ id }: { id?: CategoryId }) {
-  const [[all, completed], setResults] = useState<Readonly<[number, number]>>([
-    NaN,
-    NaN,
-  ]);
+function TasksProgress({ id }: { id?: `${ICategory["id"]}` }) {
+  const [all, completed] = useLiveQuery(
+    async () => TaskProgressByCategory(id ? parseInt(id) : undefined),
+    [id],
+    [NaN, NaN] as const,
+  );
   useEffect(() => {}, [id]);
-  useSignalEffect(() => {
-    new Promise<Readonly<[number, number]>>((resolve) =>
-      resolve(TasksProgressByCategory(id).value),
-    ).then((value) => setResults(value));
-  });
 
   if (!isNaN(all) && !isNaN(completed) && all > 0)
     return (
@@ -144,17 +171,13 @@ function TasksProgress({ id }: { id?: CategoryId }) {
   );
 }
 
-function ProjectsProgress({ id }: { id?: CategoryId }) {
-  const [[all, completed], setResults] = useState<Readonly<[number, number]>>([
-    NaN,
-    NaN,
-  ]);
+function ProjectsProgress({ id }: { id?: `${ICategory["id"]}` }) {
+  const [all, completed] = useLiveQuery(
+    async () => ProjectProgressByCategory(id ? parseInt(id) : undefined),
+    [id],
+    [NaN, NaN] as const,
+  );
   useEffect(() => {}, [id]);
-  useSignalEffect(() => {
-    new Promise<Readonly<[number, number]>>((resolve) =>
-      resolve(ProjectProgressByCategory(id).value),
-    ).then(setResults);
-  });
 
   if (!isNaN(all) && !isNaN(completed) && all > 0)
     return (
@@ -177,13 +200,20 @@ function ProjectsProgress({ id }: { id?: CategoryId }) {
   );
 }
 
-function Breadcrum(props: { id?: CategoryId }) {
+function Breadcrum({ id }: { id?: `${ICategory["id"]}` }) {
   const router = useRouter();
-  if (props.id !== undefined) {
-    const cat = store.categories.value.find((c) => c.id === props.id)!;
-    const parent =
-      cat?.categoryId &&
-      store.categories.value.find((c) => c.id === cat.categoryId);
+  const parent = useLiveQuery(
+    async () => {
+      if (id === undefined) return;
+      const cat = await db.categories.get(parseInt(id));
+      if (!cat || !cat.category) return;
+      const parent = await db.categories.get(cat.category);
+      return parent;
+    },
+    [id],
+    undefined,
+  );
+  if (id !== undefined) {
     if (parent !== undefined) {
       return (
         <div className="flex px-4 text-primary-800">

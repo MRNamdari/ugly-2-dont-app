@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { db, IProject, PendingTasksCount, Priority } from "../_store/db";
-import { RemoveProjectById, store } from "../_store/state";
+import { store } from "../_store/state";
 import IconButton from "./icon-button";
 import {
   motion,
@@ -14,13 +14,10 @@ import { useContext, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DueTime, PendingTasks } from "./project.ticket";
 import Button from "./button";
-import { useSignalEffect } from "@preact/signals-react";
 import ProgressPie from "./progress-pie";
 import { useLiveQuery } from "dexie-react-hooks";
 import { DeleteContext } from "./delete.modal";
 
-const projects = store.projects;
-const categories = store.categories.value;
 type ProjectCardProps = IProject & {
   x?: MotionValue<number>;
   onDrag?: (ev: any, dir: 1 | -1) => void;
@@ -58,7 +55,7 @@ export default function ProjectCard(props: ProjectCardProps) {
   }
   return (
     <motion.article
-      id={props.id.toString()}
+      id={"p" + props.id.toString()}
       exit={{ width: 0, opacity: 0, marginBottom: 0 }}
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
@@ -147,7 +144,7 @@ export default function ProjectCard(props: ProjectCardProps) {
           <label
             className={
               "float-end rounded-sm px-1 text-xs " +
-              (props.priority === 0
+              (props.priority
                 ? "bg-error-100 text-error-600"
                 : props.priority === 1
                   ? "bg-warning-100 text-warning-600"

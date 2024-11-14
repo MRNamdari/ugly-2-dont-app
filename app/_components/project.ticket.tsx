@@ -41,7 +41,7 @@ export default function ProjectTicket(props: ProjectTicketProps) {
   const [isSelected, setSelection] = useState<boolean>();
 
   useSignalEffect(() => {
-    if (selection.value.project.includes(props.id)) setSelection(true);
+    if (selection.project.value.includes(props.id)) setSelection(true);
     else setSelection(false);
   });
   const dragEnded = useRef<{ info: PanInfo | null }>({ info: null });
@@ -64,9 +64,9 @@ export default function ProjectTicket(props: ProjectTicketProps) {
         : router.push(`/pwa/tasks/edit/${props.id}`);
   }
   function onDelete() {
-    deleteModal.onClose = (value) => {
+    deleteModal.onClose = async (value) => {
       if (value === "true") {
-        db.projects.delete(props.id);
+        await db.deleteProject(props.id);
       }
     };
     deleteModal.showModal(
@@ -75,7 +75,7 @@ export default function ProjectTicket(props: ProjectTicketProps) {
   }
   return (
     <motion.article
-      id={props.id.toString()}
+      id={"p" + props.id}
       initial={{ opacity: 0, marginBottom: 0 }}
       animate={{ opacity: 1, marginBottom: "1rem" }}
       exit={{ opacity: 0, marginBottom: 0 }}

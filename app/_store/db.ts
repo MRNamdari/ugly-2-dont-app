@@ -283,9 +283,9 @@ export const tasks: ITask[] = [
     },
   ],
   categories: ICategory[] = [
-    { title: "Personal", id: 1, category: undefined },
-    { title: "Work", id: 2, category: undefined },
-    { title: "Creative", id: 3 },
+    { title: "Personal", id: 1, category: 0 },
+    { title: "Work", id: 2, category: 0 },
+    { title: "Creative", id: 3, category: 0 },
     { title: "Health", id: 4, category: 1 },
     { title: "Finances", id: 5, category: 1 },
     { title: "Relationships", id: 6, category: 1 },
@@ -305,9 +305,126 @@ class UglyDB extends Dexie {
   constructor() {
     super("UglyDB");
     this.version(1).stores({
-      tasks: "++id, date, time, category, project, priority",
-      projects: "++id, date, time, category, project, priority",
-      categories: "++id, category",
+      tasks: "id, date, time, category, project, priority",
+      projects: "id, date, time, category, project, priority",
+      categories: "id, category",
+    });
+  }
+  deleteCategory(id: ICategory["id"]) {
+    return new Promise<[unknown, unknown, unknown]>((resolve, reject) => {
+      // Checking whether category id is valid
+      this.categories.get(id).then((c) => {
+        if (c === undefined) reject("Invalid category id");
+      });
+      // Extracting all categories inside given category
+      this.extractCategories(id)
+        .then((cids) => {
+          // Fetching all Tasks and Projects which are inside given category
+          Promise.all([
+            this.projects.where("category").anyOf(cids).toArray(),
+            this.tasks.where("category").anyOf(cids).toArray(),
+          ])
+            .then(([cp, ct]) => {
+              const pids = cp.map((p) => p.id);
+              // Fetching all Projects which are inside fetched projects
+              Promise.all(pids.map((pid) => this.extractProjects(pid)))
+                .then((v) => {
+                  const flatProjectIds = v.flat();
+                  // Fetching all Tasks which are inside projects
+                  this.tasks
+                    .where("project")
+                    .anyOf(flatProjectIds)
+                    .toArray()
+                    .then((pt) => {
+                      // Combining tasks whitin categories with tasks whitin projects
+                      const tids = ct.concat(pt).map((t) => t.id);
+                      // Deleting all categories, projects and tasks
+                      Promise.all([
+                        this.tasks.bulkDelete(tids),
+                        this.projects.bulkDelete(pids),
+                        this.categories.bulkDelete(cids),
+                      ])
+                        .then(resolve)
+                        .catch(reject);
+                    })
+                    .catch(reject);
+                })
+                .catch(reject);
+            })
+            .catch(reject);
+        })
+        .catch(reject);
+    });
+  }
+  extractCategories(id: ICategory["id"]) {
+    return new Promise<number[]>((resolve, reject) => {
+      this.categories.get(id).then((c) => {
+        if (c === undefined) reject("Invalid category id");
+      });
+      this.categories
+        .where({ category: id })
+        .toArray()
+        .then((cats) => {
+          const instantChildrenIds = cats.map((c) => c.id);
+          if (cats.length > 0) {
+            Promise.all(
+              instantChildrenIds.map((cid) => this.extractCategories(cid)),
+            )
+              .then((arr) => {
+                resolve([id].concat(arr.flat()));
+              })
+              .catch(reject);
+          } else resolve([id]);
+        })
+        .catch(reject);
+    });
+  }
+  deleteProject(id: IProject["id"]) {
+    return new Promise<[unknown, unknown]>((resolve, reject) => {
+      this.projects.get(id).then((p) => {
+        if (p === undefined) reject("Invalid project id");
+      });
+      this.extractProjects(id)
+        .then((pids) => {
+          this.tasks
+            .where("project")
+            .anyOf(pids)
+            .toArray()
+            .then((tasks) => {
+              const tids = tasks.map((t) => t.id);
+              Promise.all([
+                this.tasks.bulkDelete(tids),
+                this.projects.bulkDelete(pids),
+              ])
+                .then(resolve)
+                .catch(reject);
+            })
+            .catch(reject);
+        })
+        .catch(reject);
+    });
+  }
+  extractProjects(id: IProject["id"]) {
+    return new Promise<number[]>((resolve, reject) => {
+      this.projects.get(id).then((c) => {
+        if (c === undefined) reject("Invalid project id");
+      });
+      this.projects
+        .where({ project: id })
+        .toArray()
+        .then((prjs) => {
+          const instantChildrenIds = prjs.map((c) => c.id);
+          if (prjs.length > 0) {
+            Promise.all(
+              instantChildrenIds.map((pid) => this.extractProjects(pid)),
+            )
+              .then((arr) => {
+                resolve([id].concat(arr.flat()));
+              })
+              .catch(reject);
+          } else resolve([id]);
+        })
+        .catch(reject);
     });
   }
 }
@@ -383,4 +500,31 @@ export async function CategorySummary(id: ICategory["id"] = 0) {
     projects: prjs,
     tasks,
   };
+}
+
+export async function TaskProgressByCategory(id?: ICategory["id"]) {
+  const cats = await ExtractCategories(id ?? 0);
+  const projects = (
+    await db.projects.where("category").anyOf(cats).toArray()
+  ).map((p) => p.id);
+  const tasks = await db.tasks
+    .where("category")
+    .anyOf(cats)
+    .or("project")
+    .anyOf(projects)
+    .toArray();
+  return [tasks.length, tasks.filter((t) => t.status).length] as const;
+}
+
+export async function ProjectProgressByCategory(id?: ICategory["id"]) {
+  const cats = await ExtractCategories(id ?? 0);
+  const projectsPendings = await Promise.all(
+    (await db.projects.where("category").anyOf(cats).toArray()).map((p) =>
+      PendingTasksCount(p.id),
+    ),
+  );
+
+  const all = projectsPendings.map((p) => p[0]).reduce((a, c) => a + c, 0);
+  const pending = projectsPendings.map((p) => p[1]).reduce((a, c) => a + c, 0);
+  return [all, all - pending] as const;
 }

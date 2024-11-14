@@ -11,19 +11,20 @@ import {
 import TextInput from "./text-input";
 import Button from "./button";
 
-export const AddCategoryContext = createContext<{
-  showModal: () => void;
+export const AddEditCategoryContext = createContext<{
+  showModal: (title?: string) => void;
   close: () => void;
-  onClose: (e: Event) => any;
+  onClose: (value: string) => any;
 }>({
-  showModal() {},
+  showModal(title?: string) {},
   close() {},
   onClose() {},
 });
 
 export default function AddCategoryModal(props: { children: React.ReactNode }) {
   const [value, setValue] = useState("");
-  const onClose = useRef<{ cb: (e: Event) => any }>({ cb() {} });
+  const [defaultValue, setDefaultValue] = useState("");
+  const onClose = useRef<{ cb: (value: string) => any }>({ cb() {} });
   const ref = useRef<HTMLDialogElement>(null);
   const form = useRef<HTMLFormElement>(null);
   const [isPending, startTransition] = useTransition();
@@ -32,21 +33,26 @@ export default function AddCategoryModal(props: { children: React.ReactNode }) {
     const dialog = ref.current;
     if (!dialog) return;
     dialog.onclose = (ev) => {
+      if (onClose.current) onClose.current.cb(dialog.returnValue);
+      setDefaultValue("");
       if (form.current) form.current.reset();
-      if (onClose.current) onClose.current.cb(ev);
     };
   }, []);
 
-  function showModal() {
+  useEffect(() => {}, [defaultValue]);
+
+  function showModal(title?: string) {
     startTransition(() => {
       const dialog = ref.current;
+      if (title) setDefaultValue(title);
       if (dialog) dialog.showModal();
     });
   }
   function close() {
     startTransition(() => {
       const dialog = ref.current;
-      if (dialog) dialog.close();
+      if (dialog) dialog.close("");
+      setDefaultValue("");
       if (form.current) form.current.reset();
     });
   }
@@ -64,11 +70,11 @@ export default function AddCategoryModal(props: { children: React.ReactNode }) {
   }
 
   return (
-    <AddCategoryContext.Provider
+    <AddEditCategoryContext.Provider
       value={{
         showModal,
         close,
-        set onClose(callback: (ev: Event) => {}) {
+        set onClose(callback: (value: string) => {}) {
           onClose.current.cb = callback;
         },
       }}
@@ -84,6 +90,7 @@ export default function AddCategoryModal(props: { children: React.ReactNode }) {
             <input
               type="text"
               name="title"
+              defaultValue={defaultValue}
               onChange={(e) => setValue(e.target.value)}
               placeholder="Category Name"
               className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-primary-400"
@@ -100,12 +107,12 @@ export default function AddCategoryModal(props: { children: React.ReactNode }) {
               value={value}
               className="tap-primary-600 btn-md justify-center bg-primary-800"
             >
-              Add
+              {defaultValue ? "Edit" : "Add"}
             </Button>
           </div>
         </form>
       </dialog>
       {props.children}
-    </AddCategoryContext.Provider>
+    </AddEditCategoryContext.Provider>
   );
 }

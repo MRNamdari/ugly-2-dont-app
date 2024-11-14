@@ -9,7 +9,9 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { CategorySummary, db, PendingTasksCount } from "../_store/db";
 
 export default function PWAHomePage() {
-  const tasks = useLiveQuery(async () => await db.tasks.toArray());
+  const tasks = useLiveQuery(
+    async () => await db.tasks.orderBy("id").toArray(),
+  );
 
   const projects = useLiveQuery(async () => {
     const p = await db.projects.toArray();
@@ -123,6 +125,7 @@ export default function PWAHomePage() {
           <span className="whitespace-nowrap">see all</span>
         </Link>
         <div className="w-full -translate-y-20">
+          <div className="h-10"></div>
           <AnimatePresence>
             {tasks?.map((t) => (
               <motion.div
@@ -136,6 +139,7 @@ export default function PWAHomePage() {
               </motion.div>
             ))}
           </AnimatePresence>
+          <div className="h-60"></div>
         </div>
       </section>
     </>

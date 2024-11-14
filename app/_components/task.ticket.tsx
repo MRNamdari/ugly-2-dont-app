@@ -4,7 +4,6 @@ import { db, ISubTask, ITask, Priority } from "@/app/_store/db";
 import {
   AddToSelection,
   isSelectionStarted,
-  modals,
   RemoveFromSelection,
   store,
 } from "@/app/_store/state";
@@ -23,9 +22,6 @@ import {
 } from "react";
 import { DeleteContext } from "./delete.modal";
 
-const tasks = store.tasks;
-const projects = store.projects.value;
-const categories = store.categories.value;
 const selection = store.selection;
 
 export default function TaskTicket(props: ITask) {
@@ -39,10 +35,10 @@ export default function TaskTicket(props: ITask) {
   });
   const [isExpanded, setExpansion] = useState<boolean>(false);
   const [isSelected, setSelection] = useState<boolean>(
-    selection.value.task.includes(props.id),
+    selection.task.value.includes(props.id),
   );
   useSignalEffect(() => {
-    if (selection.value.task.includes(props.id)) setSelection(true);
+    if (selection.task.value.includes(props.id)) setSelection(true);
     else setSelection(false);
   });
   const dragEnded = useRef<{ info: PanInfo | null }>({ info: null });
@@ -151,10 +147,10 @@ export default function TaskTicket(props: ITask) {
   return (
     <motion.article
       className="relative"
-      id={props.id.toString()}
+      id={"t" + props.id}
       initial={{ opacity: 0, marginBottom: 0 }}
       animate={{ opacity: 1, marginBottom: "1rem" }}
-      exit={{ opacity: 0, marginBottom: 0 }}
+      exit={{ opacity: 0, marginBottom: 0, height: 0 }}
     >
       <div className="absolute left-2 top-1/2 -z-10 flex h-5/6 w-1/2 -translate-y-1/2 items-center justify-start rounded-l-2xl bg-error-100 p-4">
         <Icon label="Trash" size={24} className="size-6 text-error-500" />
@@ -322,7 +318,7 @@ export default function TaskTicket(props: ITask) {
                   : "bg-secondary-100 text-secondary-600")
             }
           >
-            {(props.priority as 0 | 1 | 2 | undefined) &&
+            {(props.priority as 0 | 1 | 2 | undefined) !== undefined &&
               Priority[props.priority as 0 | 1 | 2].slice(0, 1)}
           </p>
         </div>

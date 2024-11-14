@@ -1,59 +1,96 @@
 import { motion, PanInfo } from "framer-motion";
-import { ICategory } from "../_store/data";
+import { CategorySummary, db, ICategory, IProject, ITask } from "../_store/db";
 import Icon from "./icon";
-import { useState, MouseEvent } from "react";
+import { useState, MouseEvent, useContext, useRef } from "react";
 import {
   AddToSelection,
-  CategoryInfo,
+  IsSelected,
   isSelectionStarted,
-  modals,
-  RemoveCategoryById,
   RemoveFromSelection,
   store,
 } from "../_store/state";
 import { useRouter } from "next/navigation";
 import { useSignalEffect } from "@preact/signals-react";
+import { useLiveQuery } from "dexie-react-hooks";
+import { DeleteContext } from "./delete.modal";
+import { AddEditCategoryContext } from "./addEditCategory.modal";
 
-const selection = store.selection;
+const selection = store.selection.category;
 
 export default function CategoryTicket(props: ICategory) {
+  const deleteModal = useContext(DeleteContext);
+  const editModal = useContext(AddEditCategoryContext);
   const router = useRouter();
   const [isSelected, setSelection] = useState<boolean>();
-  const [info, setInfo] = useState({ categories: 0, projects: 0, tasks: 0 });
+  const info = useLiveQuery(
+    async () => await CategorySummary(props.id),
+    [props.id],
+    {
+      categoriesId: [] as number[],
+      projects: [] as IProject[],
+      tasks: [] as ITask[],
+    },
+  );
+  const dragEnd = useRef<{ info: PanInfo | undefined }>({ info: undefined });
 
   useSignalEffect(() => {
-    new Promise<{ categories: number; projects: number; tasks: number }>(
-      (resolve) => resolve(CategoryInfo(props.id).value),
-    ).then(setInfo);
+    setSelection(IsSelected("category", props.id));
   });
 
   function ContextMenuHandler(e: MouseEvent<HTMLDivElement>) {
     e.preventDefault();
     setSelection(true);
-    selection.value = [...selection.value, props.id];
+    AddToSelection("category", props.id);
   }
   function DragEndHandler(e: any, info: PanInfo) {
-    if (Math.abs(info.offset.x) > 90)
-      info.offset.x > 0 ? onDelete() : console.log("Edit " + props.title);
+    dragEnd.current.info = info;
+  }
+  function DragTransitionEndHandler() {
+    const info = dragEnd.current.info;
+    if (info)
+      if (Math.abs(info.offset.x) > 90)
+        info.offset.x > 0 ? onDelete() : onEdit();
   }
   function onDelete() {
-    modals.delete.message.value = `Sure wanna delete “${props.title}” and all its tasks, projects & categories?`;
-    const deleteModal = document.getElementById("delete") as HTMLDialogElement;
-    deleteModal.onclose = (e) => {
-      if (deleteModal.returnValue === "true") {
-        RemoveCategoryById(props.id);
+    deleteModal.onClose = async (value) => {
+      if (value === "true") {
+        await db.deleteCategory(props.id);
       }
     };
-    setTimeout(() => deleteModal.showModal(), 200);
+    deleteModal.showModal(
+      `Sure wanna delete “${props.title}” and all its tasks, projects & categories?`,
+    );
+  }
+  function onEdit() {
+    editModal.onClose = async (value) => {
+      if (value.length > 0) {
+        await db.categories.update(props.id, { title: value });
+      }
+    };
+    editModal.showModal(props.title);
+  }
+  function onClick() {
+    if (isSelectionStarted.value) {
+      if (isSelected) {
+        RemoveFromSelection("category", props.id);
+        setSelection(false);
+      } else {
+        AddToSelection("category", props.id);
+        setSelection(true);
+      }
+      return;
+    } else {
+      router.replace("/pwa/categories/details/" + props.id);
+    }
   }
   return (
     <motion.article
-      id={props.id}
+      id={"c" + props.id}
       initial={{ opacity: 0, marginBottom: 0 }}
       animate={{ opacity: 1, marginBottom: "1rem" }}
       exit={{ opacity: 0, marginBottom: 0 }}
       className="relative mb-4"
-      onClick={() => router.replace("/pwa/categories/details/" + props.id)}
+      onClick={onClick}
     >
       <div className="absolute left-2 top-1/2 -z-10 flex h-5/6 w-1/2 -translate-y-1/2 items-center justify-start rounded-l-2xl bg-error-100 p-4">
         <Icon label="Trash" size={24} className="size-6 text-error-500" />
@@ -69,20 +106,9 @@ export default function CategoryTicket(props: ICategory) {
         dragTransition={{ bounceStiffness: 400 }}
         className="grid grid-cols-[3rem_auto_2rem] items-center rounded-3xl bg-gray-100 p-6 py-2 aria-selected:bg-secondary-50"
         aria-selected={isSelected}
-        onClick={() => {
-          if (isSelectionStarted.value) {
-            if (isSelected) {
-              RemoveFromSelection(props.id);
-              setSelection(false);
-            } else {
-              AddToSelection(props.id);
-              setSelection(true);
-            }
-            return;
-          }
-        }}
         onContextMenu={ContextMenuHandler}
         onDragEnd={DragEndHandler}
+        onDragTransitionEnd={DragTransitionEndHandler}
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 40" height="28">
           <rect
@@ -112,11 +138,13 @@ export default function CategoryTicket(props: ICategory) {
         <span className="h-fit">
           <h4 className="self-center text-base font-medium">{props.title}</h4>
           <h5 className="text-xs text-primary-600">
-            {info.tasks > 0 &&
-              info.tasks + " Task" + (info.tasks > 1 ? "s" : "")}
-            {info.tasks > 0 && info.projects > 0 && " • "}
-            {info.projects > 0 &&
-              info.projects + " Project" + (info.projects > 1 ? "s" : "")}
+            {info.tasks.length > 0 &&
+              info.tasks.length + " Task" + (info.tasks.length > 1 ? "s" : "")}
+            {info.tasks.length > 0 && info.projects.length > 0 && " • "}
+            {info.projects.length > 0 &&
+              info.projects.length +
+                " Project" +
+                (info.projects.length > 1 ? "s" : "")}
           </h5>
         </span>
 

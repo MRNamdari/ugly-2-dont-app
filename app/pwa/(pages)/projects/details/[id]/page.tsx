@@ -2,8 +2,12 @@
 import IconButton from "@/app/_components/icon-button";
 import ProjectTicket from "@/app/_components/project.ticket";
 import { db, IProject } from "@/app/_store/db";
-import { store } from "@/app/_store/state";
-import { useContext, useRef, useState } from "react";
+import {
+  ProjectFormDataSignal,
+  store,
+  TaskFormDataSignal,
+} from "@/app/_store/state";
+import { useContext, useEffect, useRef, useState } from "react";
 import ProjectsCarousel, {
   ProjectCarouselRef,
 } from "@/app/_components/project.carousel";
@@ -13,6 +17,7 @@ import Icon from "@/app/_components/icon";
 import { useRouter } from "next/navigation";
 import { useLiveQuery } from "dexie-react-hooks";
 import { AddContext } from "@/app/_components/add.modal";
+import { SelectionContext } from "@/app/_components/selection.modal";
 
 export default function ProjectDetailPage({
   params,
@@ -21,20 +26,37 @@ export default function ProjectDetailPage({
 }) {
   const router = useRouter();
   const addModal = useContext(AddContext);
-  const projects =
-    useLiveQuery(async () => {
-      return await db.projects.toArray();
-    }) ?? [];
 
-  const [active, setActive] = useState<IProject["id"]>(
-    params.id ? parseInt(params.id) : projects[0].id,
+  const firstProject = useLiveQuery(async () => {
+    return await db.projects.limit(1).first();
+  });
+
+  const [active, setActive] = useState<IProject["id"] | undefined>(
+    params.id ? parseInt(params.id) : undefined,
   );
+  useEffect(() => {
+    setActive(firstProject ? firstProject.id : undefined);
+    if (firstProject)
+      window.history.replaceState(
+        window.history.state,
+        "",
+        "/pwa/projects/details/" + firstProject.id,
+      );
+  }, [firstProject]);
+  useContext(SelectionContext).destination = { feature: "project", id: active };
+
   const carousel = useRef<ProjectCarouselRef>(null);
 
   const childFeatures = useLiveQuery(async () => {
     return await Promise.all([
-      db.projects.where({ project: active }).toArray(),
-      db.tasks.where({ project: active }).toArray(),
+      db.projects
+        .where("project")
+        .equals(active ?? 0)
+        .toArray(),
+      db.tasks
+        .where("project")
+        .equals(active ?? 0)
+        .toArray(),
     ]);
   }, [active]);
 
@@ -84,7 +106,7 @@ export default function ProjectDetailPage({
       >
         <ProjectsCarousel
           ref={carousel}
-          default={active}
+          default={active ?? 0}
           value={active}
           onChange={(id) => {
             setActive(id);
@@ -122,9 +144,11 @@ export default function ProjectDetailPage({
           onClick={() => {
             addModal.showModal({
               project() {
+                ProjectFormDataSignal.value = { project: active };
                 router.push("/pwa/projects/add/");
               },
               task() {
+                TaskFormDataSignal.value = { project: active };
                 router.push("/pwa/tasks/add/");
               },
             });

@@ -15,13 +15,13 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { DeleteContext } from "./delete.modal";
 import { AddEditCategoryContext } from "./addEditCategory.modal";
 
-const selection = store.selection.category;
-
 export default function CategoryTicket(props: ICategory) {
   const deleteModal = useContext(DeleteContext);
   const editModal = useContext(AddEditCategoryContext);
   const router = useRouter();
-  const [isSelected, setSelection] = useState<boolean>();
+  const [isSelected, setSelection] = useState<boolean>(
+    IsSelected("category", props.id),
+  );
   const info = useLiveQuery(
     async () => await CategorySummary(props.id),
     [props.id],
@@ -39,7 +39,6 @@ export default function CategoryTicket(props: ICategory) {
 
   function ContextMenuHandler(e: MouseEvent<HTMLDivElement>) {
     e.preventDefault();
-    setSelection(true);
     AddToSelection("category", props.id);
   }
   function DragEndHandler(e: any, info: PanInfo) {
@@ -73,10 +72,8 @@ export default function CategoryTicket(props: ICategory) {
     if (isSelectionStarted.value) {
       if (isSelected) {
         RemoveFromSelection("category", props.id);
-        setSelection(false);
       } else {
         AddToSelection("category", props.id);
-        setSelection(true);
       }
       return;
     } else {

@@ -146,13 +146,14 @@ export function MenuItem<T extends string>(
   if ("value" in props)
     return (
       <motion.li
-        whileTap={{ backgroundColor: "var(--fm-clr,inherit)" }}
         aria-valuetext={props.value}
         aria-label={props.children}
         onClick={() => {
           if (props.onSelect) props.onSelect(props.value);
         }}
-        className={"menu-item " + props.className}
+        className={
+          "menu-item select-none focus:bg-[--fm-clr] " + props.className
+        }
       >
         {props.children}
       </motion.li>
@@ -168,7 +169,7 @@ export function MenuItem<T extends string>(
     );
   }
   return (
-    <li aria-disabled className={"menu-item " + props.className}>
+    <li aria-disabled className={"menu-item select-none " + props.className}>
       {props.children}
     </li>
   );

@@ -6,6 +6,7 @@ import CategoryTicket from "@/app/_components/category.ticket";
 import IconButton from "@/app/_components/icon-button";
 import ProgressPie from "@/app/_components/progress-pie";
 import ProjectTicket from "@/app/_components/project.ticket";
+import { SelectionContext } from "@/app/_components/selection.modal";
 import TaskTicket from "@/app/_components/task.ticket";
 import {
   db,
@@ -14,8 +15,13 @@ import {
   ITask,
   TaskProgressByCategory,
   ProjectProgressByCategory,
+  addIdTo,
 } from "@/app/_store/db";
-import { store } from "@/app/_store/state";
+import {
+  ProjectFormDataSignal,
+  store,
+  TaskFormDataSignal,
+} from "@/app/_store/state";
 import { batch, useSignalEffect } from "@preact/signals-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { AnimatePresence, motion } from "framer-motion";
@@ -27,38 +33,23 @@ export default function CategoryBrowserPage({
 }: {
   params: { id?: `${ICategory["id"]}` };
 }) {
+  const id = params.id !== undefined ? parseInt(params.id) : 0;
   const router = useRouter();
-
   const addModal = useContext(AddContext);
   const addCat = useContext(AddEditCategoryContext);
+  useContext(SelectionContext).destination = { feature: "category", id };
 
-  const categories =
-    useLiveQuery(async () => {
-      return await db.categories
-        .where({
-          category: params.id ? parseInt(params.id) : 0,
-        })
-        .toArray();
-    }) ?? [];
-  const current = useLiveQuery(async () => {
-    if (params.id) return await db.categories.get(parseInt(params.id));
-  });
-  const projects =
-    useLiveQuery(async () => {
-      return await db.projects
-        .where({
-          category: params.id ? parseInt(params.id) : 0,
-        })
-        .toArray();
-    }) ?? [];
-  const tasks =
-    useLiveQuery(async () => {
-      return await db.tasks
-        .where({
-          category: params.id ? parseInt(params.id) : 0,
-        })
-        .toArray();
-    }) ?? [];
+  const [categories, projects, tasks, current] = useLiveQuery(
+    async () =>
+      await Promise.all([
+        db.categories.where("category").equals(id).toArray(),
+        db.projects.where("category").equals(id).toArray(),
+        db.tasks.where("category").equals(id).toArray(),
+        db.categories.get(id),
+      ]),
+    [id],
+    [[], [], [], undefined],
+  );
 
   useEffect(() => {
     batch(() => {
@@ -94,10 +85,10 @@ export default function CategoryBrowserPage({
       </header>
       <section className="grid h-full grid-rows-[2rem_2rem_auto] gap-4 overflow-auto">
         <div className="grid h-fit grid-flow-col justify-between gap-4 px-4 text-primary-600">
-          <TasksProgress id={params.id} />
-          <ProjectsProgress id={params.id} />
+          <TasksProgress id={id} />
+          <ProjectsProgress id={id} />
         </div>
-        <Breadcrum id={params.id} />
+        <Breadcrum id={id} />
         <div className="h-full overflow-auto px-4">
           <AnimatePresence>
             {categories.map((c) => (
@@ -125,14 +116,23 @@ export default function CategoryBrowserPage({
               category: function () {
                 addCat.onClose = async (value) => {
                   if (value.length > 0) {
-                    await db.categories.add({
-                      id: (await db.categories.count()) + 1,
-                      title: value,
-                      category: params.id ? parseInt(params.id) : 0,
-                    });
+                    await db.categories.add(
+                      await addIdTo("categories", {
+                        title: value,
+                        category: id,
+                      }),
+                    );
                   }
                 };
                 addCat.showModal();
+              },
+              project: function () {
+                if (id !== 0) ProjectFormDataSignal.value = { category: id };
+                router.push("/pwa/projects/add");
+              },
+              task: function () {
+                if (id !== 0) TaskFormDataSignal.value = { category: id };
+                router.push("/pwa/tasks/add");
               },
             });
           }}
@@ -142,9 +142,9 @@ export default function CategoryBrowserPage({
   );
 }
 
-function TasksProgress({ id }: { id?: `${ICategory["id"]}` }) {
+function TasksProgress({ id }: { id: ICategory["id"] }) {
   const [all, completed] = useLiveQuery(
-    async () => TaskProgressByCategory(id ? parseInt(id) : undefined),
+    async () => TaskProgressByCategory(id),
     [id],
     [NaN, NaN] as const,
   );
@@ -171,9 +171,9 @@ function TasksProgress({ id }: { id?: `${ICategory["id"]}` }) {
   );
 }
 
-function ProjectsProgress({ id }: { id?: `${ICategory["id"]}` }) {
+function ProjectsProgress({ id }: { id: ICategory["id"] }) {
   const [all, completed] = useLiveQuery(
-    async () => ProjectProgressByCategory(id ? parseInt(id) : undefined),
+    async () => ProjectProgressByCategory(id),
     [id],
     [NaN, NaN] as const,
   );
@@ -200,12 +200,12 @@ function ProjectsProgress({ id }: { id?: `${ICategory["id"]}` }) {
   );
 }
 
-function Breadcrum({ id }: { id?: `${ICategory["id"]}` }) {
+function Breadcrum({ id }: { id: ICategory["id"] }) {
   const router = useRouter();
   const parent = useLiveQuery(
     async () => {
       if (id === undefined) return;
-      const cat = await db.categories.get(parseInt(id));
+      const cat = await db.categories.get(id);
       if (!cat || !cat.category) return;
       const parent = await db.categories.get(cat.category);
       return parent;

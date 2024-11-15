@@ -4,6 +4,7 @@ import Link from "next/link";
 import { IProject, PendingTasksCount } from "../_store/db";
 import Icon from "./icon";
 import {
+  IsSelected,
   AddToSelection,
   isSelectionStarted,
   RemoveFromSelection,
@@ -26,23 +27,28 @@ type ProjectTicketProps = IProject & {
 };
 export default function ProjectTicket(props: ProjectTicketProps) {
   const router = useRouter();
-
   const deleteModal = useContext(DeleteContext);
-  const project = useLiveQuery(async () => {
-    if (props.project) return await db.projects.get(props.project);
-  });
-  const category = useLiveQuery(async () => {
-    if (props.category) return await db.categories.get(props.category);
-  });
+  const [isSelected, setSelection] = useState<boolean>(
+    IsSelected("project", props.id),
+  );
+
+  const [category, project] = useLiveQuery(
+    async () => {
+      return [
+        props.category ? await db.categories.get(props.category) : undefined,
+        props.project ? await db.projects.get(props.project) : undefined,
+      ];
+    },
+    [props.project, props.category],
+    [undefined, undefined],
+  );
+
   const [allTasks, pendingTasks] = useLiveQuery(async () => {
     return await PendingTasksCount(props.id);
   }) ?? [0, 0];
 
-  const [isSelected, setSelection] = useState<boolean>();
-
   useSignalEffect(() => {
-    if (selection.project.value.includes(props.id)) setSelection(true);
-    else setSelection(false);
+    setSelection(IsSelected("project", props.id));
   });
   const dragEnded = useRef<{ info: PanInfo | null }>({ info: null });
   const progress =
@@ -50,7 +56,6 @@ export default function ProjectTicket(props: ProjectTicketProps) {
 
   function ContextMenuHandler(e: MouseEvent<HTMLDivElement>) {
     e.preventDefault();
-    setSelection(true);
     AddToSelection("project", props.id);
   }
   function DragEndHandler(e: any, info: PanInfo) {
@@ -61,7 +66,7 @@ export default function ProjectTicket(props: ProjectTicketProps) {
     if (info && Math.abs(info.offset.x) > 90)
       info.offset.x > 0
         ? onDelete()
-        : router.push(`/pwa/tasks/edit/${props.id}`);
+        : router.push(`/pwa/projects/edit/${props.id}`);
   }
   function onDelete() {
     deleteModal.onClose = async (value) => {
@@ -99,10 +104,8 @@ export default function ProjectTicket(props: ProjectTicketProps) {
           if (isSelectionStarted.value) {
             if (isSelected) {
               RemoveFromSelection("project", props.id);
-              setSelection(false);
             } else {
               AddToSelection("project", props.id);
-              setSelection(true);
             }
             return;
           }

@@ -26,34 +26,50 @@ export default function AddTaskPage({
 }: {
   params: { id: `${ITask["id"]}` };
 }) {
+  const id = params.id !== undefined ? parseInt(params.id) : undefined;
   const router = useRouter();
   const calendar = useContext(CalendarContext);
   const clock = useContext(ClockContext);
 
+  const [projects, categories] = useLiveQuery(
+    async () => [await db.projects.toArray(), await db.categories.toArray()],
+    [],
+    [[], []],
+  );
+
   const res = useLiveQuery(
     async () => {
       const results: {
-        projects: IProject[];
-        categories: ICategory[];
         initial?: ITask;
         project?: IProject;
         category?: ICategory;
-      } = {
-        projects: await db.projects.toArray(),
-        categories: await db.categories.toArray(),
-      };
+      } = {};
+      const temp = TaskFormDataSignal.value;
 
-      const initial = await db.tasks.get(parseInt(params.id));
-      if (initial) {
-        results.initial = initial;
-        if (initial.category)
-          results.category = await db.categories.get(initial.category);
-        if (initial.project)
-          results.project = await db.projects.get(initial.project);
+      if (id === undefined) {
+        results.initial = temp as ITask;
+        if (temp.category !== undefined)
+          results.category = await db.categories.get(temp.category);
+        if (temp.project !== undefined)
+          results.project = await db.projects.get(temp.project);
+      } else if (id !== undefined) {
+        const initial = await db.tasks.get(id);
+        if (initial) {
+          Object.assign(initial, temp);
+          results.initial = initial;
+          if (initial.category)
+            results.category = await db.categories.get(
+              temp.category ?? initial.category,
+            );
+          if (initial.project)
+            results.project = await db.projects.get(
+              temp.project ?? initial.project,
+            );
+        }
       }
       return results;
     },
-    [params.id],
+    [id, TaskFormDataSignal.value],
     {
       projects: [],
       categories: [],
@@ -72,8 +88,8 @@ export default function AddTaskPage({
   const form = useRef<HTMLFormElement>(null);
   const subtaskInput = useRef<HTMLInputElement>(null);
 
-  const fuseCats = new Fuse(res.categories, { keys: ["title"] });
-  const fusePrjs = new Fuse(res.projects, { keys: ["title", "description"] });
+  const fuseCats = new Fuse(categories, { keys: ["title"] });
+  const fusePrjs = new Fuse(projects, { keys: ["title", "description"] });
   const [catSearch, setCatSearch] = useState<string>("");
   const [prjSearch, setPrjSearch] = useState<string>("");
 
@@ -120,6 +136,7 @@ export default function AddTaskPage({
             className="tap-zinc-100 ico-lg text-primary-900"
             icon="ArrowLeft"
             onClick={() => {
+              TaskFormDataSignal.value = {};
               router.back();
             }}
           />
@@ -130,7 +147,7 @@ export default function AddTaskPage({
           exit={{ transform: "translate(0,-200%)", opacity: 0 }}
           className="self-end overflow-hidden text-ellipsis whitespace-nowrap text-center text-3xl font-medium"
         >
-          {params.id ? "Edit" : "New"} Task
+          {id !== undefined ? "Edit" : "New"} Task
         </motion.h1>
         <div>
           <IconButton
@@ -141,7 +158,7 @@ export default function AddTaskPage({
               const f = form.current;
               if (!f) return;
               if (f.checkValidity()) {
-                if (state !== undefined) TaskFormDataSignal.value = state;
+                TaskFormDataSignal.value = state;
                 router.push("/pwa/tasks/verify");
               }
             }}
@@ -160,8 +177,8 @@ export default function AddTaskPage({
         className="flex h-full flex-col"
         onSubmit={(e) => e.preventDefault()}
       >
-        {params.id && (
-          <input type="hidden" name="id" defaultValue={params.id} />
+        {id !== undefined && (
+          <input type="hidden" name="id" defaultValue={id} />
         )}
         <section className="grid h-fit grid-flow-row gap-4 px-4 pt-10">
           {/* Title */}
@@ -294,7 +311,7 @@ export default function AddTaskPage({
             label="Project"
             name="project"
             defaultValue={{
-              name: res.project?.title,
+              name: projects.find((p) => p.id === state.project)?.title,
               value: state?.project?.toString(),
             }}
             className="menu-zinc-100 tap-zinc-200 menu-md menu-filled text-zinc-600"
@@ -316,7 +333,7 @@ export default function AddTaskPage({
             </MenuItem>
             {prjSearch.length
               ? fusePrjs.search(prjSearch).map(mapPrjs)
-              : res.projects.map((v) => mapPrjs({ item: v }))}
+              : projects.map((v) => mapPrjs({ item: v }))}
           </Menu>
           {/* Categories */}
           <Menu
@@ -324,7 +341,7 @@ export default function AddTaskPage({
             label="Category"
             name="category"
             defaultValue={{
-              name: res.category?.title,
+              name: categories.find((c) => c.id === state.category)?.title,
               value: state?.category?.toString(),
             }}
             className="menu-zinc-100 tap-zinc-200 menu-md menu-filled text-zinc-600"
@@ -346,7 +363,7 @@ export default function AddTaskPage({
             </MenuItem>
             {catSearch.length
               ? fuseCats.search(catSearch).map(mapCats)
-              : res.categories.map((v) => mapCats({ item: v }))}
+              : categories.map((item) => mapCats({ item }))}
           </Menu>
           {/* Reminder & Priority */}
           <div className="grid grid-cols-2 gap-[inherit]">
@@ -429,21 +446,21 @@ export default function AddTaskPage({
             >
               <MenuItem
                 value="2"
-                onSelect={(priority) => setState({ ...state, priority: 2 })}
+                onSelect={() => setState({ ...state, priority: 2 })}
                 className="menu-item-secondary-50 tap-secondary-100"
               >
                 Low
               </MenuItem>
               <MenuItem
                 value="1"
-                onSelect={(priority) => setState({ ...state, priority: 1 })}
+                onSelect={() => setState({ ...state, priority: 1 })}
                 className="menu-item-warning-50 tap-warning-100"
               >
                 Medium
               </MenuItem>
               <MenuItem
                 value="0"
-                onSelect={(priority) => setState({ ...state, priority: 0 })}
+                onSelect={() => setState({ ...state, priority: 0 })}
                 className="menu-item-error-50 tap-error-100"
               >
                 High
@@ -468,14 +485,13 @@ export default function AddTaskPage({
                   defaultValue={st.title}
                   onBlur={(e) => {
                     e.preventDefault();
-                    const input = e.target;
-                    const value = input.value;
-                    const storedValue = state.subtasks?.find(
-                      (t) => t.id == st.id,
-                    );
-                    if (storedValue && value !== storedValue?.title) {
-                      setState({ ...state, [`st${st.id}`]: value.trim() });
-                    }
+                    setState((s) => {
+                      s.subtasks?.map((t) => {
+                        if (t.id == st.id) st.title = e.target.value.trim();
+                        return t;
+                      });
+                      return s;
+                    });
                   }}
                   className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-primary-400"
                 />
@@ -491,10 +507,10 @@ export default function AddTaskPage({
                     e.preventDefault();
                     let subtasks: ISubTask[] | undefined;
                     if ((subtasks = state.subtasks)) {
-                      setState((state) => ({
-                        ...state,
-                        subtasks: subtasks?.filter((s) => s.id !== st.id),
-                      }));
+                      setState((s) => {
+                        s.subtasks = s.subtasks?.filter((s) => s.id !== st.id);
+                        return s;
+                      });
                     }
                   }}
                 />

@@ -13,45 +13,62 @@ import Button from "@/app/_components/button";
 import TextInput from "@/app/_components/text-input";
 import Icon from "@/app/_components/icon";
 import { motion } from "framer-motion";
-import { db } from "@/app/_store/db";
+import { addDueTo, addIdTo, db } from "@/app/_store/db";
 import { useLiveQuery } from "dexie-react-hooks";
 import { CalendarContext } from "@/app/_components/calendar.modal";
 import { ClockContext } from "@/app/_components/clock.modal";
 
 import { date2display, timeToLocalTime } from "@/app/_components/util";
+import { ProjectFormDataSignal } from "@/app/_store/state";
 export default function AddProjectPage({
   params,
 }: {
   params: { id: `${IProject["id"]}` };
 }) {
+  const id = params.id !== undefined ? parseInt(params.id) : undefined;
   const router = useRouter();
   const calendar = useContext(CalendarContext);
   const clock = useContext(ClockContext);
 
+  const [projects, categories] = useLiveQuery(
+    async () => [await db.projects.toArray(), await db.categories.toArray()],
+    [],
+    [[], []],
+  );
+
   const res = useLiveQuery(
     async () => {
       const results: {
-        projects: IProject[];
-        categories: ICategory[];
         initial?: IProject;
         project?: IProject;
         category?: ICategory;
-      } = {
-        projects: await db.projects.toArray(),
-        categories: await db.categories.toArray(),
-      };
+      } = {};
+      const temp = ProjectFormDataSignal.value;
 
-      const initial = await db.projects.get(parseInt(params.id));
-      if (initial) {
-        results.initial = initial;
-        if (initial.category)
-          results.category = await db.categories.get(initial.category);
-        if (initial.project)
-          results.project = await db.projects.get(initial.project);
+      if (id === undefined) {
+        results.initial = temp as IProject;
+        if (temp.category !== undefined)
+          results.category = await db.categories.get(temp.category);
+        if (temp.project !== undefined)
+          results.project = await db.projects.get(temp.project);
+      } else if (id !== undefined) {
+        const initial = await db.projects.get(id);
+        if (initial) {
+          Object.assign(initial, temp);
+          results.initial = initial;
+          if (initial.category)
+            results.category = await db.categories.get(
+              temp.category ?? initial.category,
+            );
+          if (initial.project)
+            results.project = await db.projects.get(
+              temp.project ?? initial.project,
+            );
+        }
       }
       return results;
     },
-    [params.id],
+    [id, ProjectFormDataSignal.value],
     {
       projects: [],
       categories: [],
@@ -69,8 +86,8 @@ export default function AddProjectPage({
 
   const form = useRef<HTMLFormElement>(null);
 
-  const fuseCats = new Fuse(res.categories, { keys: ["title"] });
-  const fusePrjs = new Fuse(res.projects, { keys: ["title", "description"] });
+  const fuseCats = new Fuse(categories, { keys: ["title"] });
+  const fusePrjs = new Fuse(projects, { keys: ["title", "description"] });
 
   const [catSearch, setCatSearch] = useState<string>("");
   const [prjSearch, setPrjSearch] = useState<string>("");
@@ -113,14 +130,16 @@ export default function AddProjectPage({
     const f = form.current;
     if (!f) return;
     if (f.checkValidity()) {
-      if (params.id) {
+      if (id) {
         // On Edit Project Page
-        await db.projects.update(parseInt(params.id), state);
+        await db.projects.update(id, addDueTo(state as IProject));
       } else {
         // On Add Project Page
-        await db.projects.add(state as IProject);
+        await db.projects.add(
+          addDueTo(await addIdTo("projects", state as IProject)),
+        );
       }
-      router.back();
+      window.history.go(-1);
     }
   }
   return (
@@ -320,7 +339,7 @@ export default function AddProjectPage({
             </MenuItem>
             {prjSearch.length
               ? fusePrjs.search(prjSearch).map(mapPrjs)
-              : res.projects.map((v) => mapPrjs({ item: v }))}
+              : projects.map((v) => mapPrjs({ item: v }))}
           </Menu>
           {/* Categories */}
           <Menu
@@ -328,7 +347,7 @@ export default function AddProjectPage({
             label="Category"
             name="category"
             defaultValue={{
-              name: res.categories.find((c) => c.id == state?.category)?.title,
+              name: categories.find((c) => c.id == state?.category)?.title,
               value: state?.category?.toString(),
             }}
             className="menu-zinc-100 tap-zinc-200 menu-md menu-filled text-zinc-600"
@@ -350,7 +369,7 @@ export default function AddProjectPage({
             </MenuItem>
             {catSearch.length
               ? fuseCats.search(catSearch).map(mapCats)
-              : res.categories.map((v) => mapCats({ item: v }))}
+              : categories.map((v) => mapCats({ item: v }))}
           </Menu>
           {/* Reminder & Priority */}
           <div className="grid grid-cols-2 gap-[inherit]">

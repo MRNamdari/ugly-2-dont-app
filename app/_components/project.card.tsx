@@ -42,10 +42,10 @@ export default function ProjectCard(props: ProjectCardProps) {
     allTasks === 100 ? 0 : ((allTasks - pendingTasks) / allTasks) * 100;
 
   function onDelete() {
-    deleteModal.onClose = (value) => {
+    deleteModal.onClose = async (value) => {
       if (value === "true") {
         props.onDelete && props.onDelete();
-        db.projects.delete(props.id);
+        await db.deleteProject(props.id);
       }
     };
     menu.current?.close();
@@ -140,11 +140,11 @@ export default function ProjectCard(props: ProjectCardProps) {
             </Link>
           )}
         </h5>
-        {props.priority && (
+        {props.priority !== undefined && (
           <label
             className={
               "float-end rounded-sm px-1 text-xs " +
-              (props.priority
+              (props.priority === 0
                 ? "bg-error-100 text-error-600"
                 : props.priority === 1
                   ? "bg-warning-100 text-warning-600"

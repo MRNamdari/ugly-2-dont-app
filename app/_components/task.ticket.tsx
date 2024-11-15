@@ -3,43 +3,41 @@ import { date2display } from "@/app/_components/util";
 import { db, ISubTask, ITask, Priority } from "@/app/_store/db";
 import {
   AddToSelection,
+  IsSelected,
   isSelectionStarted,
   RemoveFromSelection,
-  store,
 } from "@/app/_store/state";
 import { useSignalEffect } from "@preact/signals-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { motion, PanInfo } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  ChangeEvent,
-  MouseEvent,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { ChangeEvent, MouseEvent, useContext, useRef, useState } from "react";
 import { DeleteContext } from "./delete.modal";
-
-const selection = store.selection;
 
 export default function TaskTicket(props: ITask) {
   const router = useRouter();
   const deleteModal = useContext(DeleteContext);
-  const project = useLiveQuery(async () => {
-    if (props.project) return await db.projects.get(props.project);
-  });
-  const category = useLiveQuery(async () => {
-    if (props.category) return await db.categories.get(props.category);
-  });
+  const [project, category] = useLiveQuery(
+    async () => {
+      return [
+        props.project !== undefined
+          ? await db.projects.get(props.project)
+          : undefined,
+        props.category !== undefined
+          ? await db.categories.get(props.category)
+          : undefined,
+      ];
+    },
+    [props.project, props.category],
+    [undefined, undefined],
+  );
   const [isExpanded, setExpansion] = useState<boolean>(false);
   const [isSelected, setSelection] = useState<boolean>(
-    selection.task.value.includes(props.id),
+    IsSelected("task", props.id),
   );
   useSignalEffect(() => {
-    if (selection.task.value.includes(props.id)) setSelection(true);
-    else setSelection(false);
+    setSelection(IsSelected("task", props.id));
   });
   const dragEnded = useRef<{ info: PanInfo | null }>({ info: null });
   const hasSubtasks =
@@ -105,10 +103,8 @@ export default function TaskTicket(props: ITask) {
     if (isSelectionStarted.value) {
       if (isSelected) {
         RemoveFromSelection("task", props.id);
-        setSelection(false);
       } else {
         AddToSelection("task", props.id);
-        setSelection(true);
       }
       return;
     }
@@ -123,7 +119,6 @@ export default function TaskTicket(props: ITask) {
   }
   function ContextMenuHandler(e: MouseEvent<HTMLDivElement>) {
     e.preventDefault();
-    setSelection(true);
     AddToSelection("task", props.id);
   }
   function DragEndHandler(e: any, info: PanInfo) {

@@ -2,17 +2,21 @@
 import Link from "next/link";
 import IconButton from "../_components/icon-button";
 import TextInput from "../_components/text-input";
-// import { CategoryInfo, store } from "../_store/state";
+
 import TaskTicket from "../_components/task.ticket";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLiveQuery } from "dexie-react-hooks";
 import { CategorySummary, db, PendingTasksCount } from "../_store/db";
+import { store } from "../_store/state";
+import { ITask } from "../_store/db";
 
 export default function PWAHomePage() {
   const tasks = useLiveQuery(
-    async () => await db.tasks.orderBy("id").toArray(),
+    async () =>
+      await db.tasks.where("due").aboveOrEqual(new Date()).sortBy("due"),
   );
-
+  // const tasks: ITask[] = [];
+  store.view.task.value = tasks?.map((t) => t.id) ?? [];
   const projects = useLiveQuery(async () => {
     const p = await db.projects.toArray();
     return await Promise.all(
@@ -78,6 +82,13 @@ export default function PWAHomePage() {
               </Link>
             );
           })}
+          <Link
+            href="/pwa/categories"
+            key="add"
+            className="mx-4 flex aspect-square h-24 items-center justify-center rounded-xl border-4 border-secondary-600 p-2 opacity-15"
+          >
+            <div className="relative size-6 before:absolute before:left-1/2 before:block before:h-full before:w-1 before:-translate-x-1/2 before:rounded-sm before:bg-secondary-600 after:absolute after:top-1/2 after:block after:h-1 after:w-full after:-translate-y-1/2 after:rounded-sm after:bg-secondary-600"></div>
+          </Link>
         </div>
       </section>
       <section
@@ -125,12 +136,20 @@ export default function PWAHomePage() {
           <span className="whitespace-nowrap">see all</span>
         </Link>
         <div className="w-full -translate-y-20">
+          {!tasks?.length && (
+            <Link
+              href="/pwa/tasks/add"
+              className="mx-6 block rounded-xl border-4 border-dashed border-zinc-200 py-10 text-center text-zinc-400"
+            >
+              nothing's here! press to add
+            </Link>
+          )}
           <div className="h-10"></div>
           <AnimatePresence>
             {tasks?.map((t) => (
               <motion.div
                 key={t.id}
-                className="animatio sticky px-4 [animation-duration:1ms] [animation-name:fadeOut] [animation-timeline:view(block_25rem)] [animation-timing-function:ease-out]"
+                className="animatio sticky px-4 [animation-duration:1ms] [animation-name:fadeOut] [animation-timeline:view(block_26rem)] [animation-timing-function:ease-out]"
                 style={{
                   top: `21rem`,
                 }}

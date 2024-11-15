@@ -10,6 +10,7 @@ export type IProject = {
   id: number;
   date: Date;
   time: Date;
+  due?: Date;
   description?: string;
   priority?: 0 | 1 | 2;
   category?: number;
@@ -23,8 +24,9 @@ export type ITask = {
   subtasks?: ISubTask[];
   project?: number;
   category?: number;
-  date?: Date;
-  time?: Date;
+  date: Date;
+  time: Date;
+  due?: Date;
   reminder?: Date;
   priority?: 0 | 1 | 2;
 };
@@ -298,6 +300,7 @@ export const tasks: ITask[] = [
     { title: "Leadership", id: 13, category: 2 },
   ];
 
+//OrderBy time,date doesn't work
 class UglyDB extends Dexie {
   tasks!: Table<ITask, number>;
   projects!: Table<IProject, number>;
@@ -305,8 +308,8 @@ class UglyDB extends Dexie {
   constructor() {
     super("UglyDB");
     this.version(1).stores({
-      tasks: "id, date, time, category, project, priority",
-      projects: "id, date, time, category, project, priority",
+      tasks: "id, due, category, project, priority",
+      projects: "id, due, category, project, priority",
       categories: "id, category",
     });
   }
@@ -358,9 +361,11 @@ class UglyDB extends Dexie {
   }
   extractCategories(id: ICategory["id"]) {
     return new Promise<number[]>((resolve, reject) => {
-      this.categories.get(id).then((c) => {
-        if (c === undefined) reject("Invalid category id");
-      });
+      // id = 0 is the root category, for all features that aren't categoreised
+      id !== 0 &&
+        this.categories.get(id).then((c) => {
+          if (c === undefined) reject("Invalid category id");
+        });
       this.categories
         .where({ category: id })
         .toArray()
@@ -431,47 +436,17 @@ class UglyDB extends Dexie {
 
 export const db = new UglyDB();
 console.log(db);
-// ExtractProjects(4).then((v) => console.log(v));
-// ExtractCategories(2).then((v) => console.log(v));
-// PendingTasksCount(2).then((v) => console.log(v));
 
 db.on("populate", async (trans) => {
   console.log("populate");
-  await trans.table("tasks").bulkAdd(tasks);
+
+  await trans.table("tasks").bulkAdd(tasks.map(addDueTo));
   await trans.table("projects").bulkAdd(projects);
   await trans.table("categories").bulkAdd(categories);
 });
 
-export async function ExtractProjects(
-  id: IProject["id"],
-): Promise<IProject["id"][]> {
-  const instantChildren = (
-    await db.projects.where({ project: id }).toArray()
-  ).map((p) => p.id);
-  if (instantChildren.length > 0) {
-    const arr = await Promise.all(
-      instantChildren.map(async (pid) => await ExtractProjects(pid)),
-    );
-    return [id].concat(arr.flat());
-  } else return [id];
-}
-
-export async function ExtractCategories(
-  id: ICategory["id"],
-): Promise<ICategory["id"][]> {
-  const instantChildren = (
-    await db.categories.where({ category: id }).toArray()
-  ).map((c) => c.id);
-  if (instantChildren.length > 0) {
-    const arr = await Promise.all(
-      instantChildren.map(async (cid) => await ExtractCategories(cid)),
-    );
-    return [id].concat(arr.flat());
-  } else return [id];
-}
-
 export async function PendingTasksCount(id: IProject["id"]) {
-  const pids = await ExtractProjects(id);
+  const pids = await db.extractProjects(id);
   const allTasks = await db.tasks
     .where("project")
     .anyOf(...pids)
@@ -483,7 +458,7 @@ export async function PendingTasksCount(id: IProject["id"]) {
 }
 
 export async function CategorySummary(id: ICategory["id"] = 0) {
-  const cats = await ExtractCategories(id);
+  const cats = await db.extractCategories(id);
   const prjs = await db.projects
     .where("category")
     .anyOf(...cats)
@@ -503,7 +478,7 @@ export async function CategorySummary(id: ICategory["id"] = 0) {
 }
 
 export async function TaskProgressByCategory(id?: ICategory["id"]) {
-  const cats = await ExtractCategories(id ?? 0);
+  const cats = await db.extractCategories(id ?? 0);
   const projects = (
     await db.projects.where("category").anyOf(cats).toArray()
   ).map((p) => p.id);
@@ -517,7 +492,7 @@ export async function TaskProgressByCategory(id?: ICategory["id"]) {
 }
 
 export async function ProjectProgressByCategory(id?: ICategory["id"]) {
-  const cats = await ExtractCategories(id ?? 0);
+  const cats = await db.extractCategories(id ?? 0);
   const projectsPendings = await Promise.all(
     (await db.projects.where("category").anyOf(cats).toArray()).map((p) =>
       PendingTasksCount(p.id),
@@ -527,4 +502,29 @@ export async function ProjectProgressByCategory(id?: ICategory["id"]) {
   const all = projectsPendings.map((p) => p[0]).reduce((a, c) => a + c, 0);
   const pending = projectsPendings.map((p) => p[1]).reduce((a, c) => a + c, 0);
   return [all, all - pending] as const;
+}
+
+export function addDueTo<T extends ITask | IProject>(f: T): T {
+  const due = new Date(f.date);
+  due.setUTCHours(f.time.getUTCHours(), f.time.getUTCMinutes(), 0, 0);
+  return Object.assign(f, { due });
+}
+
+type TableNames = "categories" | "projects" | "tasks";
+type Feature = ICategory | IProject | ITask;
+export async function addIdTo(
+  feat: "categories",
+  obj: Partial<ICategory>,
+): Promise<ICategory>;
+export async function addIdTo(
+  feat: "projects",
+  obj: Partial<IProject>,
+): Promise<IProject>;
+export async function addIdTo(
+  feat: "tasks",
+  obj: Partial<ITask>,
+): Promise<ITask>;
+export async function addIdTo(feat: TableNames, obj: Partial<Feature>) {
+  const id = (await db[feat].count()) + 1;
+  return Object.assign(obj, { id });
 }

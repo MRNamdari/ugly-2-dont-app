@@ -5,12 +5,13 @@ import Link from "next/link";
 import TextInput from "@/app/_components/text-input";
 import Icon from "@/app/_components/icon";
 import Button from "@/app/_components/button";
-import { ITask, Priority } from "@/app/_store/db";
+import { addDueTo, addIdTo, db, ITask, Priority } from "@/app/_store/db";
 import { useRouter } from "next/navigation";
 import { date2display, timeToLocalTime } from "@/app/_components/util";
 import { MouseEvent, useState } from "react";
 import { motion } from "framer-motion";
 import { useSignalEffect } from "@preact/signals-react";
+import { useLiveQuery } from "dexie-react-hooks";
 
 export default function VerifyTaskPage() {
   const router = useRouter();
@@ -18,25 +19,32 @@ export default function VerifyTaskPage() {
   useSignalEffect(() => {
     setState(TaskFormDataSignal.value);
   });
-  const project = store.projects.value.find((p) => p.id == state.project);
 
-  const category = store.categories.value.find((c) => c.id == state.category);
+  const [project, category] = useLiveQuery(
+    async () => {
+      return [
+        state.project !== undefined
+          ? await db.projects.get(state.project)
+          : undefined,
+        state.category !== undefined
+          ? await db.categories.get(state.category)
+          : undefined,
+      ];
+    },
+    [state.project, state.category],
+    [undefined, undefined],
+  );
 
-  const subtasks = state.subtasks;
-
-  function handleSubmit(e: MouseEvent<HTMLButtonElement>) {
-    const tasks = store.tasks.value;
+  async function handleSubmit(e: MouseEvent<HTMLButtonElement>) {
     const newTask = state as ITask;
     if (state.id) {
-      const index = tasks.findIndex((t) => t.id == state.id);
-      tasks[index] = newTask;
+      await db.tasks.update(state.id, addDueTo(newTask));
     } else {
-      tasks.push(newTask);
+      await db.tasks.add(addDueTo(await addIdTo("tasks", newTask)));
     }
-    store.tasks.value = tasks;
+
     TaskFormDataSignal.value = {};
-    router.back();
-    router.back();
+    window.history.go(-2);
   }
 
   return (
@@ -65,40 +73,28 @@ export default function VerifyTaskPage() {
         exit={{ opacity: 0 }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="flex flex-col gap-4 bg-secondary-100 px-4"
+        className="flex select-none flex-col gap-4 bg-secondary-100 px-4"
       >
         <article className="grid w-full gap-2 rounded-3xl bg-white p-6">
           <h2 className="text-lg font-medium">{state.title}</h2>
           {(project || category) && (
             <h3 className="text-base text-primary-600">
-              <Link
-                className="underline"
-                href={"../projects/details/" + project?.id}
-              >
-                {project?.title}
-              </Link>
+              <p className="inline underline">{project?.title}</p>
               {category && project && " • "}
-              {category && (
-                <Link
-                  className="underline"
-                  href={"../categories/details/" + category.id}
-                >
-                  {category.title}
-                </Link>
-              )}
+              {category && <p className="inline underline">{category.title}</p>}
             </h3>
           )}
           <p className="text-sm text-primary-700">{state.description}</p>
         </article>
-        {subtasks && subtasks.length > 0 && (
+        {state.subtasks && state.subtasks.length > 0 && (
           <section className="w-full rounded-3xl bg-secondary-50">
-            {subtasks.map((st) => (
+            {state.subtasks.map((st) => (
               <span key={st.id} className="group">
                 <TextInput className="group text-input-md border-2 border-b-2 border-transparent border-b-secondary-100 bg-secondary-50 text-zinc-600 *:transition-colors group-last:border-b-transparent">
                   <Icon label="Hash" className="ico-md text-secondary-600" />
                   <p className="w-full">{st.title}</p>
                   <Icon
-                    label={st.status ? "Circle" : "CheckCircle"}
+                    label={st.status ? "CheckCircle" : "Circle"}
                     className="ico-md text-secondary-600"
                   />
                 </TextInput>
@@ -108,26 +104,34 @@ export default function VerifyTaskPage() {
         )}
         <div className="grid grid-cols-2 gap-[inherit]">
           <Button
+            disabled
             leadingIcon="Calendar"
             className={"tap-error-50 btn-md bg-error-50 text-error-600"}
           >
             {state.date && date2display(state.date)}
           </Button>
           <Button
+            disabled
             leadingIcon="Clock"
             className={"tap-error-50 btn-md bg-error-50 text-error-600"}
           >
-            {timeToLocalTime(state.time!)}
+            {state.time && timeToLocalTime(state.time)}
           </Button>
         </div>
         <div className="grid grid-cols-2 gap-[inherit]">
           <Button
+            disabled
             leadingIcon="Bell"
-            className="tap-zinc-200 btn-md bg-zinc-100 text-zinc-600"
+            trailingIcon={state.reminder && "Check"}
+            className={
+              "tap-zinc-200 btn-md text-zinc-600 " +
+              (state.reminder ? "bg-amber-100" : "bg-zinc-100")
+            }
           >
             Reminder
           </Button>
           <Button
+            disabled
             leadingIcon="TrendingUp"
             className={
               "btn-md " +

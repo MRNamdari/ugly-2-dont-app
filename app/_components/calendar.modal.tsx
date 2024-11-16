@@ -1,5 +1,4 @@
 "use client";
-import { AnimatePresence, motion } from "framer-motion";
 import {
   useState,
   MouseEvent,
@@ -11,7 +10,8 @@ import {
 } from "react";
 import IconButton from "./icon-button";
 import Button from "./button";
-import { date2str, num2str, wildCard } from "./util";
+import { date2str, num2str } from "./util";
+import { string2date } from "../_store/db";
 
 const dayNames = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"] as const,
   monthNames = [
@@ -30,27 +30,32 @@ const dayNames = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"] as const,
   ] as const;
 
 function nextMonth(date: Date) {
-  const [year, month] = [date.getFullYear(), date.getMonth() + 1];
+  const [year, month] = [date.getFullYear(), date.getMonth()];
   return new Date(
-    `${month + 1 > 12 ? year + 1 : year}-${month + 1 > 12 ? 1 : month + 1}-1`,
+    month + 2 > 12 ? year + 1 : year,
+    month + 1 > 11 ? 0 : month + 1,
+    1,
   );
 }
 
 function previousMonth(date: Date) {
-  const [year, month] = [date.getFullYear(), date.getMonth() + 1];
+  const [year, month] = [date.getFullYear(), date.getMonth()];
   return new Date(
-    `${month - 1 < 1 ? year - 1 : year}-${month - 1 < 1 ? 12 : month - 1}-1`,
+    month - 1 < 0 ? year - 1 : year,
+    month - 1 < 0 ? 11 : month - 1,
+    1,
   );
 }
 
 function startOfMonth(date: Date) {
-  const [year, month] = [date.getFullYear(), date.getMonth() + 1];
-  return new Date(`${year}-${month}-1`);
+  const [year, month] = [date.getFullYear(), date.getMonth()];
+  return new Date(year, month, 1);
 }
 
 function endOfMonth(date: Date) {
   const d = new Date();
   d.setTime(nextMonth(date).getTime() - 1);
+  d.setHours(0, 0, 0, 0);
   return d;
 }
 
@@ -98,7 +103,7 @@ export default function CalendarModal(props: { children: React.ReactNode }) {
       dialog.onclose = (e) => {
         const str = ref.current?.returnValue;
         if (str) {
-          if (str !== "false") constant.current.cb(new Date(str));
+          if (str !== "false") constant.current.cb(string2date(str));
           else constant.current.cb(constant.current.initial);
         }
       };
@@ -108,7 +113,7 @@ export default function CalendarModal(props: { children: React.ReactNode }) {
   function showModal(date?: Date | string) {
     constant.current.initial = undefined;
     startTransition(() => {
-      if (typeof date === "string") date = new Date(date);
+      if (typeof date === "string") date = new Date(string2date(date));
       if (date !== undefined) constant.current.initial = date;
       else date = new Date();
       setDate(date);
@@ -321,7 +326,7 @@ export default function CalendarModal(props: { children: React.ReactNode }) {
                   onClick={handleClick(year, month, n)}
                   className="tap-primary-900 btn-sm justify-center text-white transition aria-disabled:bg-primary-900 aria-[current=true]:border-2 aria-[current=true]:border-white"
                 >
-                  {wildCard(n)}
+                  {num2str(n)}
                 </button>
               );
             })}
@@ -334,7 +339,7 @@ export default function CalendarModal(props: { children: React.ReactNode }) {
                   onClick={handleNextMonthDayClick(year, month, n)}
                   className="tap-primary-800 btn-sm justify-center text-primary-900 transition"
                 >
-                  {wildCard(n)}
+                  {num2str(n)}
                 </button>
               );
             })}

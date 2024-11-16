@@ -56,8 +56,9 @@ function time2date(t: string) {
   return d;
 }
 
-function string2date(s: string) {
-  return new Date(s);
+export function string2date(s: string) {
+  const [y, m, d] = s.split("-").map((s) => parseInt(s));
+  return new Date(y, m - 1, d);
 }
 
 export const tasks: ITask[] = [
@@ -308,9 +309,9 @@ class UglyDB extends Dexie {
   constructor() {
     super("UglyDB");
     this.version(1).stores({
-      tasks: "id, due, category, project, priority",
-      projects: "id, due, category, project, priority",
-      categories: "id, category",
+      tasks: "id, title, due, category, project, priority",
+      projects: "id, title, due, category, project, priority",
+      categories: "id, title, category",
     });
   }
   deleteCategory(id: ICategory["id"]) {
@@ -438,8 +439,6 @@ export const db = new UglyDB();
 console.log(db);
 
 db.on("populate", async (trans) => {
-  console.log("populate");
-
   await trans.table("tasks").bulkAdd(tasks.map(addDueTo));
   await trans.table("projects").bulkAdd(projects);
   await trans.table("categories").bulkAdd(categories);

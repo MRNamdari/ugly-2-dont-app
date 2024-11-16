@@ -245,7 +245,6 @@ export default function AddTaskPage({
                 onClick={(e) => {
                   e.preventDefault();
                   calendar.onClose = (d) => {
-                    console.log(d);
                     setError((e) => ({ ...e, date: d === undefined }));
                     setState((s) => ({ ...s, date: d }));
                   };
@@ -282,7 +281,6 @@ export default function AddTaskPage({
                   e.preventDefault();
                   clock.showModal(state.time);
                   clock.onClose = (time) => {
-                    console.log("%o", time);
                     if (time) setState((s) => ({ ...s, time }));
                   };
                 }}
@@ -376,7 +374,6 @@ export default function AddTaskPage({
               onClick={(e) => {
                 calendar.onClose = (d) => {
                   if (d) {
-                    console.log(typeof d);
                     clock.onClose = (t) => {
                       if (t) {
                         d.setHours(t.getUTCHours(), t.getUTCMinutes(), 0, 0);

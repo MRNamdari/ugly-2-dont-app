@@ -1,7 +1,6 @@
 "use client";
 import IconButton from "@/app/_components/icon-button";
-import { store, TaskFormDataSignal } from "@/app/_store/state";
-import Link from "next/link";
+import { TaskFormDataSignal } from "@/app/_store/state";
 import TextInput from "@/app/_components/text-input";
 import Icon from "@/app/_components/icon";
 import Button from "@/app/_components/button";
@@ -36,11 +35,12 @@ export default function VerifyTaskPage() {
   );
 
   async function handleSubmit(e: MouseEvent<HTMLButtonElement>) {
-    const newTask = state as ITask;
+    const newTask = addDueTo(state as ITask);
+    console.log(newTask);
     if (state.id) {
-      await db.tasks.update(state.id, addDueTo(newTask));
+      await db.tasks.update(state.id, newTask);
     } else {
-      await db.tasks.add(addDueTo(await addIdTo("tasks", newTask)));
+      await db.tasks.add(await addIdTo("tasks", newTask));
     }
 
     TaskFormDataSignal.value = {};

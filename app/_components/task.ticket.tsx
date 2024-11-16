@@ -9,10 +9,17 @@ import {
 } from "@/app/_store/state";
 import { useSignalEffect } from "@preact/signals-react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { motion, PanInfo } from "framer-motion";
+import { motion, PanInfo, SingleTarget } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChangeEvent, MouseEvent, useContext, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  MouseEvent,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { DeleteContext } from "./delete.modal";
 
 export default function TaskTicket(props: ITask) {
@@ -285,9 +292,10 @@ export default function TaskTicket(props: ITask) {
           </span>
         </span>
         <div className="flex w-full gap-1 text-sm">
-          <p className="flex-grow text-xs text-primary-600">
+          {/* <p className="flex-grow text-xs text-primary-600">
             {props.date && date2display(new Date(props.date))}
-          </p>
+          </p> */}
+          <DynamicDue date={props.date} time={props.time} />
           {props.reminder && (
             <Icon
               label="Bell"
@@ -302,7 +310,6 @@ export default function TaskTicket(props: ITask) {
               className="size-6 rounded-md bg-gray-200 text-gray-500"
             />
           )}
-
           <p
             className={
               "size-6 flex-grow-0 rounded-md text-center align-middle " +
@@ -338,4 +345,49 @@ async function onSubtaskStatusChange(
     status: subtasks?.every((s) => s.status) ?? task.status,
     subtasks,
   });
+}
+
+function DynamicDue({ time, date }: { time: Date; date: Date }) {
+  date.setHours(time.getUTCHours(), time.getUTCMinutes(), 0, 0);
+  const unitArray = ["sec", "min", "hour"] as const;
+  const dividedBy = [
+    1,
+    60,
+    60 ** 2,
+    24 * 60 ** 2,
+    30 * 24 * 60 ** 2,
+    365 * 24 * 60 ** 2,
+  ];
+  const unitFilter: ((r: number) => boolean)[] = [
+    (r) => r < 61,
+    (r) => r < 61,
+    (r) => r < 25,
+    (r) => r < 99,
+    (r) => r < 13,
+    () => true,
+  ];
+  const [content, setContent] = useState<string>("");
+  useEffect(() => {
+    var delay = 0;
+    const timeout = setInterval(() => {
+      const remainedInSec = (date.getTime() - Date.now()) / 1e3;
+      if (0 < remainedInSec && remainedInSec < 3600) {
+        delay = 30 * 1e3;
+        if (remainedInSec < 60) delay = 1e3;
+        const remainedInUnit = Array.from(dividedBy, (d) =>
+          Math.floor(remainedInSec / d),
+        );
+        const index = remainedInUnit.findIndex((r, i) => unitFilter[i](r));
+        const count = remainedInUnit[index];
+        const unit = unitArray[index];
+        setContent(count + unit);
+      } else {
+        setContent(date2display(date));
+        clearInterval(timeout);
+      }
+    }, delay);
+    return () => clearInterval(timeout);
+  }, [time, date, content]);
+
+  return <p className="flex-grow text-xs text-primary-600">{content}</p>;
 }

@@ -5,6 +5,7 @@ import ClockModal from "../_components/clock.modal";
 import DeleteModal from "../_components/delete.modal";
 import AddModal from "../_components/add.modal";
 import SelectionModal from "../_components/selection.modal";
+import TaskFilterModal from "../_components/taskFilter.modal";
 
 export default function PWARootLayout({
   children,
@@ -17,7 +18,9 @@ export default function PWARootLayout({
         <ClockModal>
           <CalendarModal>
             <SelectionModal>
-              <AddCategoryModal>{children}</AddCategoryModal>
+              <AddCategoryModal>
+                <TaskFilterModal>{children}</TaskFilterModal>
+              </AddCategoryModal>
             </SelectionModal>
           </CalendarModal>
         </ClockModal>

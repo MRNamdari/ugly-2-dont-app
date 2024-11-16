@@ -251,7 +251,6 @@ export default function AddProjectPage({
                 onClick={(e) => {
                   e.preventDefault();
                   calendar.onClose = (d) => {
-                    console.log(d);
                     setError((e) => ({ ...e, date: d === undefined }));
                     setState((s) => ({ ...s, date: d }));
                   };
@@ -288,7 +287,6 @@ export default function AddProjectPage({
                   e.preventDefault();
                   clock.showModal(state.time);
                   clock.onClose = (time) => {
-                    console.log("%o", time);
                     if (time) setState((s) => ({ ...s, time }));
                   };
                 }}

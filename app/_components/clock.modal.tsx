@@ -8,7 +8,7 @@ import {
   ChangeEvent,
   FocusEvent,
 } from "react";
-import { num2str } from "./util";
+import { num2str } from "../_store/util";
 
 import Icon from "./icon";
 import IconButton from "./icon-button";

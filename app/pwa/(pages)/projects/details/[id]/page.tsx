@@ -132,6 +132,7 @@ export default function ProjectDetailPage({
               </motion.div>
             )}
           </AnimatePresence>
+          <div className="h-20 w-full"></div>
         </div>
       </motion.section>
       <div className="fixed bottom-4 right-4">

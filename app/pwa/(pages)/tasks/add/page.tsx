@@ -16,7 +16,7 @@ import TextInput from "@/app/_components/text-input";
 import Icon from "@/app/_components/icon";
 import { motion } from "framer-motion";
 import { CalendarContext } from "@/app/_components/calendar.modal";
-import { date2display, timeToLocalTime } from "@/app/_components/util";
+import { date2display, timeToLocalTime } from "@/app/_store/util";
 import { ClockContext } from "@/app/_components/clock.modal";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/app/_store/db";

@@ -6,7 +6,7 @@ import Icon from "@/app/_components/icon";
 import Button from "@/app/_components/button";
 import { addDueTo, addIdTo, db, ITask, Priority } from "@/app/_store/db";
 import { useRouter } from "next/navigation";
-import { date2display, timeToLocalTime } from "@/app/_components/util";
+import { date2display, timeToLocalTime } from "@/app/_store/util";
 import { MouseEvent, useState } from "react";
 import { motion } from "framer-motion";
 import { useSignalEffect } from "@preact/signals-react";

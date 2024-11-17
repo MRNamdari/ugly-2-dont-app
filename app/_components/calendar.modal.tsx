@@ -10,7 +10,7 @@ import {
 } from "react";
 import IconButton from "./icon-button";
 import Button from "./button";
-import { date2str, num2str } from "./util";
+import { date2str, num2str } from "../_store/util";
 import { string2date } from "../_store/db";
 
 const dayNames = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"] as const,

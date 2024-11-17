@@ -9,7 +9,6 @@ import {
   useTransition,
   MouseEvent,
 } from "react";
-import IconButton from "./icon-button";
 import TextInput from "./text-input";
 import Button from "./button";
 import Menu, { MenuItem } from "./menu";
@@ -19,7 +18,7 @@ import { CalendarContext } from "./calendar.modal";
 import { ClockContext } from "./clock.modal";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, ICategory, IProject, ITask } from "../_store/db";
-import { date2display, timeToLocalTime } from "./util";
+import { date2display, timeToLocalTime } from "../_store/util";
 import { Priority } from "../_store/data";
 
 type TaskFilterIndex = {
@@ -28,6 +27,7 @@ type TaskFilterIndex = {
   project?: IProject["id"];
   date?: Date;
   time?: Date;
+  status?: boolean;
   priority?: 0 | 1 | 2;
 };
 type TaskFilterContextType = {
@@ -44,7 +44,11 @@ export const TaskFilterContext = createContext<TaskFilterContextType>({
 export default function TaskFilterModal(props: { children: React.ReactNode }) {
   const calendar = useContext(CalendarContext);
   const clock = useContext(ClockContext);
-  const [state, setState] = useState<TaskFilterIndex>({});
+  const [state, setState] = useState<TaskFilterIndex>({
+    title: "",
+    status: false,
+  });
+
   const [visibleModal, setVisibleModal] = useState<"calendar" | "clock">();
   const form = useRef<HTMLFormElement>(null);
   const ref = useRef<HTMLDialogElement>(null);
@@ -76,8 +80,7 @@ export default function TaskFilterModal(props: { children: React.ReactNode }) {
     const dialog = ref.current;
     if (!dialog) return;
     dialog.onclose = () => {
-      if (!visibleModal) {
-        console.log("state %o", state);
+      if (!visibleModal && dialog.returnValue !== "cancel") {
         constants.current.cb(state);
         reset();
       }
@@ -132,8 +135,11 @@ export default function TaskFilterModal(props: { children: React.ReactNode }) {
       e.clientY <= rect.top + rect.height &&
       rect.left <= e.clientX &&
       e.clientX <= rect.left + rect.width;
-    reset();
-    if (!isInDialog) dialog.close();
+
+    if (!isInDialog) {
+      reset();
+      dialog.close("cancel");
+    }
   }
   return (
     <TaskFilterContext.Provider
@@ -179,7 +185,6 @@ export default function TaskFilterModal(props: { children: React.ReactNode }) {
                   e.preventDefault();
                   ref.current?.close();
                   calendar.onClose = (d) => {
-                    console.log("date %o", d);
                     setState((s) => {
                       s.date = d;
                       return s;
@@ -208,7 +213,6 @@ export default function TaskFilterModal(props: { children: React.ReactNode }) {
                   e.preventDefault();
                   ref.current?.close("clock");
                   clock.onClose = (time) => {
-                    console.log("time %o", time);
                     setState((s) => {
                       s.time = time;
                       return s;
@@ -286,7 +290,7 @@ export default function TaskFilterModal(props: { children: React.ReactNode }) {
               ? fuseCats.search(catSearch).map(mapCats)
               : categories.map((v) => mapCats({ item: v }))}
           </Menu>
-          <div>
+          <div className="grid grid-cols-2 gap-[inherit]">
             <Menu
               leadingIcon="TrendingUp"
               label="Priority"
@@ -323,6 +327,20 @@ export default function TaskFilterModal(props: { children: React.ReactNode }) {
                 High
               </MenuItem>
             </Menu>
+            <div className="btn-sm relative bg-primary-800">
+              <input
+                type="checkbox"
+                name="status"
+                defaultChecked={state.status}
+                onChange={(e) => {
+                  setState({ ...state, status: e.target.checked });
+                }}
+                className="peer absolute inset-0 z-10 h-full w-full appearance-none"
+              />
+              <div className="h-4 w-1/2 rounded-xl bg-primary-700 text-center leading-none text-primary-400 transition-all peer-checked:translate-x-full peer-checked:text-inherit">
+                Finished
+              </div>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-[inherit]">
             <Button

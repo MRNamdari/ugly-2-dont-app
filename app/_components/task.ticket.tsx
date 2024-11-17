@@ -1,5 +1,5 @@
 import Icon from "@/app/_components/icon";
-import { date2display } from "@/app/_components/util";
+import { date2display } from "@/app/_store/util";
 import { db, ISubTask, ITask, Priority } from "@/app/_store/db";
 import {
   AddToSelection,
@@ -19,10 +19,14 @@ import {
   useEffect,
   useRef,
   useState,
+  forwardRef,
 } from "react";
 import { DeleteContext } from "./delete.modal";
 
-export default function TaskTicket(props: ITask) {
+export default forwardRef<HTMLElement, ITask>(function TaskTicket(
+  props: ITask,
+  ref,
+) {
   const router = useRouter();
   const deleteModal = useContext(DeleteContext);
   const [project, category] = useLiveQuery(
@@ -148,6 +152,7 @@ export default function TaskTicket(props: ITask) {
   }
   return (
     <motion.article
+      ref={ref}
       className="relative"
       id={"t" + props.id}
       initial={{ opacity: 0, marginBottom: 0 }}
@@ -327,7 +332,7 @@ export default function TaskTicket(props: ITask) {
       </motion.div>
     </motion.article>
   );
-}
+});
 
 async function onSubtaskStatusChange(
   taskId: number,

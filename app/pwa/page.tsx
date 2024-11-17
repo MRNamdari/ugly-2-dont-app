@@ -6,11 +6,27 @@ import TextInput from "../_components/text-input";
 import TaskTicket from "../_components/task.ticket";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLiveQuery } from "dexie-react-hooks";
-import { CategorySummary, db, PendingTasksCount } from "../_store/db";
+import {
+  CategorySummary,
+  db,
+  ICategory,
+  IProject,
+  PendingTasksCount,
+} from "../_store/db";
 import { store } from "../_store/state";
 import { ITask } from "../_store/db";
+import Fuse, { FuseResult, IFuseOptions } from "fuse.js";
+import { useState } from "react";
 
 export default function PWAHomePage() {
+  const [searchString, setSearchString] = useState<string>();
+  const [expanded, setExpansion] = useState<boolean>(false);
+
+  const listOfTasks = useLiveQuery(
+    async () => await db.tasks.toArray(),
+    [],
+    [] as ITask[],
+  );
   const tasks = useLiveQuery(
     async () =>
       await db.tasks.where("due").aboveOrEqual(new Date()).sortBy("due"),
@@ -23,33 +39,129 @@ export default function PWAHomePage() {
       p.map(async (p) => [p, await PendingTasksCount(p.id)] as const),
     );
   });
-
+  const listOfProjects = projects ? projects.map((a) => a[0]) : [];
   const categories = useLiveQuery(async () => {
     const c = await db.categories.toArray();
     return await Promise.all(
       c.map(async (c) => [c, await CategorySummary(c.id)] as const),
     );
   });
+  const listOfCategories = categories ? categories.map((a) => a[0]) : [];
+  const fuseOptions: IFuseOptions<ITask | IProject | ICategory> = {
+    ignoreLocation: true,
+    includeMatches: true,
+    shouldSort: true,
+    minMatchCharLength: 3,
+    threshold: 0.5,
+    keys: ["title", "description"],
+  };
+  const fuse = [
+    new Fuse(listOfTasks, fuseOptions),
+    new Fuse(listOfProjects, fuseOptions),
+    new Fuse(listOfCategories, fuseOptions),
+  ];
+  const listOfFeatures = ["T", "P", "C"] as const;
+  function highlightMatches(r: FuseResult<ITask | IProject | ICategory>) {
+    if (r.matches) {
+      const match = r.matches.find((m) => m.key === "title");
+      if (match) {
+        const highlightedText: (JSX.Element | string)[] = [];
+        let lastIndex = 0;
 
+        match.indices.forEach(([start, end]) => {
+          highlightedText.push(r.item.title.slice(lastIndex, start));
+          highlightedText.push(
+            <span className="font-semibold" key={start}>
+              {r.item.title.slice(start, end + 1)}
+            </span>,
+          );
+          lastIndex = end + 1;
+        });
+
+        highlightedText.push(r.item.title.slice(lastIndex));
+        return highlightedText;
+      } else return r.item.title;
+    } else return r.item.title;
+  }
   return (
     <>
-      <search className="sticky top-0 w-full bg-secondary-100 p-4">
-        <TextInput className="group text-input-md bg-white text-zinc-600 *:transition-colors">
+      <search
+        className="sticky top-0 w-full bg-secondary-100 p-4"
+        onClick={(e) => {
+          if (
+            e.target instanceof HTMLAnchorElement ||
+            e.target instanceof HTMLInputElement ||
+            e.target instanceof HTMLButtonElement
+          )
+            return;
+          setExpansion(false);
+        }}
+      >
+        <span
+          className={
+            'group flex rounded-[1.25rem] bg-white pl-2 has-[+ul[aria-expanded="true"]]:rounded-b-none'
+          }
+        >
           <input
             type="text"
             name="title"
             required
             placeholder="Type here..."
-            className="peer placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-zinc-400"
+            onChange={(e) => setSearchString(e.target.value.trim())}
+            onFocus={() => setExpansion(true)}
+            className="peer w-full bg-transparent placeholder:text-inherit placeholder:transition-colors focus:outline-none group-focus-within:placeholder:text-zinc-400"
           />
           <IconButton
             icon="Search"
-            className="tap-zinc-50 ico-md group-focus-within:text-zinc-400"
+            className="tap-zinc-50 ico-md group-focus-within:text-zinc-400 [&_svg]:size-4"
             onClick={(e) => {
               e.preventDefault();
             }}
           />
-        </TextInput>
+        </span>
+        <ul
+          className="h-0 w-full overflow-auto rounded-b-[1.25rem] bg-white aria-expanded:h-[calc(100svh-2rem-2.5rem)]"
+          aria-expanded={expanded}
+        >
+          {fuse.map((fs, f) =>
+            fs.search(searchString ?? "").map((r, i) => {
+              return (
+                <li key={i}>
+                  <Link
+                    href={
+                      f == 0
+                        ? "/pwa/tasks?id=t" + r.item.id
+                        : f == 1
+                          ? "/pwa/projects/details/" + r.item.id
+                          : "/pwa/categories/details/" + r.item.id
+                    }
+                    className="block px-4 py-2"
+                  >
+                    {highlightMatches(r)}
+                    <div
+                      className={
+                        "float-end rounded-sm px-1 text-xs " +
+                        (f === 1
+                          ? "bg-error-50 text-error-500"
+                          : f == 2
+                            ? "bg-warning-50 text-warning-500"
+                            : "bg-secondary-50 text-secondary-500")
+                      }
+                    >
+                      {listOfFeatures[f]}
+                    </div>
+                  </Link>
+                </li>
+              );
+            }),
+          )}
+          <li
+            key="eol"
+            className="border-t-2 border-zinc-200 px-4 py-2 text-center text-zinc-400"
+          >
+            {"That's it ;)"}
+          </li>
+        </ul>
       </search>
       <section
         className="sticky w-full bg-secondary-100"

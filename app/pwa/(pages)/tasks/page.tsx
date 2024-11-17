@@ -6,10 +6,15 @@ import { db } from "@/app/_store/db";
 import { useLiveQuery } from "dexie-react-hooks";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 
-export default function TaskBrowserPage() {
+export default function TaskBrowserPage({
+  searchParams,
+}: {
+  searchParams: { id: string };
+}) {
   const router = useRouter();
+  const target = useRef<HTMLElement>(null);
   const filterModal = useContext(TaskFilterContext);
   type Filter = Parameters<(typeof filterModal)["onClose"]>["0"];
   const [filter, setFilter] = useState<Filter>({});
@@ -35,11 +40,19 @@ export default function TaskBrowserPage() {
         if (filter?.time) {
           if (t.time.getTime() !== filter.time.getTime()) return false;
         }
+        if (filter?.status !== undefined) {
+          if (t.status !== filter.status) return false;
+        }
         return true;
       });
 
       return await query.toArray();
     }, [filter]) ?? [];
+
+  useEffect(() => {
+    console.log(target.current);
+    target.current?.scrollIntoView({ behavior: "smooth" });
+  }, [target, tasks]);
   return (
     <>
       <header className="grid grid-cols-[3rem_1fr_3rem] items-center justify-center p-4">
@@ -74,11 +87,26 @@ export default function TaskBrowserPage() {
       </header>
       <section className="h-full overflow-auto p-4">
         <AnimatePresence>
-          {tasks.map((t) => (
-            <TaskTicket key={t.id} {...t} />
-          ))}
+          {tasks.map((t) => {
+            if ("t" + t.id === searchParams.id)
+              return <TaskTicket ref={target} key={t.id} {...t} />;
+            return <TaskTicket key={t.id} {...t} />;
+          })}
         </AnimatePresence>
+        <div className="h-20 w-full"></div>
       </section>
+      <div className="fixed bottom-4 right-4">
+        <IconButton
+          initial={{ opacity: 0, scale: 0.9 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          icon="Plus"
+          className="tap-primary-700 ico-xl w-fit bg-primary-800 text-white"
+          onClick={() => {
+            router.push("/pwa/tasks/add/");
+          }}
+        />
+      </div>
     </>
   );
 }

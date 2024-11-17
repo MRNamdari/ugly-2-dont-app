@@ -112,50 +112,12 @@ export function date2display(date: Date | string): string {
 }
 
 /**
- * converts standard ISO/JSON stringified date to `Date` object
- * @param str
- * @returns `Date`
- */
-export function str2date(str: string | any) {
-  return new Date(str);
-}
-
-/**
  * add a 0 before one digit numbers
  * @param n
  * @example num2str(5) // "05"
  */
 export function num2str(n: number) {
   return n < 10 ? `0${n}` : `${n}`;
-}
-
-/**
- * converts an array consist of HH and MM to 24h timstring
- * @param n
- * @returns "HH:MM"
- */
-export function num2timestring(n: number[]) {
-  return `${num2str(n[0])}:${num2str(n[1])}`;
-}
-
-/**
- * converts 24h timestring to an array
- * @param s
- * @returns `[HH, MM]`
- */
-export function str2time(s: string | any): number[] {
-  return s.split(":").map((v: string) => Number(v));
-}
-
-/**
- * converts 12h time string to 24h format
- * @param s
- * @returns "HH:MM"
- */
-export function localTimeToTime(s: string) {
-  if (s.length == 0) return undefined;
-
-  return date2time(new Date(s));
 }
 
 /**
@@ -184,20 +146,4 @@ export function dateToLocalTime(d: Date) {
   HH = HH % 12;
   HH = HH ? HH : 12; // the hour '0' should be '12'
   return `${num2str(HH)}:${num2str(MM)} ${ampm}`;
-}
-
-/**
- * converts a given `Date` object into timestring
- * @param d
- * @returns time in format "HH:MM"
- */
-export function date2time(d: Date) {
-  let HH = d.getHours(),
-    MM = d.getMinutes();
-  return `${num2str(HH)}:${num2str(MM)}`;
-}
-
-export function wildCard(n: number | string) {
-  const num = typeof n == "string" ? parseInt(n) : n;
-  return num < 10 ? "0" + num : num.toString();
 }

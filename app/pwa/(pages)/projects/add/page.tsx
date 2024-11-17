@@ -18,7 +18,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { CalendarContext } from "@/app/_components/calendar.modal";
 import { ClockContext } from "@/app/_components/clock.modal";
 
-import { date2display, timeToLocalTime } from "@/app/_components/util";
+import { date2display, timeToLocalTime } from "@/app/_store/util";
 import { ProjectFormDataSignal } from "@/app/_store/state";
 export default function AddProjectPage({
   params,

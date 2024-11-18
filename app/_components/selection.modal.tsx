@@ -33,12 +33,15 @@ export default function SelectionModal(props: { children: React.ReactNode }) {
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
-    if (isSelectionStarted.value || isMovingStarted.value) dialog.show();
-    else dialog.close();
+    if (isSelectionStarted.value || isMovingStarted.value) {
+      navigator.vibrate(50);
+      dialog.show();
+    } else dialog.close();
   });
 
   useSignalEffect(() => {
     if (isSelectionStarted.value || isMovingStarted.value) {
+      navigator.vibrate(50);
       ref.current?.show();
     } else ref.current?.close();
   });

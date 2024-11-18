@@ -153,7 +153,7 @@ export default forwardRef<HTMLElement, ITask>(function TaskTicket(
   return (
     <motion.article
       ref={ref}
-      className="relative"
+      className="relative before:absolute before:left-1/2 before:top-1/2 before:-z-10 before:h-[calc(100%+2rem)] before:w-screen before:-translate-x-1/2 before:-translate-y-1/2 before:transition-colors before:duration-700 aria-selected:before:bg-secondary-100"
       id={"t" + props.id}
       initial={{ opacity: 0, marginBottom: 0 }}
       animate={{ opacity: 1, marginBottom: "1rem" }}

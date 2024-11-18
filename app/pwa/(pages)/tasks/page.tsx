@@ -50,8 +50,24 @@ export default function TaskBrowserPage({
     }, [filter]) ?? [];
 
   useEffect(() => {
-    console.log(target.current);
-    target.current?.scrollIntoView({ behavior: "smooth" });
+    let n = 0;
+    let rid = 0;
+    function scrollTo(t: number) {
+      if (n == 0) {
+        n = t;
+        return (rid = requestAnimationFrame(scrollTo));
+      } else {
+        const ticket = target.current;
+        if (!ticket) return;
+        if (t - n > 1000) {
+          ticket.scrollIntoView({ behavior: "smooth", block: "center" });
+          setTimeout(() => (ticket.ariaSelected = "true"), 500);
+          setTimeout(() => (ticket.ariaSelected = null), 2000);
+        } else return (rid = requestAnimationFrame(scrollTo));
+      }
+    }
+    rid = requestAnimationFrame(scrollTo);
+    return () => cancelAnimationFrame(rid);
   }, [target, tasks]);
   return (
     <>
@@ -79,6 +95,7 @@ export default function TaskBrowserPage({
             className="tap-zinc-100 ico-lg text-primary-900"
             icon="Sliders"
             onClick={() => {
+              router.replace("/pwa/tasks");
               filterModal.onClose = setFilter;
               filterModal.showModal();
             }}

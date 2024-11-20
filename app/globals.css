@@ -2,10 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+:root,
+*,
+*::after,
+*::before {
   box-sizing: border-box;
+  scroll-behavior: smooth;
+
+  @supports (-moz-appearance: none) {
+    scrollbar-color: rgba(0, 0, 0, 0.4) transparent;
+    scrollbar-width: thin;
+  }
+
+  @supports (-webkit-font-smoothing: antialiased) {
+    /* width */
+    &::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    /* Track */
+    &::-webkit-scrollbar-track {
+      background: inherit;
+    }
+
+    /* Handle */
+    &::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    /* Handle on hover */
+    &::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 0, 0, 0.5);
+    }
+  }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -223,8 +252,7 @@ body {
 .roundedCorner {
   position: relative;
 }
-.roundedCorner::after,
-.roundedCorner::before {
+.roundedCorner::after {
   content: "";
   display: block;
   position: absolute;

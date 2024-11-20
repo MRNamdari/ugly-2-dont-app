@@ -1,8 +1,6 @@
 "use client";
 import Link from "next/link";
 import IconButton from "../_components/icon-button";
-import TextInput from "../_components/text-input";
-
 import TaskTicket from "../_components/task.ticket";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -241,7 +239,7 @@ export default function PWAHomePage() {
       <section className="w-full -translate-y-12">
         <Link
           href="/pwa/tasks"
-          className="sticky flex h-36 w-full justify-between rounded-t-3xl bg-white px-4 pt-2"
+          className="sticky flex h-40 w-full justify-between rounded-t-3xl bg-white px-4 pt-2"
           style={{ top: "13.25rem" }}
         >
           <h2 className="text-xl font-medium">Tasks</h2>

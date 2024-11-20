@@ -147,8 +147,8 @@ export default function SelectionModal(props: { children: React.ReactNode }) {
         await db.tasks.bulkDelete(tasks);
         await db.projects.bulkDelete(prjs);
         await db.categories.bulkDelete(cats);
-        onExit();
       }
+      onExit();
       ref.current?.close();
     };
 

@@ -11,7 +11,7 @@ import {
   useTransform,
   useSpring,
 } from "framer-motion";
-import Icon from "@/app/_components/icon";
+
 import Link from "next/link";
 
 export default function DesktopPage() {
@@ -31,310 +31,190 @@ export default function DesktopPage() {
     window.onresize = () => {
       setScreen(document.body.clientWidth < 1000);
     };
-    if (!iframe) return;
-    iframe.onload = () => {
-      window.onscroll = () => {
-        const vth = iframe.contentDocument!.body.offsetHeight;
-        let progress =
-          scrollYProgress.get() <= 0.5
-            ? 0
-            : ((scrollYProgress.get() - 0.5) * 10) / 5;
-        iframe.contentDocument!.scrollingElement?.scrollTo({
-          top: vth * progress,
-          left: 0,
-          behavior: "instant",
-        });
-      };
-    };
+    // if (!iframe) return;
+    // iframe.onload = () => {
+    //   console.log("iframe loaded");
+    //   window.onscroll = () => {
+    //     const vth = iframe.contentDocument!.body.offsetHeight;
+    //     let progress =
+    //       scrollYProgress.get() <= 0.5
+    //         ? 0
+    //         : ((scrollYProgress.get() - 0.5) * 10) / 5;
+    //     iframe.contentDocument!.scrollingElement?.scrollTo({
+    //       top: vth * progress,
+    //       left: 0,
+    //       behavior: "instant",
+    //     });
+    //   };
+    // };
   });
 
   return (
     <>
-      <section className="roundedCorner flex h-3/4 w-full flex-col items-center justify-around bg-primary-800">
-        <div className="flex w-full items-center gap-8">
-          <Image
-            className="max-w-sm -scale-x-100"
-            src="/caveman-on-laptop.png"
-            alt="caveman onlaptop"
-            width={2048 / 3}
-            height={2048 / 3}
-            priority
-          />
-          <div className="whitespace-nowrap">
-            <div className="text-2xl text-secondary-200">
-              with{" "}
-              <span className="relative after:absolute after:left-0 after:block after:h-0.5 after:w-full after:bg-current">
-                Ugly2Don’t
-              </span>
+      <div className="top-0 z-10 grid h-svh w-fit md:fixed md:right-16 lg:right-[max(2rem,calc((100%-1024px)/2))] xl:right-[max(4rem,calc((100%-1280px)/2))] 2xl:right-[max(6rem,calc((100%-1536px)/2))]">
+        <div className="container h-fit max-w-md self-center md:max-w-[calc(768px/2)] lg:max-w-[calc(1024px/3)] xl:max-w-[calc(1280px/3)] 2xl:max-w-[calc(1536px/3)]">
+          <div
+            ref={phone}
+            className="col-start-3 mx-auto aspect-[9/19.5] h-full max-h-fit max-w-fit"
+          >
+            <div className="relative h-full w-full rounded-[3rem] border-4 border-primary-700 shadow-md">
+              <div className="h-full w-full overflow-hidden rounded-[2.7rem] border-[.75rem] border-zinc-900">
+                <div className="absolute left-1/2 top-6 aspect-[10/2.5] w-1/4 -translate-x-1/2 rounded-full bg-current"></div>
+                <iframe
+                  ref={iref}
+                  src="/pwa/"
+                  loading="lazy"
+                  className="h-full w-full bg-secondary-100 pt-10"
+                  onLoad={(e) => {
+                    const style = document.createElement("style");
+                    style.innerText =
+                      "::-webkit-scrollbar{width:0px;height:0px;}";
+                    const htmlDoc = e.target as HTMLIFrameElement;
+                    htmlDoc.contentDocument?.head.appendChild(style);
+                  }}
+                ></iframe>
+              </div>
+              <div className="absolute -left-2 top-[15%] flex h-full flex-col gap-4">
+                <div className="h-[5%] w-1 rounded-l-sm bg-primary-600"></div>
+                <div className="h-[10%] w-1 rounded-l-sm bg-primary-600"></div>
+                <div className="h-[10%] w-1 rounded-l-sm bg-primary-600"></div>
+              </div>
+              <div className="absolute -right-2 top-1/4 h-[13.5%] w-1 rounded-r-sm bg-primary-600"></div>
             </div>
-            <h2 className="text-3xl leading-relaxed text-white">
-              Get your{" "}
-              <span className="relative text-5xl after:absolute after:left-0 after:block after:h-1 after:w-full after:bg-current">
-                ugly tasks{" "}
-              </span>
-              done
-              <p className="text-error-200">
-                Even if you do it{" "}
-                <span className="relative text-5xl after:absolute after:left-0 after:block after:h-1 after:w-full after:bg-current">
-                  the ugly way!
+          </div>
+        </div>
+      </div>
+      <section
+        className="roundedCorner relative h-svh w-full bg-primary-800 before:absolute before:h-full before:w-full before:bg-[image:linear-gradient(210deg,rgb(0_0_0/.3),20%,transparent)]"
+        style={{
+          cursor: 'url("scroll.svg"), pointer',
+        }}
+      >
+        <div className="container grid h-full max-w-screen-2xl items-center md:grid-cols-2 lg:grid-cols-3">
+          <div className="mx-auto flex w-fit items-center gap-8 md:col-span-1 lg:col-span-2">
+            <div className="whitespace-nowrap">
+              <div className="text-base text-secondary-200 lg:text-2xl xl:text-[2.5rem] xl:leading-[3.25rem]">
+                with{" "}
+                <span className="relative after:absolute after:left-0 after:block after:h-0.5 after:w-full after:bg-current xl:after:h-1">
+                  Ugly2Don’t
                 </span>
-              </p>
-              <Button className="btn-lg ml-auto mt-4 w-fit bg-primary-500 text-3xl font-medium">
-                Try it now!
-              </Button>
-            </h2>
+              </div>
+              <h2 className="text-lg leading-relaxed text-white lg:text-3xl xl:text-[3.5rem] xl:leading-[4.5rem]">
+                Get your{" "}
+                <span className="relative text-2xl after:absolute after:left-0 after:block after:h-0.5 after:w-full after:bg-current lg:text-5xl lg:after:h-1 xl:text-[4.5rem] xl:leading-[5.5rem] xl:after:h-1.5">
+                  ugly tasks{" "}
+                </span>
+                done
+                <p className="text-error-200">
+                  Even if you do it{" "}
+                  <span className="relative text-2xl after:absolute after:left-0 after:block after:h-0.5 after:w-full after:bg-current lg:text-5xl lg:after:h-1 xl:text-[4.5rem] xl:leading-[5.5rem] xl:after:h-1.5">
+                    the ugly way!
+                  </span>
+                </p>
+                <Button className="tap-primary-600 btn-md ml-auto mt-4 w-fit bg-primary-500 font-medium lg:btn-lg lg:w-fit lg:text-3xl xl:h-fit xl:rounded-full xl:px-6 xl:text-[2.5rem] xl:leading-[4rem]">
+                  Try it now!
+                </Button>
+              </h2>
+            </div>
           </div>
         </div>
       </section>
-      <section className="roundedCorner flex w-full flex-col items-center justify-around bg-zinc-100 pb-8 pt-24">
-        <div className="grid max-w-screen-sm grid-cols-2 items-center gap-8">
-          <div className="whitespace-nowrap text-xl font-medium">
-            <div className="relative w-fit after:absolute after:left-0 after:block after:h-1 after:w-full after:bg-secondary-300">
-              <h3>Manage your tasks,</h3>
+      <section className="roundedCorner flex w-full flex-col items-center justify-around bg-zinc-100 py-16 after:shadow-sm">
+        <div className="container grid h-full max-w-screen-2xl items-center md:grid-cols-2 lg:grid-cols-3">
+          <div className="mx-auto grid max-w-screen-sm items-center gap-8 px-8 max-md:grid-rows-2 lg:col-span-2 lg:grid-cols-2 lg:px-0">
+            <div className="whitespace-nowrap text-xl font-medium">
+              <h3 className="relative w-fit after:absolute after:left-0 after:block after:h-1 after:w-full after:bg-secondary-300 max-sm:mx-auto">
+                Manage your tasks,
+              </h3>
+              <br />
+              <h3 className="relative w-fit after:absolute after:left-0 after:block after:h-1 after:w-full after:bg-secondary-300 max-sm:mx-auto">
+                projects & categories
+              </h3>
             </div>
-            <br />
-            <div className="relative w-fit after:absolute after:left-0 after:block after:h-1 after:w-full after:bg-secondary-300">
-              <h3>projects & categories</h3>
-            </div>
+            <p className="text-justify text-lg">
+              It doesn't sugarcoat things or make promises it can't keep. It's a
+              simple, and straightforward app that helps you get things done.
+            </p>
           </div>
-          <p className="text-justify text-lg">
-            It doesn't sugarcoat things or make promises it can't keep. It's a
-            simple, and straightforward app that helps you get things done.
-          </p>
         </div>
       </section>
       <section
-        ref={thirdSection}
-        className="roundedCorner flex w-full flex-col items-center bg-[image:--bg-img]"
-        style={{
-          "--bg-img": `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" view-box="0 0 100 100"><rect x="49" y="0" height="100" width="2" fill="rgb(225, 225, 225)"/><rect x="0" y="49" height="2" width="100" fill="rgb(225, 225, 225)"/></svg>')`,
-        }}
-      >
-        <div
-          className="relative top-0 h-screen w-full before:overlay before:z-10"
-          style={{
-            position: "sticky",
-            zIndex: 2,
-          }}
-        >
-          <div
-            ref={phone}
-            className="absolute flex flex-col items-center gap-8"
-            style={{
-              padding: "min(6rem,10vh) 50%",
-            }}
-          >
-            <div
-              className="relative flex"
-              style={{
-                border: ".5vh solid var(--clr-primary)",
-                borderRadius: "5.5vh",
-              }}
-            >
-              <div
-                className="absolute left-1/2 -translate-x-1/2 bg-black"
-                style={{
-                  width: "20vh",
-                  height: "3vh",
-                  top: ".9vh",
-                  borderRadius: "0 0 2vh 2vh",
-                }}
-              ></div>
-              <div
-                className="absolute left-1/2 -scale-x-100 bg-black"
-                style={{
-                  width: "1vh",
-                  height: "1vh",
-                  top: ".9vh",
-                  translate: "-11vh 0",
-                  clipPath: "url('#poke')",
-                }}
-              ></div>
-              <div
-                className="absolute left-1/2 bg-black"
-                style={{
-                  width: "1vh",
-                  height: "1vh",
-                  top: ".9vh",
-                  translate: "10vh 0",
-                  clipPath: "url('#poke')",
-                }}
-              ></div>
-              <div
-                className="absolute"
-                style={{
-                  borderRight: ".8vh solid var(--clr-secondary)",
-                  borderTop: ".2vh solid transparent",
-                  borderBottom: ".2vh solid transparent",
-                  height: "4vh",
-                  left: "-1.2vh",
-                  top: "12vh",
-                }}
-              ></div>
-              <div
-                className="absolute"
-                style={{
-                  borderRight: ".8vh solid var(--clr-secondary)",
-                  position: "absolute",
-                  borderTop: ".5vh solid transparent",
-                  borderBottom: ".5vh solid transparent",
-                  height: "8vh",
-                  left: "-1.2vh",
-                  top: "18vh",
-                }}
-              ></div>
-              <div
-                className="absolute"
-                style={{
-                  borderRight: ".8vh solid var(--clr-secondary)",
-                  borderTop: ".5vh solid transparent",
-                  borderBottom: ".5vh solid transparent",
-                  height: "8vh",
-                  left: "-1.2vh",
-                  top: "28vh",
-                }}
-              ></div>
-              <div
-                className="absolute"
-                style={{
-                  borderLeft: ".8vh solid var(--clr-secondary)",
-                  borderTop: ".5vh solid transparent",
-                  borderBottom: ".5vh solid transparent",
-                  height: "12vh",
-                  right: "-1.2vh",
-                  top: "20vh",
-                }}
-              ></div>
-              <iframe
-                ref={iref}
-                className="aspect-[1/2] min-h-[80vh] bg-white pt-8"
-                style={{
-                  height: "min(80vh, 160vw)",
-                  border: "1vh solid",
-                  borderRadius: "5vh",
-                }}
-                src="/pwa/"
-                loading="lazy"
-                onLoad={(e) => {
-                  console.log("iframe is loaded");
-                  const style = document.createElement("style");
-                  style.innerText = `
-              ::-webkit-scrollbar {
-                width: 0px;
-                height: 0px;
-              }
-              `;
-                  const htmlDoc = e.target as HTMLIFrameElement;
-                  htmlDoc.contentDocument!.head.appendChild(style);
-                }}
-              ></iframe>
-              <div
-                className="absolute"
-                style={{
-                  top: miniScreen ? "10%" : "70%",
-                  left: miniScreen ? "10%" : "-50%",
-                }}
-              >
-                {miniScreen && <PathWay progress={scrollYProgress} />}
-              </div>
-              <div
-                className="absolute"
-                style={{
-                  top: miniScreen ? "0%" : "-10%",
-                  left: miniScreen ? "-10%" : "-80%",
-                }}
-              >
-                <CategoryMsg image={!miniScreen} scroll={scrollYProgress} />
-              </div>
-              <div
-                className="absolute"
-                style={{
-                  top: miniScreen ? "25%" : "15%",
-                  right: miniScreen ? "-10%" : "-85%",
-                }}
-              >
-                <ProjectMsg image={!miniScreen} scroll={scrollYProgress} />
-              </div>
-              <div
-                className="absolute"
-                style={{
-                  top: miniScreen ? "60%" : "50%",
-                  left: miniScreen ? "-10%" : "-80%",
-                }}
-              >
-                <TaskMsg image={!miniScreen} scroll={scrollYProgress} />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div></div>
-        <div></div>
-      </section>
-      <section className="roundedCorner relative z-10 w-full bg-secondary-600 pt-8">
-        <h2 className="py-4 text-center text-4xl font-medium text-white">
+        className="flex h-svh w-full flex-col items-center rounded-b-3xl bg-slate-50 shadow-black drop-shadow-md"
+        style={{ backgroundImage: 'url("square.svg")' }}
+      ></section>
+      <section
+        className="relative -z-10 flex h-svh w-full -translate-y-16 flex-col items-center rounded-b-3xl bg-warning-100 before:absolute before:h-full before:w-full before:rounded-b-3xl before:bg-[image:linear-gradient(transparent_0_80%,rgb(81_69_32/.1))]"
+        style={{ backgroundImage: 'url("strip.svg")' }}
+      ></section>
+      <section className="relative z-10 w-full rounded-3xl bg-secondary-600 bg-opacity-50 pb-6 pt-8 backdrop-blur-lg">
+        <h2 className="py-4 text-center text-xl font-medium text-white md:text-2xl lg:text-4xl">
           What Ugly users say...
         </h2>
-
-        <div className="grid w-full grid-flow-col items-center gap-8 overflow-auto p-8 md:max-w-screen-md">
-          <Comment
-            username="Im.Karen"
-            role="Drama Producer"
-            comment={
-              <>
-                <Link href={"/"} className="pr-1 text-sky-500">
-                  @Ugly2Dont
-                </Link>
-                is... a todo app. THAT'S IT. The support team answers
-                immediately when i send a ticket. HELLOOOO!!! Don't you have any
-                job to do? should i do your job for you? Ahh.
-              </>
-            }
-            avatar="/an-actual-avatar.jpg"
-          />
-          <Comment
-            username="UglyRules"
-            role="Highly Decorated Governor"
-            comment={
-              <>
-                <Link href={"/"} className="pr-1 text-sky-500">
-                  @Ugly2Dont
-                </Link>
-                is the only to-do app that can keep up with my procrastination
-                skills.
-              </>
-            }
-            avatar="/rules-avatar.jpg"
-          />
-          <Comment
-            username="UglyGranny"
-            role="Ex-Primitive Human"
-            comment={
-              <>
-                <Link href={"/"} className="pr-1 text-sky-500">
-                  @Ugly2Dont
-                </Link>
-                I've finally found a to-do app that's as ugly as me, but at
-                least it's functional.
-              </>
-            }
-            avatar="/granny-avatar.jpg"
-          />
-          <Comment
-            username="UglyNoob"
-            role="Certified NPC"
-            comment={
-              <>
-                I've tried a lot of to-do apps, but
-                <Link href={"/"} className="px-1 text-sky-500">
-                  @Ugly2Dont
-                </Link>
-                is the only one that I've actually stuck with. It's simple, easy
-                to use, and it actually helps me get things done. Plus, it's
-                free!
-              </>
-            }
-            avatar="/noob-avatar.jpg"
-          />
+        <div className="overflow-auto">
+          <div className="grid w-full grid-flow-col items-center gap-8 overflow-auto p-8">
+            <Comment
+              username="Im.Karen"
+              role="Drama Producer"
+              comment={
+                <>
+                  <Link href={"/"} className="pr-1 text-sky-500">
+                    @Ugly2Dont
+                  </Link>
+                  is... a todo app. THAT'S IT. The support team answers
+                  immediately when i send a ticket. HELLOOOO!!! Don't you have
+                  any job to do? should i do your job for you? Ahh.
+                </>
+              }
+              avatar="/an-actual-avatar.jpg"
+            />
+            <Comment
+              username="EntitledChad"
+              role="Self-Decorated Governor"
+              comment={
+                <>
+                  <Link href={"/"} className="pr-1 text-sky-500">
+                    @Ugly2Dont
+                  </Link>
+                  was made with my direct order and provision and done by my
+                  subordinates. No wonder it's the only to-do app that can keep
+                  up with my procrastination skills. Under my supervision no
+                  less of a miracle happens.
+                </>
+              }
+              avatar="/rules-avatar.jpg"
+            />
+            <Comment
+              username="The.Great.Elizabeth"
+              role="Ex-Primitive Human"
+              comment={
+                <>
+                  <Link href={"/"} className="pr-1 text-sky-500">
+                    @Ugly2Dont
+                  </Link>
+                  is the one and only thing i like about this century on top of
+                  that its branding resonates with me, and unlike me it's
+                  functional.
+                </>
+              }
+              avatar="/granny-avatar.jpg"
+            />
+            <Comment
+              username="Chucklehead"
+              role="Certified NPC"
+              comment={
+                <>
+                  I've tried a lot of to-do apps, but
+                  <Link href={"/"} className="px-1 text-sky-500">
+                    @Ugly2Dont
+                  </Link>
+                  is the only one that I've actually stuck with. It's simple,
+                  easy to use, and it actually helps me get things done. Plus,
+                  it's free!
+                </>
+              }
+              avatar="/noob-avatar.jpg"
+            />
+          </div>
         </div>
       </section>
       <section>
@@ -731,23 +611,23 @@ type CommentProps = {
 };
 function Comment({ avatar, username, role, comment }: CommentProps) {
   return (
-    <div className="h-full min-w-min max-w-sm rounded-3xl bg-secondary-800 p-8 text-white">
-      <div className="grid grid-flow-col items-center gap-4">
+    <div className="h-full w-[20rem] min-w-fit max-w-sm rounded-3xl bg-secondary-800 p-8 text-white">
+      <div className="flex flex-nowrap items-center gap-4">
         <Image
           height={90}
           width={90}
           src={avatar}
           alt="profile_image"
-          className="box-content min-h-20 min-w-20 rounded-full border-2 border-transparent outline-none outline-4 outline-sky-400"
+          className="box-content rounded-full border-[1px] border-transparent outline-none outline-2 outline-sky-400 max-sm:h-12 max-sm:w-12 md:h-16 md:w-16 md:border-2 md:outline-4 lg:min-h-20 lg:min-w-20"
         />
-        <div className="whitespace-nowrap">
-          <h4 className="flex items-center gap-2 text-2xl font-medium">
+        <div className="whitespace-nowrap max-sm:text-sm">
+          <h4 className="flex items-center gap-2 text-lg font-medium lg:text-2xl">
             {username}
           </h4>
           {role}
         </div>
       </div>
-      <p className="pt-6 text-justify">{comment}</p>
+      <p className="pt-6 text-justify text-sm lg:text-base">{comment}</p>
     </div>
   );
 }

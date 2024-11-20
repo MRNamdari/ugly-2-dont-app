@@ -19,7 +19,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${fredoka.className} antialiased`}>{children}</body>
+      <body
+        className={`${fredoka.className} overflow-x-clip bg-white antialiased`}
+      >
+        {children}
+      </body>
     </html>
   );
 }

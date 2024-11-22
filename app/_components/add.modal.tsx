@@ -107,12 +107,13 @@ export default function AddModal(props: { children: React.ReactNode }) {
       <dialog
         ref={ref}
         id="add"
-        className="popup-modal absolute mb-24 ml-auto mr-6 mt-auto origin-bottom-right bg-transparent text-primary-800"
+        className="popup-modal absolute mb-24 ml-auto mr-6 mt-auto origin-bottom-right bg-transparent text-primary-800 outline-none"
         onClick={handleCancel}
       >
         {buttons.category && (
           <div className="flex justify-end gap-2 py-1">
             <Button
+              id="add-category-btn"
               className="tap-zinc-200 btn-md w-fit bg-zinc-50 font-medium"
               onClick={CategoryClickHandler}
             >
@@ -128,6 +129,7 @@ export default function AddModal(props: { children: React.ReactNode }) {
         {buttons.project && (
           <div className="flex justify-end gap-2 py-1">
             <Button
+              id="add-project-btn"
               className="tap-zinc-200 btn-md w-fit bg-zinc-50 font-medium"
               onClick={ProjectClickHandler}
             >
@@ -143,6 +145,7 @@ export default function AddModal(props: { children: React.ReactNode }) {
         {buttons.task && (
           <div className="flex justify-end gap-2 py-1">
             <Button
+              id="add-task-btn"
               className="tap-zinc-200 btn-md w-fit bg-zinc-50 font-medium"
               onClick={TaskClickHandler}
             >

@@ -438,11 +438,11 @@ class UglyDB extends Dexie {
 export const db = new UglyDB();
 console.log(db);
 
-db.on("populate", async (trans) => {
-  await trans.table("tasks").bulkAdd(tasks.map(addDueTo));
-  await trans.table("projects").bulkAdd(projects);
-  await trans.table("categories").bulkAdd(categories);
-});
+// db.on("populate", async (trans) => {
+//   await trans.table("tasks").bulkAdd(tasks.map(addDueTo));
+//   await trans.table("projects").bulkAdd(projects);
+//   await trans.table("categories").bulkAdd(categories);
+// });
 
 export async function PendingTasksCount(id: IProject["id"]) {
   const pids = await db.extractProjects(id);

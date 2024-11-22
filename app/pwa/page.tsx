@@ -166,6 +166,7 @@ export default function PWAHomePage() {
         style={{ top: "4.5rem" }}
       >
         <Link
+          id="browser-categories"
           href="/pwa/categories"
           className="flex w-full items-center justify-between px-4"
         >
@@ -193,6 +194,7 @@ export default function PWAHomePage() {
             );
           })}
           <Link
+            id="add-category"
             href="/pwa/categories"
             key="add"
             className="mx-4 flex aspect-square h-24 items-center justify-center rounded-xl border-4 border-secondary-600 p-2 opacity-15"
@@ -206,6 +208,7 @@ export default function PWAHomePage() {
         style={{ top: "8.5rem" }}
       >
         <Link
+          id="browse-projects"
           href="/pwa/projects"
           className="flex w-full items-center justify-between rounded-t-3xl bg-primary-800 px-4 pt-2"
         >
@@ -228,6 +231,7 @@ export default function PWAHomePage() {
             );
           })}
           <Link
+            id="add-project"
             href="/pwa/projects/add"
             key="add"
             className="mx-4 flex aspect-square h-24 items-center justify-center rounded-xl border-4 border-primary-700 p-2"
@@ -238,6 +242,7 @@ export default function PWAHomePage() {
       </section>
       <section className="w-full -translate-y-12">
         <Link
+          id="browse-tasks"
           href="/pwa/tasks"
           className="sticky flex h-40 w-full justify-between rounded-t-3xl bg-white px-4 pt-2"
           style={{ top: "13.25rem" }}
@@ -246,14 +251,14 @@ export default function PWAHomePage() {
           <span className="whitespace-nowrap">see all</span>
         </Link>
         <div className="w-full -translate-y-20">
-          {!tasks?.length && (
-            <Link
-              href="/pwa/tasks/add"
-              className="mx-6 block rounded-xl border-4 border-dashed border-zinc-200 py-10 text-center text-zinc-400"
-            >
-              nothing's here! press to add
-            </Link>
-          )}
+          <Link
+            id="add-task"
+            href="/pwa/tasks/add"
+            aria-disabled={!!tasks?.length}
+            className="mx-6 block rounded-xl border-4 border-dashed border-zinc-200 py-10 text-center text-zinc-400 aria-disabled:hidden"
+          >
+            nothing's here! press to add
+          </Link>
           <div className="h-10"></div>
           <AnimatePresence>
             {tasks?.map((t) => (

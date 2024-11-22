@@ -15,56 +15,49 @@ import {
 import Link from "next/link";
 
 export default function DesktopPage() {
-  const [miniScreen, setScreen] = useState(false);
   const iref = useRef<HTMLIFrameElement>(null);
+  const pref = useRef<HTMLDivElement>(null);
   const phone = useRef<HTMLDivElement>(null);
-  const thirdSection = useRef<HTMLElement>(null);
 
-  const { scrollYProgress } = useScroll({
-    target: thirdSection,
-    offset: ["start start", "end end"],
-  });
+  // const { scrollYProgress } = useScroll({
+  //   target: thirdSection,
+  //   offset: ["start start", "end end"],
+  // });
 
-  useEffect(() => {
-    const iframe = iref.current;
-    setScreen(document.body.clientWidth < 1000);
-    window.onresize = () => {
-      setScreen(document.body.clientWidth < 1000);
-    };
-    // if (!iframe) return;
-    // iframe.onload = () => {
-    //   console.log("iframe loaded");
-    //   window.onscroll = () => {
-    //     const vth = iframe.contentDocument!.body.offsetHeight;
-    //     let progress =
-    //       scrollYProgress.get() <= 0.5
-    //         ? 0
-    //         : ((scrollYProgress.get() - 0.5) * 10) / 5;
-    //     iframe.contentDocument!.scrollingElement?.scrollTo({
-    //       top: vth * progress,
-    //       left: 0,
-    //       behavior: "instant",
-    //     });
-    //   };
-    // };
-  });
+  useEffect(
+    () => {
+      const iframe = iref.current;
+      const doc = iframe?.contentDocument;
+      const pointer = pref.current;
+
+      if (doc && pointer) Tuturial(doc, pointer);
+    },
+    //  [iref.current, pref.current]
+  );
 
   return (
     <>
       <div className="top-0 z-10 grid h-svh w-fit md:fixed md:right-16 lg:right-[max(2rem,calc((100%-1024px)/2))] xl:right-[max(4rem,calc((100%-1280px)/2))] 2xl:right-[max(6rem,calc((100%-1536px)/2))]">
-        <div className="container h-fit max-w-md self-center md:max-w-[calc(768px/2)] lg:max-w-[calc(1024px/3)] xl:max-w-[calc(1280px/3)] 2xl:max-w-[calc(1536px/3)]">
+        <div className="container relative h-fit max-w-md self-center md:max-w-[calc(768px/2)] lg:max-w-[calc(1024px/3)] xl:max-w-[calc(1280px/3)] 2xl:max-w-[calc(1536px/3)]">
+          <div
+            ref={pref}
+            id="pointer"
+            className="absolute inset-1/2 z-10 size-10 rounded-full border-4 border-white border-opacity-50 bg-zinc-900 bg-opacity-50"
+          ></div>
           <div
             ref={phone}
             className="col-start-3 mx-auto aspect-[9/19.5] h-full max-h-fit max-w-fit"
           >
-            <div className="relative h-full w-full rounded-[3rem] border-4 border-primary-700 shadow-md">
-              <div className="h-full w-full overflow-hidden rounded-[2.7rem] border-[.75rem] border-zinc-900">
-                <div className="absolute left-1/2 top-6 aspect-[10/2.5] w-1/4 -translate-x-1/2 rounded-full bg-current"></div>
+            <div className="moving-shadow relative h-full w-full rounded-[3rem] border-4 border-primary-700">
+              <div className="moving-screen-light relative h-full w-full overflow-hidden rounded-[2.7rem] border-[.75rem] border-zinc-900 bg-zinc-800">
+                <div className="absolute left-1/2 top-2 z-10 aspect-[10/2.5] w-1/4 -translate-x-1/2 rounded-full bg-zinc-900 p-1 drop-shadow-md">
+                  <div className="ml-auto size-3 rounded-full bg-zinc-950"></div>
+                </div>
                 <iframe
                   ref={iref}
                   src="/pwa/"
                   loading="lazy"
-                  className="h-full w-full bg-secondary-100 pt-10"
+                  className="h-full w-full opacity-90"
                   onLoad={(e) => {
                     const style = document.createElement("style");
                     style.innerText =
@@ -84,12 +77,7 @@ export default function DesktopPage() {
           </div>
         </div>
       </div>
-      <section
-        className="roundedCorner relative h-svh w-full bg-primary-800 before:absolute before:h-full before:w-full before:bg-[image:linear-gradient(210deg,rgb(0_0_0/.3),20%,transparent)]"
-        style={{
-          cursor: 'url("scroll.svg"), pointer',
-        }}
-      >
+      <section className="roundedCorner relative h-svh w-full bg-primary-800 before:absolute before:h-full before:w-full before:bg-[image:linear-gradient(210deg,rgb(0_0_0/.3),20%,transparent)]">
         <div className="container grid h-full max-w-screen-2xl items-center md:grid-cols-2 lg:grid-cols-3">
           <div className="mx-auto flex w-fit items-center gap-8 md:col-span-1 lg:col-span-2">
             <div className="whitespace-nowrap">
@@ -119,16 +107,16 @@ export default function DesktopPage() {
           </div>
         </div>
       </section>
-      <section className="roundedCorner flex w-full flex-col items-center justify-around bg-zinc-100 py-16 after:shadow-sm">
+      <section className="roundedCorner flex w-full flex-col items-center justify-around bg-zinc-200 py-16 before:absolute before:top-8 before:z-[2] before:h-full before:w-full before:rounded-b-3xl before:bg-[image:linear-gradient(30deg,transparent_0,#02020217,transparent_20%)] after:shadow-sm">
         <div className="container grid h-full max-w-screen-2xl items-center md:grid-cols-2 lg:grid-cols-3">
           <div className="mx-auto grid max-w-screen-sm items-center gap-8 px-8 max-md:grid-rows-2 lg:col-span-2 lg:grid-cols-2 lg:px-0">
             <div className="whitespace-nowrap text-xl font-medium">
               <h3 className="relative w-fit after:absolute after:left-0 after:block after:h-1 after:w-full after:bg-secondary-300 max-sm:mx-auto">
-                Manage your tasks,
+                Manage & categorize
               </h3>
               <br />
               <h3 className="relative w-fit after:absolute after:left-0 after:block after:h-1 after:w-full after:bg-secondary-300 max-sm:mx-auto">
-                projects & categories
+                your projects & tasks
               </h3>
             </div>
             <p className="text-justify text-lg">
@@ -139,11 +127,11 @@ export default function DesktopPage() {
         </div>
       </section>
       <section
-        className="flex h-svh w-full flex-col items-center rounded-b-3xl bg-slate-50 shadow-black drop-shadow-md"
+        className="flex h-svh w-full flex-col items-center rounded-b-3xl bg-[#b5af9a] shadow-black drop-shadow-md"
         style={{ backgroundImage: 'url("square.svg")' }}
       ></section>
       <section
-        className="relative -z-10 flex h-svh w-full -translate-y-16 flex-col items-center rounded-b-3xl bg-warning-100 before:absolute before:h-full before:w-full before:rounded-b-3xl before:bg-[image:linear-gradient(transparent_0_80%,rgb(81_69_32/.1))]"
+        className="relative -z-10 flex h-svh w-full -translate-y-16 flex-col items-center rounded-b-3xl bg-gray-200 before:absolute before:h-full before:w-full before:rounded-b-3xl before:bg-[image:linear-gradient(transparent_0_80%,rgb(81_69_32/.1))]"
         style={{ backgroundImage: 'url("strip.svg")' }}
       ></section>
       <section className="relative z-10 w-full rounded-3xl bg-secondary-600 bg-opacity-50 pb-6 pt-8 backdrop-blur-lg">
@@ -290,319 +278,6 @@ export default function DesktopPage() {
   );
 }
 
-const style = { filter: "drop-shadow(2px 4px 6px rgb(0 0 0 / 20%))" };
-const springOption = { stiffness: 400, damping: 20 };
-
-function CategoryMsg({
-  image,
-  scroll,
-}: {
-  image: boolean;
-  scroll: MotionValue<number>;
-}) {
-  const tf = useTransform(scroll, [0, 0.1], [0, 1]);
-  const mv = useSpring(tf, springOption);
-  if (image) {
-    return (
-      <>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="88"
-          height="80"
-          viewBox="0 0 90 80"
-          fill="none"
-          style={{ position: "absolute", right: 0, top: "70%" }}
-        >
-          <motion.path
-            d="M90 77C90 77 61 74 34 53C7 32 2 2 2 2"
-            stroke="black"
-            strokeWidth="4"
-            pathLength="100"
-            mask="url(#p1)"
-            style={{ pathLength: tf }}
-          />
-          <mask id="p1">
-            <rect width="326" height="290" fill="black"></rect>
-            <path
-              d="M90 77C90 77 61 74 34 53C7 32 2 2 2 2"
-              stroke="white"
-              strokeWidth="4"
-              strokeDasharray="4 4"
-              pathLength="100"
-            />
-          </mask>
-        </svg>
-        <motion.svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="326"
-          height="290"
-          viewBox="0 0 326 290"
-          preserveAspectRatio="true"
-          fill="none"
-          style={{ ...style, scale: mv, opacity: mv }}
-        >
-          <style>{`text{font-size:1.1rem;font-weight:500;}`}</style>
-
-          <image href="/caveman-with-slabs.png" width="184" height="221" />
-          <g transform="translate(60 110)">
-            <path
-              d="M132.5 88.5003C152.5 85.0003 145.5 101.5 202.5 97.0003C218.493 95.7378 241.582 113.5 256 74.5C270.418 35.5001 274.838 7.82521 219.5 2.00012C200.5 0.000121474 193 9.00016 170.5 7.00016C148 5.00016 124 2.00012 109 2.00012C94 2.00012 78 9.00016 65.5001 7.00016C53.0001 5.00016 24 -11 7.50006 17.5C-8.9999 46 8.00011 46.0004 7.50011 59.5004C7.00011 73.0004 13 96.5003 31.5 97.0003C50 97.5003 66.5001 97.0003 88.0001 97.0003C109.5 97.0003 112.5 92.0003 132.5 88.5003Z"
-              fill="#FFFDFA"
-            />
-            <text fill="black" x="35" y="40">
-              leave tasks, projects and
-            </text>
-            <text fill="black" x="39" y="70">
-              categories unorganized
-            </text>
-          </g>
-        </motion.svg>
-      </>
-    );
-  } else {
-    return (
-      <motion.div
-        style={{
-          width: "266px",
-          height: "100px",
-          clipPath: "url('#bbl1')",
-          scale: mv,
-          opacity: mv,
-        }}
-      >
-        leave tasks, projects and
-        <br />
-        categories unorganized
-      </motion.div>
-    );
-  }
-}
-
-function ProjectMsg({
-  image,
-  scroll,
-}: {
-  image: boolean;
-  scroll: MotionValue<number>;
-}) {
-  const tf1 = useTransform(scroll, [0.1, 0.2], [0, 1]);
-  const tf2 = useTransform(scroll, [0.15, 0.3], [0, 1]);
-  const mv1 = useSpring(tf1, springOption);
-  const mv2 = useSpring(tf2, springOption);
-  if (image) {
-    return (
-      <>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="220"
-          viewBox="0 0 230 140"
-          preserveAspectRatio="true"
-          fill="none"
-          style={{ position: "absolute", top: "50%" }}
-        >
-          <motion.path
-            d="M1.49978 47.4993C118 159.999 102 -55.6289 191.5 18.4999C281 92.6288 135.5 109.5 213 130.999"
-            stroke="black"
-            strokeWidth="4"
-            mask="url(#p2)"
-            style={{ pathLength: tf1 }}
-          />
-          <mask id="p2">
-            <rect width="326" height="290" fill="black"></rect>
-            <path
-              d="M1.49978 47.4993C118 159.999 102 -55.6289 191.5 18.4999C281 92.6288 135.5 109.5 213 130.999"
-              stroke="white"
-              strokeWidth="4"
-              strokeDasharray="4 4"
-            />
-          </mask>
-        </svg>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="296"
-          height="427"
-          viewBox="0 0 296 427"
-          preserveAspectRatio="true"
-          fill="none"
-          style={style}
-        >
-          <style>{`text{font-size:1.1rem;font-weight:500;}`}</style>
-          <motion.image
-            href="/caveman-with-plan.png"
-            width="256"
-            height="256"
-            style={{ scale: mv1, opacity: mv1 }}
-          />
-          <motion.g
-            transform="translate(38 287)"
-            style={{ translate: "38px 287px", scale: mv2, opacity: mv2 }}
-          >
-            <path
-              d="M115.365 0C152.363 0 166.862 10.3334 186.861 10.3334C231.491 10.3334 268.356 32.8239 255.357 100.295C242.357 167.766 211.083 120.61 173.862 133.727C139.364 145.884 113.93 116.472 79.8678 133.727C55.8694 145.884 20.0004 143.167 2.87269 100.295C-9.4126 69.5442 20.305 19.9354 42.8701 10.3334C62.8689 1.82355 78.3679 0 115.365 0Z"
-              fill="white"
-            />
-            <text fill="black" x="60" y="47">
-              Don’t look at your
-            </text>
-            <text fill="black" x="35" y="77">
-              progress in projects and
-            </text>
-            <text fill="black" x="60" y="107">
-              stay unmotivated
-            </text>
-          </motion.g>
-        </svg>
-      </>
-    );
-  } else {
-    return (
-      <motion.div
-        style={{
-          width: "258",
-          height: "140px",
-          clipPath: "url('#bbl2')",
-          scale: mv1,
-          opacity: mv1,
-        }}
-      >
-        Don’t look at your
-        <br />
-        progress in projects and
-        <br />
-        stay unmotivated
-      </motion.div>
-    );
-  }
-}
-
-function TaskMsg({
-  image,
-  scroll,
-}: {
-  image: boolean;
-  scroll: MotionValue<number>;
-}) {
-  const tf = useTransform(scroll, [0.5, 0.75], [0, 1]);
-  const tf1 = useTransform(scroll, [0.5, 0.6], [0, 1]);
-  const tf2 = useTransform(scroll, [0.6, 0.75], [0, 1]);
-  const mv1 = useSpring(tf1, springOption);
-  const mv2 = useSpring(tf2, springOption);
-  if (image) {
-    return (
-      <>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="300"
-          height="390"
-          viewBox="0 0 300 390"
-          preserveAspectRatio="true"
-          fill="none"
-          style={{ position: "absolute", top: "20%" }}
-        >
-          <motion.path
-            d="M378.715 8.35923C220.922 -28.111 328.743 108.465 164.5 59.5C0.256781 10.5353 -80.9999 273.5 125 244"
-            stroke="black"
-            strokeWidth="4"
-            stroke-linejoin="round"
-            mask="url(#p3)"
-            style={{ pathLength: tf }}
-          />
-          <mask id="p3">
-            <rect width="326" height="290" fill="black"></rect>
-            <path
-              d="M378.715 8.35923C220.922 -28.111 328.743 108.465 164.5 59.5C0.256781 10.5353 -80.9999 273.5 125 244"
-              stroke="white"
-              strokeWidth="4"
-              strokeDasharray="4 4"
-            />
-          </mask>
-        </svg>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="357"
-          height="390"
-          viewBox="0 0 357 390"
-          preserveAspectRatio="true"
-          fill="none"
-          style={style}
-        >
-          <style>{`text{font-size:1.1rem;font-weight:500;}`}</style>
-          <motion.image
-            href="/caveman-with-clipboard.png"
-            width="224"
-            height="242"
-            style={{ scale: mv1, opacity: mv1 }}
-          />
-          <motion.g
-            transform="translate(93 246)"
-            style={{ translate: "93px 246px", scale: mv2, opacity: mv2 }}
-          >
-            <path
-              d="M115.365 0C152.363 0 166.862 10.3334 186.861 10.3334C231.491 10.3334 268.356 32.8239 255.357 100.295C242.357 167.766 211.083 120.61 173.862 133.727C139.364 145.884 113.93 116.472 79.8678 133.727C55.8694 145.884 20.0004 143.167 2.87269 100.295C-9.4126 69.5442 20.305 19.9354 42.8701 10.3334C62.8689 1.82355 78.3679 0 115.365 0Z"
-              fill="white"
-            />
-            <text fill="black" x="35" y="65">
-              Make a pile of tasks and
-            </text>
-            <text fill="black" x="45" y="95">
-              watch them stack up
-            </text>
-          </motion.g>
-        </svg>
-      </>
-    );
-  } else {
-    return (
-      <motion.div
-        style={{
-          width: "258",
-          height: "140px",
-          clipPath: "url('#bbl3')",
-          scale: mv1,
-          opacity: mv1,
-        }}
-      >
-        Make a pile of tasks and
-        <br />
-        watch them stack up
-      </motion.div>
-    );
-  }
-}
-
-function PathWay({ progress }: { progress: MotionValue<number> }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      style={{ width: "90%" }}
-      viewBox="0 0 252 413"
-      preserveAspectRatio="true"
-      fill="none"
-    >
-      <motion.path
-        id="path"
-        d="M115.5 1.00012C136 41.5001 187.199 39.4495 218 67.5001C246 93.0001 265.125 120 237 185C192 289 129.5 216.5 43 269.5C-43.5 322.5 22.5 416.5 79 412"
-        stroke="rgb(114 70 146)"
-        strokeWidth="4"
-        strokeLinejoin="round"
-        strokeDasharray="4 4"
-        style={{ pathLength: progress }}
-        mask="url(#maskPath)"
-      />
-      <mask id="maskPath">
-        <motion.path
-          d="M115.5 1.00012C136 41.5001 187.199 39.4495 218 67.5001C246 93.0001 265.125 120 237 185C192 289 129.5 216.5 43 269.5C-43.5 322.5 22.5 416.5 79 412"
-          stroke="white"
-          strokeWidth="4"
-          strokeLinejoin="round"
-          pathLength={100}
-          strokeDasharray="1px 1px"
-        />
-      </mask>
-    </svg>
-  );
-}
-
 type CommentProps = {
   avatar: string;
   username: string;
@@ -630,4 +305,108 @@ function Comment({ avatar, username, role, comment }: CommentProps) {
       <p className="pt-6 text-justify text-sm lg:text-base">{comment}</p>
     </div>
   );
+}
+
+function Tuturial(doc: Document, pointer: HTMLDivElement) {
+  function write(text: string) {
+    return async function (elm: HTMLInputElement) {
+      const n = text.length;
+      for (let i = 1; i <= n; ++i) {
+        await wait(40);
+        elm.value = text.slice(0, i);
+      }
+      elm.blur();
+      return wait(n * 40);
+    };
+  }
+  function press(elm: HTMLElement) {
+    const eventInit: PointerEventInit = {
+      pointerType: "touch",
+      pressure: 1,
+      isPrimary: true,
+      bubbles: true,
+      cancelable: true,
+      pointerId: 1,
+      view: window,
+    };
+    elm.dispatchEvent(new PointerEvent("pointerdown", eventInit));
+    setTimeout(() => {
+      [
+        new PointerEvent("pointerup", eventInit),
+        new MouseEvent("click", eventInit),
+      ].forEach((ev, i) => elm.dispatchEvent(ev));
+    }, 200);
+
+    return wait(500);
+  }
+  function goto<E extends HTMLElement>(elm: E, modal: boolean = false) {
+    return new Promise<E>(async (resolve) => {
+      if (modal) await wait(750);
+      const { x, y, height, width } = elm.getBoundingClientRect();
+      const left = `${x + width / 2 - 4}px`,
+        top = `${y + height / 2 - 4}px`;
+      pointer.animate([{ left, top }], {
+        duration: 750,
+        fill: "forwards",
+        easing: "ease-in",
+      }).onfinish = () =>
+        (pointer.animate(
+          { transform: ["scale(1)", "scale(.8)", "scale(1)"] },
+          { duration: 200 },
+        ).onfinish = () => resolve(elm));
+
+      if (pointer.style.left === left && pointer.style.top === top)
+        return resolve(elm);
+    });
+  }
+  function whenLoaded<T>(param: () => T | null) {
+    // this is pathetic
+    return new Promise<T>(async (resolve, reject) => {
+      let itr = 0;
+      let result = param();
+      while ((result === null || result === undefined) && itr < 50) {
+        await wait(200);
+        result = param();
+        ++itr;
+      }
+      if (result === null || result === undefined) return reject();
+      else return resolve(result);
+    });
+  }
+  async function wait(dur: number) {
+    await new Promise<unknown>((res) => setTimeout(res, dur));
+  }
+
+  AddCategory();
+  function AddCategory() {
+    whenLoaded(() => doc.getElementById("add-category"))
+      .then(goto)
+      .then(press)
+      .then(() => whenLoaded(() => doc.getElementById("add-btn")))
+      .then(goto)
+      .then(press)
+      .then(() => whenLoaded(() => doc.getElementById("add-category-btn")))
+      .then(goto)
+      .then(press)
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc
+              .getElementById("add-edit-category")!
+              .getElementsByTagName("input")[0],
+        ),
+      )
+      .then((elm) => goto(elm, true))
+      .then(write("Personal"))
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc
+              .getElementById("add-edit-category")!
+              .getElementsByTagName("button")[1],
+        ),
+      )
+      .then(goto)
+      .then(press);
+  }
 }

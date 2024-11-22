@@ -81,6 +81,7 @@ export default function AddCategoryModal(props: { children: React.ReactNode }) {
     >
       <dialog
         ref={ref}
+        id="add-edit-category"
         onClick={ClickHandler}
         className="dropdown-modal relative mt-0 w-full min-w-0 max-w-screen-sm rounded-3xl rounded-t-none bg-primary-700 pb-8 text-white after:absolute after:bottom-4 after:left-1/2 after:block after:h-1 after:w-1/4 after:-translate-x-1/2 after:rounded-sm after:bg-primary-800"
       >
@@ -92,6 +93,7 @@ export default function AddCategoryModal(props: { children: React.ReactNode }) {
               name="title"
               defaultValue={defaultValue}
               onChange={(e) => setValue(e.target.value)}
+              onBlur={(e) => setValue(e.target.value)}
               placeholder="Category Name"
               className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-primary-400"
             />

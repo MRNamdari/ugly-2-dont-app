@@ -84,7 +84,7 @@ export default function CategoryBrowserPage({
         <div></div>
       </header>
       <section className="grid h-full grid-rows-[2rem_2rem_auto] gap-4 overflow-auto">
-        <div className="grid h-fit grid-flow-col justify-between gap-4 px-4 text-primary-600">
+        <div className="grid h-fit max-w-[100vw] grid-flow-col justify-between overflow-hidden px-4 text-primary-600">
           <TasksProgress id={id} />
           <ProjectsProgress id={id} />
         </div>
@@ -106,6 +106,7 @@ export default function CategoryBrowserPage({
       </section>
       <div className="fixed bottom-4 right-4">
         <IconButton
+          id="add-btn"
           initial={{ opacity: 0, scale: 0.9 }}
           exit={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}

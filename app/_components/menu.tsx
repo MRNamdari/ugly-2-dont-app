@@ -69,6 +69,7 @@ export default function Menu<T extends MenuOption>(props: MenuProps<T>) {
   return (
     <div
       className={"menu " + props.className}
+      aria-label={props.name}
       aria-expanded={expanded}
       onClick={ExpansionHandler}
     >

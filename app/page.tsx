@@ -77,7 +77,7 @@ export default function DesktopPage() {
           </div>
         </div>
       </div>
-      <section className="roundedCorner relative h-svh w-full bg-primary-800 before:absolute before:h-full before:w-full before:bg-[image:linear-gradient(210deg,rgb(0_0_0/.3),20%,transparent)]">
+      <section className="roundedCorner relative h-svh w-full bg-primary-800 bg-[image:linear-gradient(210deg,rgb(0_0_0/.3),20%,transparent)]">
         <div className="container grid h-full max-w-screen-2xl items-center md:grid-cols-2 lg:grid-cols-3">
           <div className="mx-auto flex w-fit items-center gap-8 md:col-span-1 lg:col-span-2">
             <div className="whitespace-nowrap">
@@ -107,7 +107,7 @@ export default function DesktopPage() {
           </div>
         </div>
       </section>
-      <section className="roundedCorner flex w-full flex-col items-center justify-around bg-zinc-200 py-16 before:absolute before:top-8 before:z-[2] before:h-full before:w-full before:rounded-b-3xl before:bg-[image:linear-gradient(30deg,transparent_0,#02020217,transparent_20%)] after:shadow-sm">
+      <section className="roundedCorner flex w-full flex-col items-center justify-around bg-zinc-200 py-16 after:shadow-sm">
         <div className="container grid h-full max-w-screen-2xl items-center md:grid-cols-2 lg:grid-cols-3">
           <div className="mx-auto grid max-w-screen-sm items-center gap-8 px-8 max-md:grid-rows-2 lg:col-span-2 lg:grid-cols-2 lg:px-0">
             <div className="whitespace-nowrap text-xl font-medium">
@@ -331,12 +331,9 @@ function Tuturial(doc: Document, pointer: HTMLDivElement) {
     };
     elm.dispatchEvent(new PointerEvent("pointerdown", eventInit));
     setTimeout(() => {
-      [
-        new PointerEvent("pointerup", eventInit),
-        new MouseEvent("click", eventInit),
-      ].forEach((ev, i) => elm.dispatchEvent(ev));
+      elm.dispatchEvent(new PointerEvent("pointerup", eventInit));
     }, 200);
-
+    elm.click();
     return wait(500);
   }
   function goto<E extends HTMLElement>(elm: E, modal: boolean = false) {
@@ -377,7 +374,8 @@ function Tuturial(doc: Document, pointer: HTMLDivElement) {
     await new Promise<unknown>((res) => setTimeout(res, dur));
   }
 
-  AddCategory();
+  // AddCategory();
+  AddProject();
   function AddCategory() {
     whenLoaded(() => doc.getElementById("add-category"))
       .then(goto)
@@ -404,6 +402,98 @@ function Tuturial(doc: Document, pointer: HTMLDivElement) {
             doc
               .getElementById("add-edit-category")!
               .getElementsByTagName("button")[1],
+        ),
+      )
+      .then(goto)
+      .then(press);
+  }
+
+  function AddProject() {
+    whenLoaded(() => doc.getElementById("add-project"))
+      .then(goto)
+      .then(press)
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'form[name="project"] input[name="title"]',
+            ) as HTMLInputElement,
+        ),
+      )
+      .then(goto)
+      .then(write("Uglier2Don't App"))
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'form[name="project"] input[name="description"]',
+            ) as HTMLInputElement,
+        ),
+      )
+      .then(goto)
+      .then(write("Ugly2don't app but uglier"))
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'form[name="project"] button[aria-label="calendar"]',
+            ) as HTMLButtonElement,
+        ),
+      )
+      .then((elm) => goto(elm, true))
+      .then(press)
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              '#calendar button[aria-label="next week"]',
+            ) as HTMLButtonElement,
+        ),
+      )
+      .then(goto)
+      .then(press)
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'form[name="project"] button[aria-label="clock"]',
+            ) as HTMLButtonElement,
+        ),
+      )
+      .then(goto)
+      .then(press)
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector('#clock input[name="hour"]') as HTMLInputElement,
+        ),
+      )
+      .then((elm) => goto(elm, true))
+      .then(write("11"))
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector('#clock input[name="min"]') as HTMLInputElement,
+        ),
+      )
+      .then(goto)
+      .then(write("30"))
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              '#clock button[aria-label="confirm"]',
+            ) as HTMLButtonElement,
+        ),
+      )
+      .then(goto)
+      .then(press)
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'form[name="project"] .menu[aria-label="priority"] .menu-button',
+            ) as HTMLDivElement,
         ),
       )
       .then(goto)

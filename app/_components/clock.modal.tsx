@@ -119,7 +119,7 @@ export default function ClockModal(props: { children: React.ReactNode }) {
             icon="X"
             className="tap-primary-900 ico-md bg-primary-800"
             onClick={close}
-            aria-label="Press to close"
+            aria-label="close"
             value=""
           />
           <h3 className="text-lg">Pick A Time</h3>
@@ -128,7 +128,7 @@ export default function ClockModal(props: { children: React.ReactNode }) {
             className="tap-primary-900 ico-md bg-primary-800"
             value={value}
             form="clock-form"
-            aria-label="Press to confirm"
+            aria-label="confirm"
           />
         </div>
         <form
@@ -140,6 +140,7 @@ export default function ClockModal(props: { children: React.ReactNode }) {
           <div className="flex h-[fill-available] items-center justify-center gap-2 rounded-full bg-primary-800 p-2 text-3xl text-white">
             <input
               ref={hour}
+              name="hour"
               className="h-full rounded-[4rem] rounded-r-md bg-primary-700 text-center text-3xl font-medium text-inherit"
               type="number"
               size={2}
@@ -154,6 +155,7 @@ export default function ClockModal(props: { children: React.ReactNode }) {
             :
             <input
               ref={min}
+              name="min"
               className="h-full rounded-[4rem] rounded-l-md bg-primary-700 text-center text-3xl font-medium text-inherit"
               type="number"
               size={2}
@@ -169,6 +171,7 @@ export default function ClockModal(props: { children: React.ReactNode }) {
           <div className="relative rounded-full bg-primary-800 p-2">
             <input
               ref={ampm}
+              name="ampm"
               type="checkbox"
               className="peer absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none rounded-full"
               defaultChecked={false}

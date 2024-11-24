@@ -349,7 +349,7 @@ export default function CalendarModal(props: { children: React.ReactNode }) {
               className="tap-secondary-100 btn-sm min-w-fit bg-secondary-200 text-primary-800"
               value={date2str(RelativeDate.today)}
               onClick={handleToToday}
-              aria-label="Go to today"
+              aria-label="today"
             >
               Today
             </Button>
@@ -357,7 +357,7 @@ export default function CalendarModal(props: { children: React.ReactNode }) {
               className="tap-secondary-100 btn-sm min-w-fit bg-secondary-200 text-primary-800"
               value={date2str(RelativeDate.tomorrow)}
               onClick={handleToTomorrow}
-              aria-label="Go to tomorrow"
+              aria-label="tomorrow"
             >
               Tomorrow
             </Button>
@@ -365,7 +365,7 @@ export default function CalendarModal(props: { children: React.ReactNode }) {
               className="tap-secondary-100 btn-sm min-w-fit bg-secondary-200 text-primary-800"
               value={date2str(RelativeDate.nextWeek)}
               onClick={handleToNextWeek}
-              aria-label="Go to next week"
+              aria-label="next week"
             >
               Next Week
             </Button>
@@ -373,7 +373,7 @@ export default function CalendarModal(props: { children: React.ReactNode }) {
               className="tap-secondary-100 btn-sm min-w-fit bg-secondary-200 text-primary-800"
               value={date2str(RelativeDate.nextMonth)}
               onClick={handleToNextMonth}
-              aria-label="Go to next month"
+              aria-label="next month"
             >
               Next Month
             </Button>

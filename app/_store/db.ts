@@ -301,7 +301,6 @@ export const tasks: ITask[] = [
     { title: "Leadership", id: 13, category: 2 },
   ];
 
-//OrderBy time,date doesn't work
 class UglyDB extends Dexie {
   tasks!: Table<ITask, number>;
   projects!: Table<IProject, number>;
@@ -309,9 +308,9 @@ class UglyDB extends Dexie {
   constructor() {
     super("UglyDB");
     this.version(1).stores({
-      tasks: "id, title, due, category, project, priority",
-      projects: "id, title, due, category, project, priority",
-      categories: "id, title, category",
+      tasks: "id, due, category, project, priority",
+      projects: "id, due, category, project, priority",
+      categories: "id, category",
     });
   }
   deleteCategory(id: ICategory["id"]) {

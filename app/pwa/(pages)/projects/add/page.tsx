@@ -178,7 +178,7 @@ export default function AddProjectPage({
         exit={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         ref={form}
-        action="/pwa/tasks/verify"
+        name="project"
         method="GET"
         className="flex h-full flex-col"
         onSubmit={(e) => e.preventDefault()}
@@ -241,6 +241,7 @@ export default function AddProjectPage({
           <div className="grid grid-cols-2 gap-[inherit]">
             <span>
               <Button
+                aria-label="calendar"
                 leadingIcon="Calendar"
                 className={
                   "tap-zinc-200 btn-md " +
@@ -276,6 +277,7 @@ export default function AddProjectPage({
             </span>
             <span>
               <Button
+                aria-label="clock"
                 leadingIcon="Clock"
                 className={
                   "tap-zinc-200 btn-md " +

@@ -308,9 +308,9 @@ class UglyDB extends Dexie {
   constructor() {
     super("UglyDB");
     this.version(1).stores({
-      tasks: "id, due, category, project, priority",
-      projects: "id, due, category, project, priority",
-      categories: "id, category",
+      tasks: "id, title, due, category, project, priority",
+      projects: "id, title, due, category, project, priority",
+      categories: "id, title, category",
     });
   }
   deleteCategory(id: ICategory["id"]) {
@@ -503,8 +503,11 @@ export async function ProjectProgressByCategory(id?: ICategory["id"]) {
 }
 
 export function addDueTo<T extends ITask | IProject>(f: T): T {
-  const due = new Date(f.date);
-  due.setUTCHours(f.time.getUTCHours(), f.time.getUTCMinutes(), 0, 0);
+  const due = new Date();
+  due.setDate(f.date.getDate());
+  due.setMonth(f.date.getMonth());
+  due.setFullYear(f.date.getFullYear());
+  due.setHours(f.time.getUTCHours(), f.time.getUTCMinutes(), 0, 0);
   return Object.assign(f, { due });
 }
 

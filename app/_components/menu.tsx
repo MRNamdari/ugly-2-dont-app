@@ -1,10 +1,12 @@
 import Icon, { IconLable } from "./icon";
 import React, {
+  memo,
   useRef,
   useState,
   MouseEvent,
   MouseEventHandler,
   useEffect,
+  useCallback,
 } from "react";
 import { motion } from "framer-motion";
 
@@ -27,7 +29,7 @@ export type MenuProps<T extends MenuOption> = {
           leadingIcon="Folder"
         ></Menu>
  */
-export default function Menu<T extends MenuOption>(props: MenuProps<T>) {
+export default memo(function Menu<T extends MenuOption>(props: MenuProps<T>) {
   const [expanded, setExpansion] = useState<boolean>(props.expanded ?? false); // is closed by default
   const [label, setLabel] = useState<string | null>(
     props.defaultValue?.name ?? null,
@@ -40,32 +42,45 @@ export default function Menu<T extends MenuOption>(props: MenuProps<T>) {
     setValue(props.defaultValue?.value ?? "");
   }, [props.defaultValue]);
 
-  function ExpansionHandler(e: MouseEvent<HTMLDivElement>) {
-    // Checking if input[type=text] is clicked to dismiss the event
-    if (!(e.target instanceof HTMLInputElement)) {
-      // Checking if an `li` in `ol` is clicked
-      if (
-        e.target instanceof HTMLLIElement &&
-        !e.target.ariaInvalid &&
-        !e.target.ariaDisabled
-      )
-        // Label is set only if menu is not set to expanded by default
-        props.expanded === undefined &&
-          setLabel((e.target as HTMLElement).ariaLabel);
-      if (expanded) {
-        const newvalue = (e.target as HTMLElement).ariaValueText ?? value;
-        setValue(newvalue);
+  const ExpansionHandler = useCallback(
+    function ExpansionHandler(e: MouseEvent<HTMLDivElement>) {
+      const target = e.target as HTMLElement;
+      // Checking if input[type=text] is clicked to dismiss the event
+      if (!(e.target instanceof HTMLInputElement)) {
+        // Checking if an `li` in `ol` is clicked
+        if (
+          e.target instanceof HTMLLIElement &&
+          !e.target.ariaInvalid &&
+          !e.target.ariaDisabled
+        ) {
+          // Label is set only if menu is not set to expanded by default
+          setLabel((l) =>
+            props.expanded === undefined ? target.ariaLabel : l,
+          );
+        }
+        if (expanded) {
+          setValue((v) => target.ariaValueText ?? v);
+        }
+        // If default is prevented, menu-button is clicked
+        if (!e.isDefaultPrevented()) {
+          // Expansion is set only if menu is not set to expanded by default
+          setExpansion((e) => (props.expanded === undefined ? !e : e));
+        }
       }
+    },
+    [setLabel, setValue, setExpansion, expanded, props.expanded],
+  );
+
+  const ClickHandler = useCallback(
+    function ClickHandler(e: MouseEvent<HTMLButtonElement>) {
+      e.preventDefault();
       // Expansion is set only if menu is not set to expanded by default
-      props.expanded === undefined && setExpansion(!expanded);
-    }
-  }
-  function ClickHandler(e: MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
-    // Expansion is set only if menu is not set to expanded by default
-    if (!props.expanded) setExpansion(!expanded);
-    if (props.onClick) props.onClick(e);
-  }
+      if (!props.expanded) setExpansion(!expanded);
+      if (props.onClick) props.onClick(e);
+    },
+    [props.expanded, expanded, props.onClick],
+  );
+
   return (
     <div
       className={"menu " + props.className}
@@ -103,7 +118,7 @@ export default function Menu<T extends MenuOption>(props: MenuProps<T>) {
       )}
     </div>
   );
-}
+});
 
 type MenuItemProps<V extends string> = {
   value: V;
@@ -141,7 +156,7 @@ type MenuSearchbarProps = {
                 {"name"}
             </MenuItem>
  */
-export function MenuItem<T extends string>(
+export const MenuItem = memo(function MenuItem<T extends string>(
   props: MenuItemProps<T> | MenuDisabledItemProps | MenuSearchbarProps,
 ) {
   if ("value" in props)
@@ -174,4 +189,4 @@ export function MenuItem<T extends string>(
       {props.children}
     </li>
   );
-}
+});

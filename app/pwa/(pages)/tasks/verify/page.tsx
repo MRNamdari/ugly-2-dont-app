@@ -36,7 +36,7 @@ export default function VerifyTaskPage() {
 
   async function handleSubmit(e: MouseEvent<HTMLButtonElement>) {
     const newTask = addDueTo(state as ITask);
-    console.log(newTask);
+
     if (state.id) {
       await db.tasks.update(state.id, newTask);
     } else {
@@ -52,6 +52,7 @@ export default function VerifyTaskPage() {
       <motion.header className="grid grid-cols-[3rem_1fr_3rem] items-center justify-center bg-secondary-100 px-4">
         <div>
           <IconButton
+            name="back"
             className="tap-zinc-100 ico-lg text-primary-900"
             icon="ArrowLeft"
             onClick={() => router.back()}
@@ -60,6 +61,7 @@ export default function VerifyTaskPage() {
         <span></span>
         <div>
           <IconButton
+            name="confirm"
             initial={{ opacity: 0, scale: 0.9 }}
             exit={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}

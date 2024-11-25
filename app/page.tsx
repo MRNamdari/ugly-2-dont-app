@@ -13,6 +13,7 @@ import {
 } from "framer-motion";
 
 import Link from "next/link";
+import { debounce } from "./_store/util";
 
 export default function DesktopPage() {
   const iref = useRef<HTMLIFrameElement>(null);
@@ -24,16 +25,13 @@ export default function DesktopPage() {
   //   offset: ["start start", "end end"],
   // });
 
-  useEffect(
-    () => {
-      const iframe = iref.current;
-      const doc = iframe?.contentDocument;
-      const pointer = pref.current;
+  useEffect(() => {
+    const iframe = iref.current;
+    const doc = iframe?.contentDocument;
+    const pointer = pref.current;
 
-      if (doc && pointer) Tuturial(doc, pointer);
-    },
-    //  [iref.current, pref.current]
-  );
+    if (doc && pointer) Tuturial(doc, pointer);
+  }, [iref.current, pref.current]);
 
   return (
     <>
@@ -307,53 +305,87 @@ function Comment({ avatar, username, role, comment }: CommentProps) {
   );
 }
 
-function Tuturial(doc: Document, pointer: HTMLDivElement) {
+const Tuturial = debounce(function Tuturial(
+  doc: Document,
+  pointer: HTMLDivElement,
+) {
   function write(text: string) {
     return async function (elm: HTMLInputElement) {
+      elm.dispatchEvent(
+        new FocusEvent("focus", { bubbles: true, cancelable: false }),
+      );
       const n = text.length;
       for (let i = 1; i <= n; ++i) {
-        await wait(40);
-        elm.value = text.slice(0, i);
+        await wait(100);
+        const char = text.slice(0, i);
+        elm.value = char;
       }
+      elm.dispatchEvent(
+        new FocusEvent("focusout", { bubbles: true, cancelable: false }),
+      );
       elm.blur();
-      return wait(n * 40);
     };
   }
   function press(elm: HTMLElement) {
-    const eventInit: PointerEventInit = {
+    const pointerInit: PointerEventInit = {
       pointerType: "touch",
       pressure: 1,
       isPrimary: true,
       bubbles: true,
       cancelable: true,
       pointerId: 1,
-      view: window,
     };
-    elm.dispatchEvent(new PointerEvent("pointerdown", eventInit));
-    setTimeout(() => {
-      elm.dispatchEvent(new PointerEvent("pointerup", eventInit));
-    }, 200);
-    elm.click();
-    return wait(500);
+    const mouseInit: MouseEventInit = {
+      bubbles: true,
+      cancelable: true,
+    };
+
+    elm.dispatchEvent(new PointerEvent("pointerdown", pointerInit));
+
+    setTimeout(
+      () => elm.dispatchEvent(new PointerEvent("pointerup", pointerInit)),
+      250,
+    );
+
+    setTimeout(
+      () => elm.dispatchEvent(new MouseEvent("click", mouseInit)),
+      255,
+    );
+
+    return wait(260);
   }
   function goto<E extends HTMLElement>(elm: E, modal: boolean = false) {
+    const centerOf = function (rect: DOMRect) {
+      return {
+        left: rect.left + rect.width / 2,
+        top: rect.top + rect.height / 2,
+      };
+    };
+    const distance = function (s0: DOMRect, s1: DOMRect) {
+      const cs0 = centerOf(s0),
+        cs1 = centerOf(s1);
+      return Math.sqrt((cs0.left - cs1.left) ** 2 + (cs0.top - cs1.top) ** 2);
+    };
     return new Promise<E>(async (resolve) => {
       if (modal) await wait(750);
-      const { x, y, height, width } = elm.getBoundingClientRect();
-      const left = `${x + width / 2 - 4}px`,
-        top = `${y + height / 2 - 4}px`;
-      pointer.animate([{ left, top }], {
-        duration: 750,
+      const pp = pointer.getBoundingClientRect(); // Pointer's position
+      const ep = elm.getBoundingClientRect(); // Element's position
+      const v = 3; // Pointer's velocity px/ms
+      const ec = centerOf(ep);
+      const left = ec.left - 4,
+        top = ec.top - 4;
+
+      pointer.animate([{ left: left + "px", top: top + "px" }], {
+        duration: distance(pp, ep) / v,
         fill: "forwards",
-        easing: "ease-in",
+        easing: "ease-out",
       }).onfinish = () =>
         (pointer.animate(
           { transform: ["scale(1)", "scale(.8)", "scale(1)"] },
-          { duration: 200 },
+          { duration: 100 },
         ).onfinish = () => resolve(elm));
 
-      if (pointer.style.left === left && pointer.style.top === top)
-        return resolve(elm);
+      if (pp.left === left && pp.top === top) return resolve(elm);
     });
   }
   function whenLoaded<T>(param: () => T | null) {
@@ -361,7 +393,7 @@ function Tuturial(doc: Document, pointer: HTMLDivElement) {
     return new Promise<T>(async (resolve, reject) => {
       let itr = 0;
       let result = param();
-      while ((result === null || result === undefined) && itr < 50) {
+      while ((result === null || result === undefined) && itr < 100) {
         await wait(200);
         result = param();
         ++itr;
@@ -375,9 +407,9 @@ function Tuturial(doc: Document, pointer: HTMLDivElement) {
   }
 
   // AddCategory();
-  AddProject();
-  function AddCategory() {
-    whenLoaded(() => doc.getElementById("add-category"))
+  // AddProject();
+  async function AddCategory() {
+    return await whenLoaded(() => doc.getElementById("add-category"))
       .then(goto)
       .then(press)
       .then(() => whenLoaded(() => doc.getElementById("add-btn")))
@@ -408,8 +440,8 @@ function Tuturial(doc: Document, pointer: HTMLDivElement) {
       .then(press);
   }
 
-  function AddProject() {
-    whenLoaded(() => doc.getElementById("add-project"))
+  async function AddProject() {
+    return await whenLoaded(() => doc.getElementById("add-project"))
       .then(goto)
       .then(press)
       .then(() =>
@@ -440,7 +472,7 @@ function Tuturial(doc: Document, pointer: HTMLDivElement) {
             ) as HTMLButtonElement,
         ),
       )
-      .then((elm) => goto(elm, true))
+      .then(goto)
       .then(press)
       .then(() =>
         whenLoaded(
@@ -450,7 +482,7 @@ function Tuturial(doc: Document, pointer: HTMLDivElement) {
             ) as HTMLButtonElement,
         ),
       )
-      .then(goto)
+      .then((elm) => goto(elm, true))
       .then(press)
       .then(() =>
         whenLoaded(
@@ -497,6 +529,209 @@ function Tuturial(doc: Document, pointer: HTMLDivElement) {
         ),
       )
       .then(goto)
+      .then(press)
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'form[name="project"] .menu[aria-label="priority"] .menu-item',
+            ) as HTMLLIElement,
+        ),
+      )
+      .then((elm) => goto(elm, true))
+      .then(press)
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'header button[name="add-project"]',
+            ) as HTMLButtonElement,
+        ),
+      )
+      .then(goto)
       .then(press);
   }
-}
+  AddTask();
+  async function AddTask() {
+    return await whenLoaded(() => doc.getElementById("add-task"))
+      .then(goto)
+      .then(press)
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'form[name="task"] input[name="title"]',
+            ) as HTMLInputElement,
+        ),
+      )
+      .then(goto)
+      .then(write("Sneezing with open eyes"))
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'form[name="task"] input[name="description"]',
+            ) as HTMLInputElement,
+        ),
+      )
+      .then(goto)
+      .then(write("Proving scientists are wrong!"))
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'form[name="task"] button[aria-label="calendar"]',
+            ) as HTMLButtonElement,
+        ),
+      )
+      .then(goto)
+      .then(press)
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              '#calendar button[aria-label="tomorrow"]',
+            ) as HTMLButtonElement,
+        ),
+      )
+      .then((elm) => goto(elm, true))
+      .then(press)
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'form[name="task"] button[aria-label="clock"]',
+            ) as HTMLButtonElement,
+        ),
+      )
+      .then(goto)
+      .then(press)
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector('#clock input[name="hour"]') as HTMLInputElement,
+        ),
+      )
+      .then((elm) => goto(elm, true))
+      .then(write("4"))
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector('#clock input[name="min"]') as HTMLInputElement,
+        ),
+      )
+      .then(goto)
+      .then(write("20"))
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              '#clock button[aria-label="confirm"]',
+            ) as HTMLButtonElement,
+        ),
+      )
+      .then(goto)
+      .then(press)
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'form[name="task"] .menu[aria-label="priority"] .menu-button',
+            ) as HTMLDivElement,
+        ),
+      )
+      .then(goto)
+      .then(press)
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'form[name="task"] .menu[aria-label="priority"] .menu-item:last-child',
+            ) as HTMLLIElement,
+        ),
+      )
+      .then((elm) => goto(elm, true))
+      .then(press)
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'form[name="task"] input[name="subtask-title"]',
+            ) as HTMLInputElement,
+        ),
+      )
+      .then(goto)
+      .then(write("Buyin green leaves 🌿"))
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'form[name="task"] button[name="add-subtask"]',
+            ) as HTMLButtonElement,
+        ),
+      )
+      .then(goto)
+      .then(press)
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'form[name="task"] input[name="subtask-title"]',
+            ) as HTMLInputElement,
+        ),
+      )
+      .then(goto)
+      .then(write("Steaming the veggies. ♨️"))
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'form[name="task"] button[name="add-subtask"]',
+            ) as HTMLButtonElement,
+        ),
+      )
+      .then(goto)
+      .then(press)
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'form[name="task"] input[name="subtask-title"]',
+            ) as HTMLInputElement,
+        ),
+      )
+      .then(goto)
+      .then(write("Inhaling and forcing a sneeze 😮‍💨"))
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'form[name="task"] button[name="add-subtask"]',
+            ) as HTMLButtonElement,
+        ),
+      )
+      .then(goto)
+      .then(press)
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'header button[name="verify-task"]',
+            ) as HTMLButtonElement,
+        ),
+      )
+      .then(goto)
+      .then(press)
+      .then(() => wait(2000))
+      .then(() =>
+        whenLoaded(
+          () =>
+            doc.querySelector(
+              'header button[name="confirm"]',
+            ) as HTMLButtonElement,
+        ),
+      )
+      .then(goto)
+      .then(press);
+  }
+}, 500);

@@ -147,6 +147,8 @@ export default function AddProjectPage({
       <header className="grid grid-cols-[3rem_1fr_3rem] items-center justify-center p-4">
         <div>
           <IconButton
+            aria-label="go back"
+            name="back"
             className="tap-zinc-100 ico-lg text-primary-900"
             icon="ArrowLeft"
             onClick={() => {
@@ -164,6 +166,8 @@ export default function AddProjectPage({
         </motion.h1>
         <div>
           <IconButton
+            aria-label="add to projects"
+            name="add-project"
             initial={{ opacity: 0, scale: 0.9 }}
             exit={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -202,8 +206,11 @@ export default function AddProjectPage({
               name="title"
               defaultValue={state.title}
               required
-              onInvalid={(e) => {
-                err.title = true;
+              onInvalid={() => {
+                setError((err) => {
+                  err.title = true;
+                  return err;
+                });
               }}
               onBlur={(e) => {
                 const isValid = e.target.checkValidity();
@@ -212,9 +219,13 @@ export default function AddProjectPage({
                   title: !isValid,
                 }));
                 if (isValid) {
-                  setState({ ...state, title: e.target.value.trim() });
+                  setState((s) => {
+                    s.title = e.target.value.trim();
+                    return s;
+                  });
                 }
               }}
+              onChange={(e) => console.log(e.nativeEvent)}
               placeholder="Title*"
               className="peer placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-zinc-400"
             />

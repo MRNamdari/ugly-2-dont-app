@@ -147,3 +147,17 @@ export function dateToLocalTime(d: Date) {
   HH = HH ? HH : 12; // the hour '0' should be '12'
   return `${num2str(HH)}:${num2str(MM)} ${ampm}`;
 }
+
+export function debounce<F extends (...args: any[]) => any>(
+  func: F,
+  delay: number,
+) {
+  let timeoutId: ReturnType<typeof setTimeout>;
+
+  return function (...args: Parameters<F>) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      func.apply(null, args);
+    }, delay);
+  };
+}

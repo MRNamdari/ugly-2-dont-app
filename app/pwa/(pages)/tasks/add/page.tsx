@@ -133,6 +133,7 @@ export default function AddTaskPage({
       <header className="grid grid-cols-[3rem_1fr_3rem] items-center justify-center p-4">
         <div>
           <IconButton
+            name="back"
             className="tap-zinc-100 ico-lg text-primary-900"
             icon="ArrowLeft"
             onClick={() => {
@@ -151,6 +152,7 @@ export default function AddTaskPage({
         </motion.h1>
         <div>
           <IconButton
+            name="verify-task"
             initial={{ opacity: 0, scale: 0.9 }}
             exit={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -168,6 +170,7 @@ export default function AddTaskPage({
         </div>
       </header>
       <motion.form
+        name="task"
         exit={{ opacity: 0 }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -196,17 +199,23 @@ export default function AddTaskPage({
               name="title"
               defaultValue={state?.title}
               required
-              onInvalid={(e) => {
-                err.title = true;
-              }}
+              onInvalid={() =>
+                setError((e) => {
+                  e.title = true;
+                  return e;
+                })
+              }
               onBlur={(e) => {
                 const isValid = e.target.checkValidity();
-                setError((err) => ({
-                  ...err,
-                  title: !isValid,
-                }));
+                setError((err) => {
+                  err.title = !isValid;
+                  return err;
+                });
                 if (isValid) {
-                  setState({ ...state, title: e.target.value.trim() });
+                  setState((s) => {
+                    s.title = e.target.value.trim();
+                    return s;
+                  });
                 }
               }}
               placeholder="Title*"
@@ -235,6 +244,7 @@ export default function AddTaskPage({
           <div className="grid grid-cols-2 gap-[inherit]">
             <span>
               <Button
+                aria-label="calendar"
                 leadingIcon="Calendar"
                 className={
                   "tap-zinc-200 btn-md " +
@@ -270,6 +280,7 @@ export default function AddTaskPage({
             </span>
             <span>
               <Button
+                aria-label="clock"
                 leadingIcon="Clock"
                 className={
                   "tap-zinc-200 btn-md " +
@@ -517,11 +528,13 @@ export default function AddTaskPage({
           <TextInput className="group text-input-md rounded-none bg-primary-800 text-white *:transition-colors">
             <input
               ref={subtaskInput}
+              name="subtask-title"
               type="text"
               placeholder="Add Sub-task"
               className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-primary-400"
             />
             <IconButton
+              name="add-subtask"
               icon="Plus"
               className="tap-primary-600 ico-md rounded-none"
               onClick={(e) => {

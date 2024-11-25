@@ -88,13 +88,14 @@ export default function ClockModal(props: { children: React.ReactNode }) {
     if (!isInDialog) close();
   }
 
-  function handleChange(e: ChangeEvent) {
+  function handleChange(e?: ChangeEvent) {
     const d = localTimeToDate();
     d && setTime(d);
   }
 
   function handleBlur(e: FocusEvent<HTMLInputElement>) {
     const i = e.target;
+    handleChange();
     i.value = num2str(parseInt(i.value));
   }
 

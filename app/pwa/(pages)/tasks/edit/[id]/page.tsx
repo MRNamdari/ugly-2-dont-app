@@ -2,6 +2,8 @@
 import { ITask } from "@/app/_store/db";
 import AddTaskPage from "../../add/page";
 
+export const runtime = "edge";
+
 export default function EditTaskPage({
   params,
 }: {

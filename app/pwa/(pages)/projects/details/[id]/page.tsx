@@ -15,6 +15,8 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { AddContext } from "@/app/_components/add.modal";
 import { SelectionContext } from "@/app/_components/selection.modal";
 
+export const runtime = "edge";
+
 export default function ProjectDetailPage({
   params,
 }: {

@@ -6,6 +6,17 @@ export const metadata: Metadata = {
   title: "Ugly2Don't",
   description: "your ugly 2 do app",
   icons: "/favicon.svg",
+  openGraph: {
+    title: "Ugly2Don't",
+    description:
+      "A simple, straightforward app that steps on your nerves so you get things done.",
+    images: { url: "/preview.jpg" },
+  },
+  other: {
+    "theme-color": "#2e4c51",
+  },
+  authors: { name: "MO⋅RE⋅NAM", url: "https://github.com/MRNamdari/" },
+  creator: "Mohammad Reza Namdari",
 };
 
 const fredoka = Fredoka({

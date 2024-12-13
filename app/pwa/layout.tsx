@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import AddCategoryModal from "../_components/addEditCategory.modal";
 import CalendarModal from "../_components/calendar.modal";

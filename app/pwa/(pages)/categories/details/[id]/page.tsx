@@ -1,5 +1,3 @@
 "use client";
-
-import CategoryBrowserPage from "../../page";
-
-export default CategoryBrowserPage;
+import dynamic from "next/dynamic";
+export default dynamic(() => import("../../page"), { ssr: false });

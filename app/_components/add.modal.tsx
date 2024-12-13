@@ -3,7 +3,6 @@ import Button from "./button";
 import IconButton from "./icon-button";
 import {
   createContext,
-  EventHandler,
   MouseEvent,
   MouseEventHandler,
   useEffect,
@@ -21,7 +20,7 @@ type AddButtons = {
 type AddContextValue = {
   showModal: (btn: AddButtons) => void;
   close: () => void;
-  onClose: EventHandler<any>;
+  onClose: () => void;
 };
 export const AddContext = createContext<AddContextValue>({
   showModal() {},
@@ -31,8 +30,8 @@ export const AddContext = createContext<AddContextValue>({
 export default function AddModal(props: { children: React.ReactNode }) {
   const router = useRouter();
   const ref = useRef<HTMLDialogElement>(null);
-  const constant = useRef<{ cb: EventHandler<any> }>({ cb: () => {} });
-  const [pending, startTransition] = useTransition();
+  const constant = useRef<{ cb: () => void }>({ cb: () => {} });
+  const startTransition = useTransition()[1];
   const [buttons, setButtons] = useState<AddButtons>({});
 
   useEffect(() => {
@@ -99,7 +98,7 @@ export default function AddModal(props: { children: React.ReactNode }) {
       value={{
         showModal,
         close,
-        set onClose(cb: EventHandler<any>) {
+        set onClose(cb: () => void) {
           constant.current.cb = cb;
         },
       }}

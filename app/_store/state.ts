@@ -1,13 +1,5 @@
 import { signal, computed, Signal } from "@preact/signals-react";
-import {
-  categories,
-  ICategory,
-  IProject,
-  ISubTask,
-  ITask,
-  projects,
-  tasks,
-} from "./db";
+import { IProject, ITask } from "./db";
 
 export type SignalValue<T> = T extends Signal<infer U> ? U : never;
 
@@ -41,13 +33,13 @@ export const isMovingStarted = computed(() => {
   return keys.map((f) => store.moving[f].value.length > 0).some((b) => b);
 });
 
-export function encodeURL(struct: any) {
+export function encodeURL(struct: Record<string, string>) {
   const url = new URLSearchParams(struct);
   return "?" + url;
 }
 
 export function RemoveFromSelection(feature: Feature, fid: number) {
-  let selMgr = store.selection[feature];
+  const selMgr = store.selection[feature];
   selMgr.value = selMgr.value.filter((id) => fid !== id);
 }
 export function AddToSelection(feature: Feature, fid: number) {

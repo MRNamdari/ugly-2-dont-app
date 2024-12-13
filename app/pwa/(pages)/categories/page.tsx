@@ -11,8 +11,6 @@ import TaskTicket from "@/app/_components/task.ticket";
 import {
   db,
   ICategory,
-  IProject,
-  ITask,
   TaskProgressByCategory,
   ProjectProgressByCategory,
   addIdTo,
@@ -22,11 +20,11 @@ import {
   store,
   TaskFormDataSignal,
 } from "@/app/_store/state";
-import { batch, useSignalEffect } from "@preact/signals-react";
+import { batch } from "@preact/signals-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 
 export default function CategoryBrowserPage({
   params,
@@ -58,9 +56,7 @@ export default function CategoryBrowserPage({
       store.view.task.value = tasks.map((c) => c.id);
     });
   }, [categories, projects, tasks]);
-  useSignalEffect(() => {
-    store.selection;
-  });
+
   return (
     <>
       <header className="grid grid-cols-[3rem_1fr_3rem] items-center justify-center p-4">

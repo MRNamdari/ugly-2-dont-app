@@ -79,11 +79,13 @@ function toValue(y: number, m: number, d: number) {
   return `${y}-${num2str(m)}-${num2str(d)}`;
 }
 
-export const CalendarContext = createContext<{
+type CalendarContextValue = {
   showModal: (date?: Date | string) => void;
   close: () => void;
-  onClose: (date?: Date) => any;
-}>({
+  onClose: (date?: Date) => void;
+};
+
+export const CalendarContext = createContext<CalendarContextValue>({
   showModal() {},
   close() {},
   onClose() {},
@@ -93,14 +95,14 @@ export default function CalendarModal(props: { children: React.ReactNode }) {
   const [date, setDate] = useState(new Date());
   const ref = useRef<HTMLDialogElement>(null);
   const constant = useRef<{
-    cb: (date?: Date) => any;
+    cb: (date?: Date) => void;
     initial?: Date;
-  }>({ cb(date?: Date) {}, initial: undefined });
-  const [isPending, startTransition] = useTransition();
+  }>({ cb() {}, initial: undefined });
+  const startTransition = useTransition()[1];
   useEffect(() => {
     const dialog = ref.current;
     if (dialog) {
-      dialog.onclose = (e) => {
+      dialog.onclose = () => {
         const str = ref.current?.returnValue;
         if (str) {
           if (str !== "false") constant.current.cb(string2date(str));
@@ -151,7 +153,7 @@ export default function CalendarModal(props: { children: React.ReactNode }) {
 
   function handleClick(y: number, m: number, d: number) {
     const date = new Date(toValue(y, m, d));
-    return (e: MouseEvent<HTMLButtonElement>) => {
+    return () => {
       startTransition(() => {
         setDate(date);
       });
@@ -161,8 +163,8 @@ export default function CalendarModal(props: { children: React.ReactNode }) {
   function handleCancel(e: MouseEvent<HTMLDialogElement>) {
     const dialog = ref.current;
     if (!dialog) return;
-    var rect = dialog.getBoundingClientRect();
-    var isInDialog =
+    const rect = dialog.getBoundingClientRect();
+    const isInDialog =
       rect.top <= e.clientY &&
       e.clientY <= rect.top + rect.height &&
       rect.left <= e.clientX &&
@@ -242,23 +244,23 @@ export default function CalendarModal(props: { children: React.ReactNode }) {
     },
   };
 
-  function handleToToday(e: MouseEvent<HTMLButtonElement>) {
+  function handleToToday() {
     GoToDay(RelativeDate.today);
   }
 
-  function handleToTomorrow(e: MouseEvent<HTMLButtonElement>) {
+  function handleToTomorrow() {
     GoToDay(RelativeDate.tomorrow);
   }
 
-  function handleToNextWeek(e: MouseEvent<HTMLButtonElement>) {
+  function handleToNextWeek() {
     GoToDay(RelativeDate.nextWeek);
   }
 
-  function handleToNextMonth(e: MouseEvent<HTMLButtonElement>) {
+  function handleToNextMonth() {
     GoToDay(RelativeDate.nextMonth);
   }
 
-  function handleToNextYear(e: MouseEvent<HTMLButtonElement>) {
+  function handleToNextYear() {
     GoToDay(RelativeDate.nextYear);
   }
 
@@ -267,7 +269,7 @@ export default function CalendarModal(props: { children: React.ReactNode }) {
       value={{
         showModal,
         close,
-        set onClose(cb: (date?: Date) => any) {
+        set onClose(cb: (date?: Date) => void) {
           constant.current.cb = cb;
         },
       }}

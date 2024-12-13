@@ -5,7 +5,7 @@ import { Priority } from "@/app/_store/data";
 // Hooks
 import Fuse from "fuse.js";
 import { useRouter } from "next/navigation";
-import { MouseEvent, useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 // Components
 import Menu, { MenuItem } from "@/app/_components/menu";
 import IconButton from "@/app/_components/icon-button";
@@ -126,7 +126,7 @@ export default function AddProjectPage({
       </MenuItem>
     );
   }
-  async function handleSubmit(e: MouseEvent<HTMLButtonElement>) {
+  async function handleSubmit() {
     const f = form.current;
     if (!f) return;
     if (f.checkValidity()) {
@@ -407,21 +407,21 @@ export default function AddProjectPage({
             >
               <MenuItem
                 value="2"
-                onSelect={(priority) => setState({ ...state, priority: 2 })}
+                onSelect={() => setState({ ...state, priority: 2 })}
                 className="menu-item-secondary-50 tap-secondary-100 text-secondary-600"
               >
                 Low
               </MenuItem>
               <MenuItem
                 value="1"
-                onSelect={(priority) => setState({ ...state, priority: 1 })}
+                onSelect={() => setState({ ...state, priority: 1 })}
                 className="menu-item-warning-50 tap-warning-100 text-warning-700"
               >
                 Medium
               </MenuItem>
               <MenuItem
                 value="0"
-                onSelect={(priority) => setState({ ...state, priority: 0 })}
+                onSelect={() => setState({ ...state, priority: 0 })}
                 className="menu-item-error-50 tap-error-100 text-error-600"
               >
                 High

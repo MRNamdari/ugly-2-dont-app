@@ -2,11 +2,7 @@
 import IconButton from "@/app/_components/icon-button";
 import ProjectTicket from "@/app/_components/project.ticket";
 import { db, IProject } from "@/app/_store/db";
-import {
-  ProjectFormDataSignal,
-  store,
-  TaskFormDataSignal,
-} from "@/app/_store/state";
+import { ProjectFormDataSignal, TaskFormDataSignal } from "@/app/_store/state";
 import { useContext, useEffect, useRef, useState } from "react";
 import ProjectsCarousel, {
   ProjectCarouselRef,

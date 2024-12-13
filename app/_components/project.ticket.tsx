@@ -8,7 +8,6 @@ import {
   AddToSelection,
   isSelectionStarted,
   RemoveFromSelection,
-  store,
 } from "../_store/state";
 import IconButton from "./icon-button";
 import { motion, PanInfo } from "framer-motion";
@@ -19,8 +18,6 @@ import ProgressPie from "./progress-pie";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../_store/db";
 import { DeleteContext } from "./delete.modal";
-
-const selection = store.selection;
 
 type ProjectTicketProps = IProject & {
   onOpen?: (e: MouseEvent, id: IProject["id"]) => void;
@@ -58,15 +55,14 @@ export default function ProjectTicket(props: ProjectTicketProps) {
     e.preventDefault();
     AddToSelection("project", props.id);
   }
-  function DragEndHandler(e: any, info: PanInfo) {
+  function DragEndHandler(e: unknown, info: PanInfo) {
     dragEnded.current.info = info;
   }
   function DragTransitionEndHandler() {
     const info = dragEnded.current.info;
     if (info && Math.abs(info.offset.x) > 90)
-      info.offset.x > 0
-        ? onDelete()
-        : router.push(`/pwa/projects/edit/${props.id}`);
+      if (info.offset.x > 0) onDelete();
+      else router.push(`/pwa/projects/edit/${props.id}`);
   }
   function onDelete() {
     deleteModal.onClose = async (value) => {
@@ -193,7 +189,7 @@ export function DueTime(props: { date: Date; time: Date }) {
     (r) => r < 25,
     (r) => r < 99,
     (r) => r < 13,
-    (r) => true,
+    () => true,
   ];
 
   if (RemainedInSec > 0) {

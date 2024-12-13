@@ -43,8 +43,9 @@ interface LayoutTransitionProps {
 
 export function LayoutTransition({
   children,
-  segment = useSelectedLayoutSegment(),
+  // segment = useSelectedLayoutSegment(),
 }: LayoutTransitionProps) {
+  const segment = useSelectedLayoutSegment();
   return (
     <AnimatePresence mode="wait" initial={false}>
       <FrozenRouter key={segment}>{children}</FrozenRouter>

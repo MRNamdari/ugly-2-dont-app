@@ -1,7 +1,6 @@
 import Icon, { IconLable } from "./icon";
 import React, {
   memo,
-  useRef,
   useState,
   MouseEvent,
   MouseEventHandler,
@@ -124,7 +123,7 @@ type MenuItemProps<V extends string> = {
   value: V;
   children: string;
   className: string;
-  onSelect?: (item: MenuItemProps<V>["value"]) => any;
+  onSelect?: (item: MenuItemProps<V>["value"]) => void;
 };
 type MenuDisabledItemProps = {
   children: string;

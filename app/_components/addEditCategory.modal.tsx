@@ -11,28 +11,31 @@ import {
 import TextInput from "./text-input";
 import Button from "./button";
 
-export const AddEditCategoryContext = createContext<{
+type AddEditCategoryContextValue = {
   showModal: (title?: string) => void;
   close: () => void;
-  onClose: (value: string) => any;
-}>({
-  showModal(title?: string) {},
-  close() {},
-  onClose() {},
-});
+  onClose: (value: string) => void;
+};
+
+export const AddEditCategoryContext =
+  createContext<AddEditCategoryContextValue>({
+    showModal() {},
+    close() {},
+    onClose() {},
+  });
 
 export default function AddCategoryModal(props: { children: React.ReactNode }) {
   const [value, setValue] = useState("");
   const [defaultValue, setDefaultValue] = useState("");
-  const onClose = useRef<{ cb: (value: string) => any }>({ cb() {} });
+  const onClose = useRef<{ cb: (value: string) => void }>({ cb() {} });
   const ref = useRef<HTMLDialogElement>(null);
   const form = useRef<HTMLFormElement>(null);
-  const [isPending, startTransition] = useTransition();
+  const startTransition = useTransition()[1];
 
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
-    dialog.onclose = (ev) => {
+    dialog.onclose = () => {
       if (onClose.current) onClose.current.cb(dialog.returnValue);
       setDefaultValue("");
       if (form.current) form.current.reset();
@@ -74,7 +77,7 @@ export default function AddCategoryModal(props: { children: React.ReactNode }) {
       value={{
         showModal,
         close,
-        set onClose(callback: (value: string) => {}) {
+        set onClose(callback: (value: string) => void) {
           onClose.current.cb = callback;
         },
       }}

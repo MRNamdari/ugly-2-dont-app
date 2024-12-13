@@ -362,7 +362,7 @@ class UglyDB extends Dexie {
   extractCategories(id: ICategory["id"]) {
     return new Promise<number[]>((resolve, reject) => {
       // id = 0 is the root category, for all features that aren't categoreised
-      id !== 0 &&
+      if (id !== 0)
         this.categories.get(id).then((c) => {
           if (c === undefined) reject("Invalid category id");
         });

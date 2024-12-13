@@ -17,7 +17,7 @@ import Fuse from "fuse.js";
 import { CalendarContext } from "./calendar.modal";
 import { ClockContext } from "./clock.modal";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db, ICategory, IProject, ITask } from "../_store/db";
+import { db, ICategory, IProject } from "../_store/db";
 import { date2display, timeToLocalTime } from "../_store/util";
 import { Priority } from "../_store/data";
 
@@ -55,7 +55,7 @@ export default function TaskFilterModal(props: { children: React.ReactNode }) {
   const constants = useRef<{ cb: TaskFilterContextType["onClose"] }>({
     cb: () => {},
   });
-  const [isPending, startTransition] = useTransition();
+  const startTransition = useTransition()[1];
 
   function showModal() {
     startTransition(() => {

@@ -21,7 +21,7 @@ export default function TaskBrowserPage({
 
   const tasks =
     useLiveQuery(async () => {
-      var query = db.tasks.filter((t) => {
+      const query = db.tasks.filter((t) => {
         if (filter?.category && filter.category !== t.category) return false;
         if (filter?.project && filter.project !== t.project) return false;
         if (filter?.priority && filter.priority !== t.priority) return false;

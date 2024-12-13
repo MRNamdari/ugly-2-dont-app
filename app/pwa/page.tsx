@@ -225,7 +225,7 @@ export default function PWAHomePage() {
           <span className="whitespace-nowrap">see all</span>
         </Link>
         <div className="flex w-full overflow-x-auto bg-primary-800 pb-12 pt-4">
-          {projects?.map(([p, [all, pending]], i) => {
+          {projects?.map(([p, [all, pending]]) => {
             return (
               <Link
                 href={"/pwa/projects/details/" + p.id}

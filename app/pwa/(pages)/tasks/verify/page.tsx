@@ -7,7 +7,7 @@ import Button from "@/app/_components/button";
 import { addDueTo, addIdTo, db, ITask, Priority } from "@/app/_store/db";
 import { useRouter } from "next/navigation";
 import { date2display, timeToLocalTime } from "@/app/_store/util";
-import { MouseEvent, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useSignalEffect } from "@preact/signals-react";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -34,7 +34,7 @@ export default function VerifyTaskPage() {
     [undefined, undefined],
   );
 
-  async function handleSubmit(e: MouseEvent<HTMLButtonElement>) {
+  async function handleSubmit() {
     const newTask = addDueTo(state as ITask);
 
     if (state.id) {

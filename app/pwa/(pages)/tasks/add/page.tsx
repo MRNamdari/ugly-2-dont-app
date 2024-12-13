@@ -1,6 +1,6 @@
 "use client";
 // Types and Constants
-import type { IProject, ISubTask, ICategory, ITask } from "@/app/_store/db";
+import type { IProject, ICategory, ITask } from "@/app/_store/db";
 import { Priority } from "@/app/_store/data";
 // Signals
 import { TaskFormDataSignal } from "@/app/_store/state";
@@ -382,7 +382,7 @@ export default function AddTaskPage({
               name="reminder"
               className="menu-zinc-100 tap-zinc-200 menu-md menu-filled text-zinc-600"
               expanded
-              onClick={(e) => {
+              onClick={() => {
                 calendar.onClose = (d) => {
                   if (d) {
                     clock.onClose = (t) => {

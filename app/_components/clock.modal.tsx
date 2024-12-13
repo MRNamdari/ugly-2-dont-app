@@ -5,7 +5,6 @@ import {
   useRef,
   createContext,
   useEffect,
-  ChangeEvent,
   FocusEvent,
 } from "react";
 import { num2str } from "../_store/util";
@@ -13,10 +12,15 @@ import { num2str } from "../_store/util";
 import Icon from "./icon";
 import IconButton from "./icon-button";
 
-export const ClockContext = createContext({
-  showModal(time?: Date) {},
+type ClockContextValue = {
+  showModal: (time?: Date) => void;
+  close: () => void;
+  onClose: (time: Date) => void;
+};
+export const ClockContext = createContext<ClockContextValue>({
+  showModal() {},
   close() {},
-  onClose(time?: Date) {},
+  onClose() {},
 });
 
 export default function ClockModal(props: { children: React.ReactNode }) {
@@ -31,7 +35,13 @@ export default function ClockModal(props: { children: React.ReactNode }) {
   const hour = useRef<HTMLInputElement>(null);
   const min = useRef<HTMLInputElement>(null);
   const ampm = useRef<HTMLInputElement>(null);
-  const constant = useRef({ cb: (time?: Date) => {}, time: initialTime });
+  const constant = useRef<{
+    cb: (time?: Date) => void;
+    time: Date;
+  }>({
+    cb: () => {},
+    time: initialTime,
+  });
 
   useEffect(() => {
     const dialog = ref.current;
@@ -53,7 +63,7 @@ export default function ClockModal(props: { children: React.ReactNode }) {
     dialog.showModal();
   }
 
-  function close(e?: MouseEvent<HTMLButtonElement>) {
+  function close() {
     const dialog = ref.current;
     if (!dialog) return;
     dialog.close("false");
@@ -88,9 +98,9 @@ export default function ClockModal(props: { children: React.ReactNode }) {
     if (!isInDialog) close();
   }
 
-  function handleChange(e?: ChangeEvent) {
+  function handleChange() {
     const d = localTimeToDate();
-    d && setTime(d);
+    if (d) setTime(d);
   }
 
   function handleBlur(e: FocusEvent<HTMLInputElement>) {
@@ -104,7 +114,7 @@ export default function ClockModal(props: { children: React.ReactNode }) {
       value={{
         showModal,
         close,
-        set onClose(cb: () => any) {
+        set onClose(cb: () => void) {
           constant.current.cb = cb;
         },
       }}

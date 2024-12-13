@@ -9,7 +9,7 @@ import {
 } from "@/app/_store/state";
 import { useSignalEffect } from "@preact/signals-react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { motion, PanInfo, SingleTarget } from "framer-motion";
+import { motion, PanInfo } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -132,15 +132,14 @@ export default forwardRef<HTMLElement, ITask>(function TaskTicket(
     e.preventDefault();
     AddToSelection("task", props.id);
   }
-  function DragEndHandler(e: any, info: PanInfo) {
+  function DragEndHandler(e: unknown, info: PanInfo) {
     dragEnded.current.info = info;
   }
   function DragTransitionEndHandler() {
     const info = dragEnded.current.info;
     if (info && Math.abs(info.offset.x) > 90)
-      info.offset.x > 0
-        ? onDelete()
-        : router.push(`/pwa/tasks/edit/${props.id}`);
+      if (info.offset.x > 0) onDelete();
+      else router.push(`/pwa/tasks/edit/${props.id}`);
   }
   function onDelete() {
     deleteModal.onClose = (value) => {
@@ -258,7 +257,7 @@ export default forwardRef<HTMLElement, ITask>(function TaskTicket(
           <span className="grid min-h-0 gap-[inherit]">
             <p className="text-sm text-primary-700">{props.description}</p>
             <menu>
-              {props.subtasks?.map((st, i, a) => (
+              {props.subtasks?.map((st, i) => (
                 <li
                   key={st.id}
                   className="subtask flex items-center gap-2 py-1 text-sm"
@@ -373,7 +372,7 @@ function DynamicDue({ time, date }: { time: Date; date: Date }) {
   ];
   const [content, setContent] = useState<string>("");
   useEffect(() => {
-    var delay = 0;
+    let delay = 0;
     const timeout = setInterval(() => {
       const remainedInSec = (date.getTime() - Date.now()) / 1e3;
       if (0 < remainedInSec && remainedInSec < 3600) {

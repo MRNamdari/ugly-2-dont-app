@@ -11,7 +11,6 @@ import {
   Variant,
   AnimatePresence,
   MotionProps,
-  useSpring,
 } from "framer-motion";
 
 import Link from "next/link";
@@ -36,7 +35,7 @@ export default function DesktopPage() {
     });
   }, 500);
   const [mainHeight, setHeight] = useState<number>(0);
-  const { scrollYProgress, scrollY } = useScroll({
+  const { scrollYProgress } = useScroll({
     axis: "y",
     container: mainRef,
     offset: ["start start", "end end"],
@@ -207,9 +206,9 @@ export default function DesktopPage() {
                     <Link href={"/"} className="pr-1 text-sky-500">
                       @Ugly2Dont
                     </Link>
-                    is... a todo app. THAT'S IT. The support team answers
-                    immediately when i send a ticket. HELLOOOO!!! Don't you have
-                    any job to do? I have to talk to their manager.
+                    is... a todo app. THAT&apos;S IT. The support team answers
+                    immediately when i send a ticket. HELLOOOO!!! Don&apos;t you
+                    have any job to do? I have to talk to their manager.
                   </>
                 }
                 avatar="/b.jpg"
@@ -223,9 +222,9 @@ export default function DesktopPage() {
                       @Ugly2Dont
                     </Link>
                     was made with my direct order and provision and done by my
-                    subordinates. No wonder it's the only to-do app that can
-                    keep up with my procrastination skills. Under my supervision
-                    no less of a miracle happens.
+                    subordinates. No wonder it&apos;s the only to-do app that
+                    can keep up with my procrastination skills. Under my
+                    supervision no less of a miracle happens.
                   </>
                 }
                 avatar="/c.png"
@@ -239,8 +238,8 @@ export default function DesktopPage() {
                       @Ugly2Dont
                     </Link>
                     is the one and only thing i like about this century on top
-                    of that its branding resonates with me, and unlike me it's
-                    functional.
+                    of that its branding resonates with me, and unlike me
+                    i&apos;s functional.
                   </>
                 }
                 avatar="/a.jpg"
@@ -250,13 +249,13 @@ export default function DesktopPage() {
                 role="Gym Rat"
                 comment={
                   <>
-                    I've tried many premium to-do apps, but
+                    I&apos;ve tried many premium to-do apps, but
                     <Link href={"/"} className="px-1 text-sky-500">
                       @Ugly2Dont
                     </Link>
-                    is my one and only one. I stuck with it because it's simple
-                    and easy to use, and it actually helps me get things done.
-                    Unfortunately, it's free!
+                    is my one and only one. I stuck with it because it&apos;s
+                    simple and easy to use, and it actually helps me get things
+                    done. Unfortunately, it&apos;s free!
                   </>
                 }
                 avatar="/d.webp"
@@ -269,9 +268,9 @@ export default function DesktopPage() {
             <div className="container mx-auto grid h-full place-content-evenly place-self-center px-4 md:grid-cols-2">
               <div className="h-full w-full place-self-center">
                 <div className="mb-6 items-baseline gap-6 text-3xl leading-relaxed md:mb-0">
-                  Haven't installed it yet?
+                  Haven&apos;t installed it yet?
                   <br />
-                  it's
+                  it&apos;s
                   <h2 className="mb-8 inline-block font-semibold">
                     <button className="rounded-full bg-primary-700 px-4 text-5xl">
                       Ugly
@@ -329,7 +328,7 @@ export default function DesktopPage() {
                   </div>
                 </div>
                 <div className="mt-8 border-t border-primary-800 pt-4 text-center text-sm text-primary-400">
-                  &copy; 2025 Ugly2Don't. All rights reserved.
+                  &copy; 2025 Ugly2Don&apos;t. All rights reserved.
                 </div>
               </div>
             </div>
@@ -479,14 +478,14 @@ function FirstSection(props: { onView?: () => void }) {
   const [inView, setInView] = useState(false);
 
   useEffect(() => {
-    inView && control.start("enter");
+    if (inView) control.start("enter");
   }, [inView]);
 
   return (
     <motion.div
       onViewportEnter={() => {
         setInView(true);
-        props.onView && props.onView();
+        if (props.onView) props.onView();
       }}
       className="grid snap-center grid-flow-row gap-16"
     >
@@ -790,7 +789,7 @@ function ProjectTutorial(props: {
     ],
     [
       <motion.li key={6} initial={initial} exit={initial} animate={animate}>
-        It's all set. Now you can add tasks/projects to it.
+        It&apos;s all set. Now you can add tasks/projects to it.
       </motion.li>,
       false,
     ],
@@ -840,13 +839,13 @@ function TaskTutorial(props: {
     ],
     [
       <motion.li key={1} initial={initial} exit={initial} animate={animate}>
-        What's your task?
+        What&apos;s your task?
       </motion.li>,
       false,
     ],
     [
       <motion.li key={2} initial={initial} exit={initial} animate={animate}>
-        What's it about?
+        What&apos;s it about?
       </motion.li>,
       false,
     ],
@@ -864,7 +863,7 @@ function TaskTutorial(props: {
     ],
     [
       <motion.li key={5} initial={initial} exit={initial} animate={animate}>
-        It's crucial huh?
+        It&apos;s crucial huh?
       </motion.li>,
       false,
     ],
@@ -876,7 +875,7 @@ function TaskTutorial(props: {
     ],
     [
       <motion.li key={7} initial={initial} exit={initial} animate={animate}>
-        That's what you want, right?
+        That&apos;s what you want, right?
       </motion.li>,
       false,
     ],
@@ -948,7 +947,7 @@ function CategoryPage() {
   };
 
   useEffect(() => {
-    played && control.start("enter");
+    if (played) control.start("enter");
   }, [played]);
 
   return (
@@ -1388,7 +1387,7 @@ function ProjectPage() {
   };
 
   useEffect(() => {
-    played && control.start("enter");
+    if (played) control.start("enter");
   }, [played]);
   return (
     <motion.div
@@ -1478,7 +1477,7 @@ function ProjectPage() {
             >
               <span className="grid grid-cols-[auto_2rem] text-primary-100">
                 <h4 className="self-center text-lg font-medium">
-                  Uglier2Don't App
+                  Uglier2Don&apos;t App
                 </h4>
                 <span className="relative">
                   <button className="ico-md text-primary-200">
@@ -1618,7 +1617,7 @@ function ProjectPage() {
                   </a>{" "}
                   •{" "}
                   <a className="underline" href="/pwa/categories/details/1">
-                    Uglier2Don't App
+                    Uglier2Don&apos;t App
                   </a>
                 </h5>
                 <div className="flex items-center justify-between pt-2 text-primary-700">
@@ -1666,7 +1665,7 @@ function TaskPage() {
     delay: 1,
   };
   useEffect(() => {
-    played && control.start("enter");
+    if (played) control.start("enter");
   }, [played]);
   return (
     <motion.div

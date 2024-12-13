@@ -8,17 +8,20 @@ import {
   useState,
   useTransition,
 } from "react";
-import { usePreviousValue } from "./layout-transition";
 
-export const DeleteContext = createContext({
-  showModal(msg: string) {},
+type DeleteContextValue = {
+  showModal: (msg: string) => void;
+  close: () => void;
+  onClose: (value: string) => void;
+};
+export const DeleteContext = createContext<DeleteContextValue>({
+  showModal() {},
   close() {},
-  onClose(value: string) {},
+  onClose() {},
 });
 
 export default function DeleteModal(props: { children: React.ReactNode }) {
   const [msg, setMsg] = useState<string>();
-  const pre = usePreviousValue(msg);
   const ref = useRef<HTMLDialogElement>(null);
   const onClose = useRef<{ cb: (value: string) => void }>({ cb() {} });
   const [isPending, startTransition] = useTransition();

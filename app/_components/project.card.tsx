@@ -2,15 +2,10 @@
 
 import Link from "next/link";
 import { db, IProject, PendingTasksCount, Priority } from "../_store/db";
-import { store } from "../_store/state";
+
 import IconButton from "./icon-button";
-import {
-  motion,
-  MotionValue,
-  PanInfo,
-  TargetAndTransition,
-} from "framer-motion";
-import { useContext, useRef, useState } from "react";
+import { motion, MotionValue, TargetAndTransition } from "framer-motion";
+import { useContext, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { DueTime, PendingTasks } from "./project.ticket";
 import Button from "./button";
@@ -20,7 +15,7 @@ import { DeleteContext } from "./delete.modal";
 
 type ProjectCardProps = IProject & {
   x?: MotionValue<number>;
-  onDrag?: (ev: any, dir: 1 | -1) => void;
+  onDrag?: (ev: unknown, dir: 1 | -1) => void;
   onDelete?: () => void;
   animate?: TargetAndTransition;
 };
@@ -44,7 +39,7 @@ export default function ProjectCard(props: ProjectCardProps) {
   function onDelete() {
     deleteModal.onClose = async (value) => {
       if (value === "true") {
-        props.onDelete && props.onDelete();
+        if (props.onDelete) props.onDelete();
         await db.deleteProject(props.id);
       }
     };

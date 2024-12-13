@@ -1,14 +1,12 @@
-import { db } from "./db";
-
 type GCEventNames = number | "restart" | "cancel" | "play" | "pause" | "finish";
 export class GC<T> /* Generator Controller*/ {
   #isPaused: boolean = false;
   #resolvePause?: (value: unknown) => void;
-  #rejectPause?: (reason?: any) => void;
+  #rejectPause?: (reason?: unknown) => void;
   #gen: AsyncGenerator<unknown, T, unknown>;
   #genFn: () => AsyncGenerator<unknown, T, unknown>;
-  #callbackStack: Map<GCEventNames, (value: any) => void> = new Map();
-  then: ((value: T) => any) | undefined = undefined;
+  #callbackStack: Map<GCEventNames, (value: GCEventNames) => void> = new Map();
+  then: ((value: unknown) => void) | undefined = undefined;
   done: boolean = false;
 
   constructor(fn: () => AsyncGenerator<unknown, T, unknown>) {
@@ -16,7 +14,7 @@ export class GC<T> /* Generator Controller*/ {
     this.#gen = fn();
   }
   async run() {
-    var value: any, done: boolean | undefined;
+    let value: unknown, done: boolean | undefined;
     do {
       const result = await this.#gen.next();
       if (typeof result.value === "number") this.callbackHandler(result.value);
@@ -59,7 +57,7 @@ export class GC<T> /* Generator Controller*/ {
     this.#gen = this.#genFn();
     this.callbackHandler("restart");
   }
-  when(nextValue: GCEventNames, cb: (value: number) => void) {
+  when(nextValue: GCEventNames, cb: (value: GCEventNames) => void) {
     this.#callbackStack.set(nextValue, cb);
   }
   private callbackHandler(key: GCEventNames) {
@@ -72,14 +70,14 @@ export class GC<T> /* Generator Controller*/ {
 
 export function Tuturial(doc: Document, pointer: HTMLDivElement) {
   async function* goBack() {
-    for (let modal of doc.getElementsByTagName("dialog")) {
+    for (const modal of doc.getElementsByTagName("dialog")) {
       if (modal.hasAttribute("open")) {
         modal.close();
         await wait(300);
       }
     }
     while (doc.location.pathname !== "/pwa") {
-      let elm = yield* whenLoaded(
+      const elm = yield* whenLoaded(
         () =>
           doc.querySelector("header button[name='back']") as HTMLButtonElement,
       );
@@ -87,37 +85,37 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
       yield* press(elm);
     }
   }
-  function swipe(dir: "left" | "right") {
-    const m = dir === "left" ? -1 : 1;
-    const init: PointerEventInit = {
-      cancelable: false,
-      bubbles: true,
-      pressure: 1,
-      pointerId: 1,
-      pointerType: "touch",
-      isPrimary: true,
-      composed: true,
-    };
-    const move = (x: number) => {
-      const newInit: PointerEventInit = {
-        ...init,
-        movementX: x * m,
-        clientX: x * m,
-        screenX: x * m,
-      };
-      return newInit;
-    };
+  // function swipe(dir: "left" | "right") {
+  //   const m = dir === "left" ? -1 : 1;
+  //   const init: PointerEventInit = {
+  //     cancelable: false,
+  //     bubbles: true,
+  //     pressure: 1,
+  //     pointerId: 1,
+  //     pointerType: "touch",
+  //     isPrimary: true,
+  //     composed: true,
+  //   };
+  //   const move = (x: number) => {
+  //     const newInit: PointerEventInit = {
+  //       ...init,
+  //       movementX: x * m,
+  //       clientX: x * m,
+  //       screenX: x * m,
+  //     };
+  //     return newInit;
+  //   };
 
-    return async function* (elm: HTMLElement) {
-      yield elm.dispatchEvent(new PointerEvent("pointerdown", init));
-      for (let i = 0; i < 70; ++i) {
-        yield await wait(3);
-        yield elm.dispatchEvent(new PointerEvent("pointermove", move(i * 5)));
-      }
-      yield await wait(2);
-      return elm.dispatchEvent(new PointerEvent("pointerup", move(70 * 5)));
-    };
-  }
+  //   return async function* (elm: HTMLElement) {
+  //     yield elm.dispatchEvent(new PointerEvent("pointerdown", init));
+  //     for (let i = 0; i < 70; ++i) {
+  //       yield await wait(3);
+  //       yield elm.dispatchEvent(new PointerEvent("pointermove", move(i * 5)));
+  //     }
+  //     yield await wait(2);
+  //     return elm.dispatchEvent(new PointerEvent("pointerup", move(70 * 5)));
+  //   };
+  // }
   function write(text: string) {
     return async function* (elm: HTMLInputElement) {
       yield elm.dispatchEvent(

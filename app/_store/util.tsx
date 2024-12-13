@@ -1,59 +1,3 @@
-export function quickSort<T>(
-  array: T[],
-  high: number,
-  low: number,
-  extract?: (arg: T) => number | string | T,
-): T[] {
-  if (low < high) {
-    // find pivot element such that
-    // element smaller than pivot are on the left
-    // element greater than pivot are on the right
-    const pi = partition(high, low);
-
-    // recursive call on the left of pivot
-    quickSort(array, pi - 1, low, extract);
-
-    // recursive call on the right of pivot
-    quickSort(array, high, pi + 1, extract);
-  }
-  return array;
-
-  function partition(high: number, low: number) {
-    // choose the rightmost element as pivot
-    const pivot = array[high];
-
-    // pointer for greater element
-    let i = low - 1;
-
-    // set extract if not defined
-    if (!extract) extract = (val: any) => val;
-
-    // traverse through all elements
-    // compare each element with pivot
-    for (let j = low; j < high; j++) {
-      if (extract(array[j]) <= extract(pivot)) {
-        // if element smaller than pivot is found
-        // swap it with the greatr element pointed by i
-        i++;
-
-        // swapping element at i with element at j
-        swap(array, i, j);
-      }
-    }
-
-    // swapt the pivot element with the greater element specified by i
-    swap(array, i + 1, high);
-
-    // return the position from where partition is done
-    return i + 1;
-  }
-
-  // Function to swap two elements
-  function swap<T>(arr: T[], i: number, j: number) {
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-}
-
 export function date2str(date: Date | string) {
   if (typeof date === "string") date = new Date(date);
   return `${date.getFullYear()}-${num2str(date.getMonth() + 1)}-${num2str(
@@ -130,7 +74,7 @@ export function timeToLocalTime(time: Date) {
   const ap = h < 12 ? "AM" : "PM";
   h = h == 0 ? 12 : h;
   h -= h > 12 ? 12 : 0;
-  let m = time.getUTCMinutes();
+  const m = time.getUTCMinutes();
   return `${num2str(h)}:${num2str(m)} ${ap}`;
 }
 
@@ -140,15 +84,15 @@ export function timeToLocalTime(time: Date) {
  * @returns time in format "HH:MM AM/PM"
  */
 export function dateToLocalTime(d: Date) {
-  let HH = d.getHours(),
-    MM = d.getMinutes(),
+  let HH = d.getHours();
+  const MM = d.getMinutes(),
     ampm = HH >= 12 ? "PM" : "AM";
   HH = HH % 12;
   HH = HH ? HH : 12; // the hour '0' should be '12'
   return `${num2str(HH)}:${num2str(MM)} ${ampm}`;
 }
 
-export function debounce<F extends (...args: any[]) => any>(
+export function debounce<F extends (...args: Parameters<F>) => ReturnType<F>>(
   func: F,
   delay: number,
 ) {
@@ -157,7 +101,7 @@ export function debounce<F extends (...args: any[]) => any>(
   return function (...args: Parameters<F>) {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
-      func.apply(null, args);
+      func(...args);
     }, delay);
   };
 }

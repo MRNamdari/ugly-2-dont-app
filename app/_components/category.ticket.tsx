@@ -7,7 +7,6 @@ import {
   IsSelected,
   isSelectionStarted,
   RemoveFromSelection,
-  store,
 } from "../_store/state";
 import { useRouter } from "next/navigation";
 import { useSignalEffect } from "@preact/signals-react";
@@ -41,14 +40,15 @@ export default function CategoryTicket(props: ICategory) {
     e.preventDefault();
     AddToSelection("category", props.id);
   }
-  function DragEndHandler(e: any, info: PanInfo) {
+  function DragEndHandler(e: unknown, info: PanInfo) {
     dragEnd.current.info = info;
   }
   function DragTransitionEndHandler() {
     const info = dragEnd.current.info;
     if (info)
       if (Math.abs(info.offset.x) > 90)
-        info.offset.x > 0 ? onDelete() : onEdit();
+        if (info.offset.x > 0) onDelete();
+        else onEdit();
   }
   function onDelete() {
     deleteModal.onClose = async (value) => {

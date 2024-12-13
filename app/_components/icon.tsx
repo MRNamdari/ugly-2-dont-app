@@ -25,7 +25,7 @@ export default function Icon({
   className,
   ...props
 }: IconProps): JSX.Element {
-  let SpecifiedIcon = FeatherIcon[label];
+  const SpecifiedIcon = FeatherIcon[label];
   return (
     <div
       className={`flex aspect-square items-center justify-center ${className ?? ""}`}

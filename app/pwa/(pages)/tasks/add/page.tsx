@@ -477,53 +477,51 @@ export default function AddTaskPage({
           </div>
         </section>
         <section className="flex h-full w-full flex-col justify-end place-self-end">
-          {state?.subtasks &&
-            state?.subtasks.map((st) => (
-              <TextInput
-                key={st.id}
-                className="group text-input-sm rounded-none border-b-2 border-primary-600 bg-primary-800 px-1 text-white *:transition-colors"
-              >
-                <Icon
-                  label="Hash"
-                  className="ico-sm group-focus-within:text-primary-400"
-                />
-                <input
-                  type="text"
-                  name={`st${st.id}`}
-                  defaultValue={st.title}
-                  onBlur={(e) => {
-                    e.preventDefault();
-                    setState((s) => {
-                      s.subtasks?.map((t) => {
-                        if (t.id == st.id) st.title = e.target.value.trim();
-                        return t;
-                      });
-                      return s;
+          {state?.subtasks?.map((st) => (
+            <TextInput
+              key={st.id}
+              className="group text-input-sm rounded-none border-b-2 border-primary-600 bg-primary-800 px-1 text-white *:transition-colors"
+            >
+              <Icon
+                label="Hash"
+                className="ico-sm group-focus-within:text-primary-400"
+              />
+              <input
+                type="text"
+                name={`st${st.id}`}
+                defaultValue={st.title}
+                onBlur={(e) => {
+                  e.preventDefault();
+                  setState((s) => {
+                    s.subtasks?.map((t) => {
+                      if (t.id == st.id) st.title = e.target.value.trim();
+                      return t;
                     });
-                  }}
-                  className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-primary-400"
-                />
-                <input
-                  type="hidden"
-                  name={`ss${st.id}`}
-                  defaultValue={st.status ? "1" : "0"}
-                />
-                <IconButton
-                  icon="X"
-                  className="tap-primary-600 ico-sm rounded-none"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    let subtasks: ISubTask[] | undefined;
-                    if ((subtasks = state.subtasks)) {
-                      setState((s) => {
-                        s.subtasks = s.subtasks?.filter((s) => s.id !== st.id);
-                        return s;
-                      });
-                    }
-                  }}
-                />
-              </TextInput>
-            ))}
+                    return s;
+                  });
+                }}
+                className="placeholder:text-inherit placeholder:transition-colors group-focus-within:placeholder:text-primary-400"
+              />
+              <input
+                type="hidden"
+                name={`ss${st.id}`}
+                defaultValue={st.status ? "1" : "0"}
+              />
+              <IconButton
+                icon="X"
+                className="tap-primary-600 ico-sm rounded-none"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setState((s) => {
+                    return {
+                      ...s,
+                      subtasks: s.subtasks?.filter((s) => s.id !== st.id),
+                    };
+                  });
+                }}
+              />
+            </TextInput>
+          ))}
 
           <TextInput className="group text-input-md rounded-none bg-primary-800 text-white *:transition-colors">
             <input

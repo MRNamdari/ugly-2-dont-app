@@ -85,6 +85,7 @@ export default function ProjectDetailPage({
           <IconButton
             className="tap-zinc-100 ico-lg text-primary-900"
             icon="ArrowLeft"
+            name="back"
             onClick={() => router.back()}
           />
         </div>

@@ -14,7 +14,7 @@ import {
 import { store } from "../_store/state";
 import { ITask } from "../_store/db";
 import Fuse, { FuseResult, IFuseOptions } from "fuse.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function PWAHomePage() {
   const [searchString, setSearchString] = useState<string>();
@@ -27,9 +27,13 @@ export default function PWAHomePage() {
   );
   const tasks = useLiveQuery(
     async () =>
-      await db.tasks.where("due").aboveOrEqual(new Date()).sortBy("due"),
+      (
+        await db.tasks.where("due").aboveOrEqual(new Date()).sortBy("due")
+      ).filter((t) => t.status !== true),
+    [],
+    null,
   );
-  // const tasks: ITask[] = [];
+
   store.view.task.value = tasks?.map((t) => t.id) ?? [];
   const projects = useLiveQuery(async () => {
     const p = await db.projects.toArray();
@@ -44,6 +48,11 @@ export default function PWAHomePage() {
       c.map(async (c) => [c, await CategorySummary(c.id)] as const),
     );
   });
+
+  useEffect(() => {
+    document.dispatchEvent(new Event("pageload"));
+  }, []);
+
   const listOfCategories = categories ? categories.map((a) => a[0]) : [];
   const fuseOptions: IFuseOptions<ITask | IProject | ICategory> = {
     ignoreLocation: true,
@@ -251,20 +260,30 @@ export default function PWAHomePage() {
           <span className="whitespace-nowrap">see all</span>
         </Link>
         <div className="w-full -translate-y-20">
+          <div className="h-10"></div>
+          <p
+            aria-hidden={tasks !== null}
+            className="sticky w-full py-6 text-center text-zinc-400 [animation-duration:1ms] [animation-name:fadeOut] [animation-timeline:view(block_26rem)] [animation-timing-function:ease-out] aria-hidden:hidden"
+          >
+            Wait a sec...
+          </p>
           <Link
             id="add-task"
             href="/pwa/tasks/add"
-            aria-disabled={!!tasks?.length}
-            className="mx-6 block rounded-xl border-4 border-dashed border-zinc-200 py-10 text-center text-zinc-400 aria-disabled:hidden"
+            key="add"
+            aria-disabled={
+              !Array.isArray(tasks) ||
+              (Array.isArray(tasks) && tasks.length !== 0)
+            }
+            className="sticky mx-4 flex h-24 items-center justify-center rounded-xl border-4 border-zinc-200 p-2 [animation-duration:1ms] [animation-name:fadeOut] [animation-timeline:view(block_26rem)] [animation-timing-function:ease-out] aria-disabled:hidden"
           >
-            nothing's here! press to add
+            <div className="relative size-6 before:absolute before:left-1/2 before:block before:h-full before:w-1 before:-translate-x-1/2 before:rounded-sm before:bg-zinc-200 after:absolute after:top-1/2 after:block after:h-1 after:w-full after:-translate-y-1/2 after:rounded-sm after:bg-zinc-200"></div>
           </Link>
-          <div className="h-10"></div>
           <AnimatePresence>
             {tasks?.map((t) => (
               <motion.div
                 key={t.id}
-                className="animatio sticky px-4 [animation-duration:1ms] [animation-name:fadeOut] [animation-timeline:view(block_26rem)] [animation-timing-function:ease-out]"
+                className="sticky px-4 [animation-duration:1ms] [animation-name:fadeOut] [animation-timeline:view(block_26rem)] [animation-timing-function:ease-out]"
                 style={{
                   top: `21rem`,
                 }}

@@ -140,8 +140,11 @@ const config: Config = {
           tap: (value) => ({
             "--fm-clr": value,
           }),
+          clr: (value) => ({
+            "--tw-color": value,
+          }),
         },
-        { values: color }
+        { values: color },
       );
       // menu sizes
       matchComponents(
@@ -170,7 +173,7 @@ const config: Config = {
             },
           }),
         },
-        { values: theme("menuSizes") }
+        { values: theme("menuSizes") },
       );
       // menu styles
       matchComponents(
@@ -196,7 +199,7 @@ const config: Config = {
             return {} as any;
           },
         },
-        { values: theme("menuStyles") }
+        { values: theme("menuStyles") },
       );
       // ico sizes
       matchComponents(
@@ -209,7 +212,7 @@ const config: Config = {
             display: "inline-block",
           }),
         },
-        { values: theme("icoSizes") }
+        { values: theme("icoSizes") },
       );
       // button sizes
       matchComponents(
@@ -231,7 +234,7 @@ const config: Config = {
             },
           }),
         },
-        { values: theme("buttonSizes") }
+        { values: theme("buttonSizes") },
       );
       // text-input sizes
       matchComponents(
@@ -260,7 +263,7 @@ const config: Config = {
             },
           }),
         },
-        { values: theme("menuSizes") }
+        { values: theme("menuSizes") },
       );
     }),
   ],

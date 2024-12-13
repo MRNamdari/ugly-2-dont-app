@@ -73,12 +73,14 @@ export default function DeleteModal(props: { children: React.ReactNode }) {
           {!isPending && <p className="pb-4">{msg}</p>}
           <div className="flex gap-2">
             <Button
+              name="cancel"
               value="false"
               className="tap-primary-800 btn-md w-full justify-center border-2 border-primary-800"
             >
               nope
             </Button>
             <Button
+              name="confirm"
               value="true"
               className="tap-primary-900 btn-md w-full justify-center bg-primary-800"
             >

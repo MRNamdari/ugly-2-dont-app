@@ -27,12 +27,12 @@
 
     /* Handle */
     &::-webkit-scrollbar-thumb {
-      background: rgba(0, 0, 0, 0.2);
+      background: light-dark(rgba(0, 0, 0, 0.5), rgba(255, 255, 255, 0.5));
     }
 
     /* Handle on hover */
     &::-webkit-scrollbar-thumb:hover {
-      background: rgba(0, 0, 0, 0.5);
+      background: light-dark(rgba(0, 0, 0, 0.75), rgba(255, 255, 255, 0.75));
     }
   }
 }
@@ -250,31 +250,12 @@ body {
   }
 }
 
-.moving-shadow {
-  animation: moving-shadow;
-  -moz-animation-duration: 1ms;
-  animation-timeline: scroll(block);
-}
-
-@keyframes moving-shadow {
-  from {
-    filter: drop-shadow(10px -5px rgb(0 0 0 / 0.3));
-  }
-  to {
-    filter: drop-shadow(10px 10px rgb(0 0 0 / 0.3));
-  }
-}
-
 @property --pos {
   syntax: "<percentage>";
   inherits: true;
   initial-value: 100%;
 }
-.moving-screen-light {
-  animation: moving-screen-light;
-  -moz-animation-duration: 1ms;
-  animation-timeline: scroll(block);
-}
+
 .moving-screen-light::after {
   position: absolute;
   content: "";
@@ -287,11 +268,6 @@ body {
     #ffffff3d,
     #00000030
   );
-}
-@keyframes moving-screen-light {
-  to {
-    --pos: 0%;
-  }
 }
 
 .roundedCorner {
@@ -308,4 +284,30 @@ body {
   background-color: inherit;
   background-image: var(--bg-img);
   z-index: 1;
+}
+
+.numbered-list {
+  counter-reset: index;
+  padding-left: 1.5rem;
+  & li {
+    position: relative;
+    margin-bottom: 0.5rem;
+  }
+  & li::after {
+    @apply absolute aspect-square size-4 text-center text-xs font-medium;
+    content: counters(index, ".", decimal);
+    counter-increment: index;
+    left: -1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--tw-color);
+  }
+  & li::before {
+    @apply absolute aspect-square size-4 rounded-full;
+    content: "";
+    left: -1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: currentColor;
+  }
 }

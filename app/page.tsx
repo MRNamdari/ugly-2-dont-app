@@ -17,6 +17,7 @@ import Link from "next/link";
 import { debounce } from "./_store/util";
 import IconButton from "./_components/icon-button";
 import { GC, Tuturial } from "./_store/mock";
+import { useRouter } from "next/navigation";
 
 type TuturialName = keyof ReturnType<typeof Tuturial>;
 
@@ -394,6 +395,7 @@ const enter = {
 const variants = { exit, enter } as const;
 
 function Title() {
+  const router = useRouter();
   return (
     <div className="mx-auto flex w-fit items-center gap-8">
       <motion.div
@@ -463,7 +465,11 @@ function Title() {
             </motion.span>
           </p>
           <motion.div initial={exit} variants={variants}>
-            <Button className="tap-primary-600 btn-md ml-auto mt-4 w-fit bg-primary-500 font-medium lg:btn-lg lg:w-fit lg:text-3xl">
+            <Button className="tap-primary-600 btn-md ml-auto mt-4 w-fit bg-primary-500 font-medium lg:btn-lg lg:w-fit lg:text-3xl"
+            onClick={()=>{
+              router.push("/pwa")
+            }}
+            >
               Try it now!
             </Button>
           </motion.div>

@@ -76,13 +76,17 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
         await wait(300);
       }
     }
-    while (doc.location.pathname !== "/pwa") {
-      const elm = yield* whenLoaded(
-        () =>
-          doc.querySelector("header button[name='back']") as HTMLButtonElement,
-      );
-      yield* goto(elm);
-      yield* press(elm);
+    if (doc.location){
+      while (doc.location.pathname !== "/pwa") {
+        const elm = yield* whenLoaded(
+          () =>
+            doc.querySelector("header button[name='back']") as HTMLButtonElement,
+        );
+        yield* goto(elm);
+        yield* press(elm);
+      }
+    } else {
+      console.log(doc.location)
     }
   }
   // function swipe(dir: "left" | "right") {

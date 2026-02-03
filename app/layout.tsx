@@ -4,19 +4,21 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Ugly2Don't",
-  description: "your ugly 2 do app",
-  icons: "/favicon.svg",
+  authors: { name: "MO⋅RE⋅NAM", url: "https://github.com/MRNamdari/" },
+  applicationName: "Ugly2Don't App",
+  creator: "Mohammad Reza Namdari",
+  metadataBase: new URL("https://ugly-2-dont-app.pages.dev/"),
   openGraph: {
     title: "Ugly2Don't",
     description:
       "A simple, straightforward app that steps on your nerves so you get things done.",
     images: { url: "/preview.jpg" },
   },
+  description: "your ugly 2 do app",
   other: {
     "theme-color": "#2e4c51",
   },
-  authors: { name: "MO⋅RE⋅NAM", url: "https://github.com/MRNamdari/" },
-  creator: "Mohammad Reza Namdari",
+  icons: "/favicon.svg",
 };
 
 const fredoka = Fredoka({

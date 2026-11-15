@@ -167,7 +167,7 @@ export const MenuItem = memo(function MenuItem<T extends string>(
           if (props.onSelect) props.onSelect(props.value);
         }}
         className={
-          "menu-item select-none focus:bg-[--fm-clr] " + props.className
+          "menu-item select-none focus:bg-(--fm-clr) " + props.className
         }
       >
         {props.children}

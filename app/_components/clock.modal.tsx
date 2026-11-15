@@ -123,7 +123,7 @@ export default function ClockModal(props: { children: React.ReactNode }) {
         ref={ref}
         id="clock"
         onClick={handleCancel}
-        className="dropdown-modal relative mt-0 w-full min-w-0 max-w-screen-sm rounded-3xl rounded-t-none bg-primary-700 pb-8 after:absolute after:bottom-4 after:left-1/2 after:block after:h-1 after:w-1/4 after:-translate-x-1/2 after:rounded-sm after:bg-primary-800"
+        className="dropdown-modal relative mt-0 w-full min-w-0 max-w-screen-sm rounded-3xl rounded-t-none bg-primary-700 pb-8 after:absolute after:bottom-4 after:left-1/2 after:block after:h-1 after:w-1/4 after:-translate-x-1/2 after:rounded-xs after:bg-primary-800"
       >
         <div className="flex w-full items-center justify-between px-4 py-6 text-white">
           <IconButton

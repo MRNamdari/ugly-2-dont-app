@@ -86,7 +86,7 @@ export default function AddCategoryModal(props: { children: React.ReactNode }) {
         ref={ref}
         id="add-edit-category"
         onClick={ClickHandler}
-        className="dropdown-modal relative mt-0 w-full min-w-0 max-w-screen-sm rounded-3xl rounded-t-none bg-primary-700 pb-8 text-white after:absolute after:bottom-4 after:left-1/2 after:block after:h-1 after:w-1/4 after:-translate-x-1/2 after:rounded-sm after:bg-primary-800"
+        className="dropdown-modal relative mt-0 w-full min-w-0 max-w-screen-sm rounded-3xl rounded-t-none bg-primary-700 pb-8 text-white after:absolute after:bottom-4 after:left-1/2 after:block after:h-1 after:w-1/4 after:-translate-x-1/2 after:rounded-xs after:bg-primary-800"
       >
         <h3 className="w-full px-4 py-6 text-center text-lg">New Category</h3>
         <form ref={form} method="dialog" className="flex flex-col gap-4 px-4">

@@ -106,7 +106,7 @@ export default function AddModal(props: { children: React.ReactNode }) {
       <dialog
         ref={ref}
         id="add"
-        className="popup-modal absolute mb-24 ml-auto mr-6 mt-auto origin-bottom-right bg-transparent text-primary-800 outline-none"
+        className="popup-modal absolute mb-24 ml-auto mr-6 mt-auto origin-bottom-right bg-transparent text-primary-800 outline-hidden"
         onClick={handleCancel}
       >
         {buttons.category && (

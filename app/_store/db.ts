@@ -435,7 +435,6 @@ class UglyDB extends Dexie {
 }
 
 export const db = new UglyDB();
-console.log(db);
 
 // db.on("populate", async (trans) => {
 //   await trans.table("tasks").bulkAdd(tasks.map(addDueTo));

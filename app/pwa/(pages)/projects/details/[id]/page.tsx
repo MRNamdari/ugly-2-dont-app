@@ -3,7 +3,7 @@ import IconButton from "@/app/_components/icon-button";
 import ProjectTicket from "@/app/_components/project.ticket";
 import { db, IProject } from "@/app/_store/db";
 import { ProjectFormDataSignal, TaskFormDataSignal } from "@/app/_store/state";
-import { useContext, useEffect, useRef, useState } from "react";
+import { use, useContext, useEffect, useRef, useState } from "react";
 import ProjectsCarousel, {
   ProjectCarouselRef,
 } from "@/app/_components/project.carousel";
@@ -15,13 +15,12 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { AddContext } from "@/app/_components/add.modal";
 import { SelectionContext } from "@/app/_components/selection.modal";
 
-export const runtime = "edge";
-
 export default function ProjectDetailPage({
   params,
 }: {
-  params: { id?: `${IProject["id"]}` };
+  params: Promise<{ id?: `${IProject["id"]}` }>;
 }) {
+  const { id: paramId } = use(params);
   const router = useRouter();
   const addModal = useContext(AddContext);
 
@@ -30,7 +29,7 @@ export default function ProjectDetailPage({
   });
 
   const [active, setActive] = useState<IProject["id"] | undefined>(
-    params.id ? parseInt(params.id) : undefined,
+    paramId ? parseInt(paramId) : undefined,
   );
   useEffect(() => {
     setActive(firstProject ? firstProject.id : undefined);
@@ -58,9 +57,9 @@ export default function ProjectDetailPage({
     ]);
   }, [active]);
 
-  const children: JSX.Element[] =
+  const children: React.JSX.Element[] =
     childFeatures !== undefined
-      ? ([] as JSX.Element[]).concat(
+      ? ([] as React.JSX.Element[]).concat(
           childFeatures[0].map((p) => (
             <ProjectTicket
               key={p.id}

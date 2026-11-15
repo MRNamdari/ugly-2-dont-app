@@ -1,0 +1,2035 @@
+diff --git a/.eslintrc.json b/.eslintrc.json
+deleted file mode 100644
+index 3722418..0000000
+--- a/.eslintrc.json
++++ /dev/null
+@@ -1,3 +0,0 @@
+-{
+-  "extends": ["next/core-web-vitals", "next/typescript"]
+-}
+diff --git a/.gitignore b/.gitignore
+index fd3dbb5..c613799 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -34,3 +34,9 @@ yarn-error.log*
+ # typescript
+ *.tsbuildinfo
+ next-env.d.ts
++
++# cloudflare / opennext
++.open-next
++.wrangler
++.dev.vars
++cloudflare-env.d.ts
+diff --git a/.prettierrc b/.prettierrc
+index b4bfed3..58e54f1 100644
+--- a/.prettierrc
++++ b/.prettierrc
+@@ -1,3 +1,4 @@
+ {
+-  "plugins": ["prettier-plugin-tailwindcss"]
++  "plugins": ["prettier-plugin-tailwindcss"],
++  "tailwindStylesheet": "./app/globals.css"
+ }
+diff --git a/README.md b/README.md
+index 8fb5b6b..7d386a0 100644
+--- a/README.md
++++ b/README.md
+@@ -7,6 +7,28 @@ Although i've desgined it for mobile, some components aren't really for mobile s
+ Previously i made it using page router but now it's using app router and the codebase is now way more readable.
+ This app is made as a step to make something else, bigger and more ambitious so go easy on it.
+ 
++## Development
++
++```bash
++npm install
++npm run dev        # http://localhost:3000
++npm run typecheck  # tsc --noEmit
++npm run lint       # eslint .
++```
++
++Requires Node.js 22.12 or newer.
++
++## Deployment (Cloudflare Workers)
++
++The app is deployed with the [OpenNext Cloudflare adapter](https://opennext.js.org/cloudflare)
++(`@cloudflare/next-on-pages` is deprecated and does not support Next.js 16).
++Configuration lives in `wrangler.jsonc` and `open-next.config.ts`.
++
++```bash
++npm run preview   # build and run locally in the Workers runtime
++npm run deploy    # build and deploy
++```
++
+ Some apparently vital message on behalf of real content goes here to fill the void:
+ 
+ ## Manage & categorize your projects & tasks
+diff --git a/app/_components/add.modal.tsx b/app/_components/add.modal.tsx
+index 45bb46d..e6df8f8 100644
+--- a/app/_components/add.modal.tsx
++++ b/app/_components/add.modal.tsx
+@@ -106,7 +106,7 @@ export default function AddModal(props: { children: React.ReactNode }) {
+       <dialog
+         ref={ref}
+         id="add"
+-        className="popup-modal absolute mb-24 ml-auto mr-6 mt-auto origin-bottom-right bg-transparent text-primary-800 outline-none"
++        className="popup-modal absolute mb-24 ml-auto mr-6 mt-auto origin-bottom-right bg-transparent text-primary-800 outline-hidden"
+         onClick={handleCancel}
+       >
+         {buttons.category && (
+diff --git a/app/_components/addEditCategory.modal.tsx b/app/_components/addEditCategory.modal.tsx
+index 0b85975..14c4508 100644
+--- a/app/_components/addEditCategory.modal.tsx
++++ b/app/_components/addEditCategory.modal.tsx
+@@ -86,7 +86,7 @@ export default function AddCategoryModal(props: { children: React.ReactNode }) {
+         ref={ref}
+         id="add-edit-category"
+         onClick={ClickHandler}
+-        className="dropdown-modal relative mt-0 w-full min-w-0 max-w-screen-sm rounded-3xl rounded-t-none bg-primary-700 pb-8 text-white after:absolute after:bottom-4 after:left-1/2 after:block after:h-1 after:w-1/4 after:-translate-x-1/2 after:rounded-sm after:bg-primary-800"
++        className="dropdown-modal relative mt-0 w-full min-w-0 max-w-screen-sm rounded-3xl rounded-t-none bg-primary-700 pb-8 text-white after:absolute after:bottom-4 after:left-1/2 after:block after:h-1 after:w-1/4 after:-translate-x-1/2 after:rounded-xs after:bg-primary-800"
+       >
+         <h3 className="w-full px-4 py-6 text-center text-lg">New Category</h3>
+         <form ref={form} method="dialog" className="flex flex-col gap-4 px-4">
+diff --git a/app/_components/button.tsx b/app/_components/button.tsx
+index 19d0dec..12b648b 100644
+--- a/app/_components/button.tsx
++++ b/app/_components/button.tsx
+@@ -12,7 +12,7 @@ export type ButtonProps = HTMLMotionProps<"button"> & {
+ export default forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+   props: ButtonProps,
+   ref,
+-): JSX.Element {
++): React.JSX.Element {
+   const { children, leadingIcon, trailingIcon, className, disabled, ...rest } =
+     props;
+   const whileTap = !disabled
+diff --git a/app/_components/calendar.modal.tsx b/app/_components/calendar.modal.tsx
+index af152f5..4ff2c60 100644
+--- a/app/_components/calendar.modal.tsx
++++ b/app/_components/calendar.modal.tsx
+@@ -278,7 +278,7 @@ export default function CalendarModal(props: { children: React.ReactNode }) {
+         ref={ref}
+         id="calendar"
+         onClick={handleCancel}
+-        className="dropdown-modal relative mt-0 w-full min-w-0 max-w-screen-sm rounded-3xl rounded-t-none bg-primary-700 pb-8 after:absolute after:bottom-4 after:left-1/2 after:block after:h-1 after:w-1/4 after:-translate-x-1/2 after:rounded-sm after:bg-primary-800"
++        className="dropdown-modal relative mt-0 w-full min-w-0 max-w-screen-sm rounded-3xl rounded-t-none bg-primary-700 pb-8 after:absolute after:bottom-4 after:left-1/2 after:block after:h-1 after:w-1/4 after:-translate-x-1/2 after:rounded-xs after:bg-primary-800"
+       >
+         <div className="flex w-full items-center justify-between px-4 py-6 text-white">
+           <IconButton
+diff --git a/app/_components/clock.modal.tsx b/app/_components/clock.modal.tsx
+index 79b584d..a12e04b 100644
+--- a/app/_components/clock.modal.tsx
++++ b/app/_components/clock.modal.tsx
+@@ -123,7 +123,7 @@ export default function ClockModal(props: { children: React.ReactNode }) {
+         ref={ref}
+         id="clock"
+         onClick={handleCancel}
+-        className="dropdown-modal relative mt-0 w-full min-w-0 max-w-screen-sm rounded-3xl rounded-t-none bg-primary-700 pb-8 after:absolute after:bottom-4 after:left-1/2 after:block after:h-1 after:w-1/4 after:-translate-x-1/2 after:rounded-sm after:bg-primary-800"
++        className="dropdown-modal relative mt-0 w-full min-w-0 max-w-screen-sm rounded-3xl rounded-t-none bg-primary-700 pb-8 after:absolute after:bottom-4 after:left-1/2 after:block after:h-1 after:w-1/4 after:-translate-x-1/2 after:rounded-xs after:bg-primary-800"
+       >
+         <div className="flex w-full items-center justify-between px-4 py-6 text-white">
+           <IconButton
+diff --git a/app/_components/icon.tsx b/app/_components/icon.tsx
+index a526c04..259d2f3 100644
+--- a/app/_components/icon.tsx
++++ b/app/_components/icon.tsx
+@@ -24,7 +24,7 @@ export default function Icon({
+   label,
+   className,
+   ...props
+-}: IconProps): JSX.Element {
++}: IconProps): React.JSX.Element {
+   const SpecifiedIcon = FeatherIcon[label];
+   return (
+     <div
+diff --git a/app/_components/layout-transition.tsx b/app/_components/layout-transition.tsx
+index 35bc77a..2005dc5 100644
+--- a/app/_components/layout-transition.tsx
++++ b/app/_components/layout-transition.tsx
+@@ -6,7 +6,7 @@ import { LayoutRouterContext } from "next/dist/shared/lib/app-router-context.sha
+ import { useContext, useEffect, useRef } from "react";
+ 
+ export function usePreviousValue<T>(value: T): T | undefined {
+-  const prevValue = useRef<T>();
++  const prevValue = useRef<T | undefined>(undefined);
+ 
+   useEffect(() => {
+     prevValue.current = value;
+diff --git a/app/_components/menu.tsx b/app/_components/menu.tsx
+index 2bf9763..138b579 100644
+--- a/app/_components/menu.tsx
++++ b/app/_components/menu.tsx
+@@ -167,7 +167,7 @@ export const MenuItem = memo(function MenuItem<T extends string>(
+           if (props.onSelect) props.onSelect(props.value);
+         }}
+         className={
+-          "menu-item select-none focus:bg-[--fm-clr] " + props.className
++          "menu-item select-none focus:bg-(--fm-clr) " + props.className
+         }
+       >
+         {props.children}
+diff --git a/app/_components/project.card.tsx b/app/_components/project.card.tsx
+index e4c405a..95d0354 100644
+--- a/app/_components/project.card.tsx
++++ b/app/_components/project.card.tsx
+@@ -138,7 +138,7 @@ export default function ProjectCard(props: ProjectCardProps) {
+         {props.priority !== undefined && (
+           <label
+             className={
+-              "float-end rounded-sm px-1 text-xs " +
++              "float-end rounded-xs px-1 text-xs " +
+               (props.priority === 0
+                 ? "bg-error-100 text-error-600"
+                 : props.priority === 1
+diff --git a/app/_components/selection.modal.tsx b/app/_components/selection.modal.tsx
+index 7aecd39..0c81522 100644
+--- a/app/_components/selection.modal.tsx
++++ b/app/_components/selection.modal.tsx
+@@ -12,7 +12,8 @@ import {
+ import { isSelectionStarted, isMovingStarted, store } from "../_store/state";
+ import IconButton from "./icon-button";
+ import { DeleteContext } from "./delete.modal";
+-import { db, IProject, ICategory } from "../_store/db";
++import type { UpdateSpec } from "dexie";
++import { db, IProject, ICategory, ITask } from "../_store/db";
+ 
+ type SelectionDestination = {
+   feature?: "category" | "project";
+@@ -84,15 +85,15 @@ export default function SelectionModal(props: { children: React.ReactNode }) {
+         db.categories.bulkUpdate(
+           cat.value.map((c) => ({
+             key: c,
+-            changes: { [feature]: id },
++            changes: { [feature]: id } as UpdateSpec<ICategory>,
+           })),
+         );
+       }
+       if (prj.value.length > 0) {
+         db.projects.bulkUpdate(
+-          cat.value.map((p) => ({
++          prj.value.map((p) => ({
+             key: p,
+-            changes: { [feature]: id },
++            changes: { [feature]: id } as UpdateSpec<IProject>,
+           })),
+         );
+       }
+@@ -100,7 +101,7 @@ export default function SelectionModal(props: { children: React.ReactNode }) {
+         db.tasks.bulkUpdate(
+           task.value.map((t) => ({
+             key: t,
+-            changes: { [feature]: id },
++            changes: { [feature]: id } as unknown as UpdateSpec<ITask>,
+           })),
+         );
+       }
+diff --git a/app/_components/task.ticket.tsx b/app/_components/task.ticket.tsx
+index 3d32692..86cfac4 100644
+--- a/app/_components/task.ticket.tsx
++++ b/app/_components/task.ticket.tsx
+@@ -265,7 +265,7 @@ export default forwardRef<HTMLElement, ITask>(function TaskTicket(
+                   <div className="inline-flex size-5 items-center justify-center rounded-full bg-primary-600 text-xs font-medium text-primary-50">
+                     {i + 1}
+                   </div>
+-                  <p className="flex-grow">{st.title}</p>
++                  <p className="grow">{st.title}</p>
+                   <span className="relative">
+                     <input
+                       type="checkbox"
+@@ -296,7 +296,7 @@ export default forwardRef<HTMLElement, ITask>(function TaskTicket(
+           </span>
+         </span>
+         <div className="flex w-full gap-1 text-sm">
+-          {/* <p className="flex-grow text-xs text-primary-600">
++          {/* <p className="grow text-xs text-primary-600">
+             {props.date && date2display(new Date(props.date))}
+           </p> */}
+           <DynamicDue date={props.date} time={props.time} />
+@@ -316,7 +316,7 @@ export default forwardRef<HTMLElement, ITask>(function TaskTicket(
+           )}
+           <p
+             className={
+-              "size-6 flex-grow-0 rounded-md text-center align-middle " +
++              "size-6 grow-0 rounded-md text-center align-middle " +
+               (props.priority === 0
+                 ? "bg-error-100 text-error-600"
+                 : props.priority === 1
+@@ -393,5 +393,5 @@ function DynamicDue({ time, date }: { time: Date; date: Date }) {
+     return () => clearInterval(timeout);
+   }, [time, date, content]);
+ 
+-  return <p className="flex-grow text-xs text-primary-600">{content}</p>;
++  return <p className="grow text-xs text-primary-600">{content}</p>;
+ }
+diff --git a/app/_components/taskFilter.modal.tsx b/app/_components/taskFilter.modal.tsx
+index 360a588..04abdd1 100644
+--- a/app/_components/taskFilter.modal.tsx
++++ b/app/_components/taskFilter.modal.tsx
+@@ -155,7 +155,7 @@ export default function TaskFilterModal(props: { children: React.ReactNode }) {
+         onClick={handleCancel}
+         ref={ref}
+         id="task-filter"
+-        className="dropdown-modal relative mt-0 w-full min-w-0 max-w-screen-sm rounded-3xl rounded-t-none bg-primary-700 pb-8 after:absolute after:bottom-4 after:left-1/2 after:block after:h-1 after:w-1/4 after:-translate-x-1/2 after:rounded-sm after:bg-primary-800"
++        className="dropdown-modal relative mt-0 w-full min-w-0 max-w-screen-sm rounded-3xl rounded-t-none bg-primary-700 pb-8 after:absolute after:bottom-4 after:left-1/2 after:block after:h-1 after:w-1/4 after:-translate-x-1/2 after:rounded-xs after:bg-primary-800"
+       >
+         <form
+           method="dialog"
+diff --git a/app/_store/db.ts b/app/_store/db.ts
+index b410011..52cd52e 100644
+--- a/app/_store/db.ts
++++ b/app/_store/db.ts
+@@ -435,7 +435,6 @@ class UglyDB extends Dexie {
+ }
+ 
+ export const db = new UglyDB();
+-console.log(db);
+ 
+ // db.on("populate", async (trans) => {
+ //   await trans.table("tasks").bulkAdd(tasks.map(addDueTo));
+diff --git a/app/_store/mock.ts b/app/_store/mock.ts
+index 52c87e9..db5c022 100644
+--- a/app/_store/mock.ts
++++ b/app/_store/mock.ts
+@@ -1,143 +1,176 @@
+-type GCEventNames = number | "restart" | "cancel" | "play" | "pause" | "finish";
+-export class GC<T> /* Generator Controller*/ {
+-  #isPaused: boolean = false;
+-  #resolvePause?: (value: unknown) => void;
+-  #rejectPause?: (reason?: unknown) => void;
++export type GCEventNames =
++  | number
++  | "restart"
++  | "cancel"
++  | "play"
++  | "pause"
++  | "finish"
++  | "error";
++
++/**
++ * Generator Controller: plays an async generator step by step with
++ * play / pause / restart / cancel. `yield <number>` inside the generator marks
++ * a "step" and fires the listener registered with `when(<number>, cb)`.
++ */
++export class GC<T> {
++  #isPaused = false;
++  #isRunning = false;
++  #resumePause?: () => void;
++  // Incremented on every start/cancel so a superseded run loop stops itself.
++  #token = 0;
+   #gen: AsyncGenerator<unknown, T, unknown>;
+   #genFn: () => AsyncGenerator<unknown, T, unknown>;
+-  #callbackStack: Map<GCEventNames, (value: GCEventNames) => void> = new Map();
+-  then: ((value: unknown) => void) | undefined = undefined;
+-  done: boolean = false;
++  #listeners = new Map<GCEventNames, (value: GCEventNames) => void>();
++  done = false;
+ 
+   constructor(fn: () => AsyncGenerator<unknown, T, unknown>) {
+     this.#genFn = fn;
+     this.#gen = fn();
+   }
+-  async run() {
+-    let value: unknown, done: boolean | undefined;
+-    do {
+-      const result = await this.#gen.next();
+-      if (typeof result.value === "number") this.callbackHandler(result.value);
+-      value = result.value ?? value;
+-      done = result.done;
+-      if (this.#isPaused) {
+-        await new Promise((resolve, reject) => {
+-          [this.#resolvePause, this.#rejectPause] = [resolve, reject];
+-        });
++
++  async #run() {
++    const token = ++this.#token;
++    this.#isRunning = true;
++    this.#isPaused = false;
++    try {
++      while (token === this.#token) {
++        const result = await this.#gen.next();
++        if (token !== this.#token) return; // cancelled / restarted meanwhile
++        if (typeof result.value === "number") this.#emit(result.value);
++        if (result.done) {
++          this.done = true;
++          this.#emit("finish");
++          return;
++        }
++        if (this.#isPaused) {
++          await new Promise<void>((resolve) => (this.#resumePause = resolve));
++          this.#resumePause = undefined;
++        }
+       }
+-    } while (!done);
+-    this.done = true;
+-    this.callbackHandler("finish");
+-    if (this.then) {
+-      return this.then(value);
+-    } else return value;
++    } catch (error) {
++      if (token !== this.#token) return;
++      // A failed generator is finished for good; get a fresh one so that
++      // pressing play again starts over instead of doing nothing.
++      console.error("Tutorial stopped:", error);
++      this.#gen = this.#genFn();
++      this.#emit("error");
++    } finally {
++      if (token === this.#token) this.#isRunning = false;
++    }
+   }
++
+   play() {
+-    if (this.#isPaused && this.#resolvePause) {
++    if (this.done) return this;
++    if (this.#isPaused && this.#resumePause) {
+       this.#isPaused = false;
+-      this.#resolvePause(true);
++      this.#resumePause();
++    } else if (!this.#isRunning) {
++      void this.#run();
+     } else {
+-      this.run();
++      this.#isPaused = false;
+     }
+-    this.callbackHandler("play");
++    this.#emit("play");
+     return this;
+   }
++
+   pause() {
+-    if (this.#isPaused === true) return this;
++    if (this.#isPaused || !this.#isRunning) return this;
+     this.#isPaused = true;
+-    this.callbackHandler("pause");
++    this.#emit("pause");
+     return this;
+   }
++
++  /** Stops the current run for good. A cancelled controller can be restarted. */
+   cancel() {
+-    this.#isPaused = true;
+-    if (this.#rejectPause) this.#rejectPause();
+-    this.callbackHandler("cancel");
++    this.#token++;
++    this.#isRunning = false;
++    this.#isPaused = false;
++    this.#resumePause?.();
++    this.#resumePause = undefined;
++    this.#emit("cancel");
+   }
++
++  /** Stops the current run (if any) and rewinds to the first step. */
+   restart() {
++    this.#token++; // abandon a running loop, otherwise two would run at once
++    this.#isRunning = false;
++    this.#isPaused = false;
++    this.#resumePause?.();
++    this.#resumePause = undefined;
+     this.#gen = this.#genFn();
+-    this.callbackHandler("restart");
++    this.done = false;
++    this.#emit("restart");
+   }
+-  when(nextValue: GCEventNames, cb: (value: GCEventNames) => void) {
+-    this.#callbackStack.set(nextValue, cb);
++
++  when(event: GCEventNames, cb: (value: GCEventNames) => void) {
++    this.#listeners.set(event, cb);
+   }
+-  private callbackHandler(key: GCEventNames) {
+-    if (this.#callbackStack.has(key)) {
+-      const cbFn = this.#callbackStack.get(key)!;
+-      cbFn(key);
+-    }
++
++  #emit(key: GCEventNames) {
++    this.#listeners.get(key)?.(key);
+   }
+ }
+ 
+-export function Tuturial(doc: Document, pointer: HTMLDivElement) {
++export function Tuturial(iframe: HTMLIFrameElement, pointer: HTMLDivElement) {
++  // The iframe's document is replaced on every navigation that is not a
++  // client-side route change, so always resolve it at the moment of use instead
++  // of holding on to one that may already be detached.
++  const doc = () => iframe.contentDocument as Document;
++  const win = () => iframe.contentWindow as Window & typeof globalThis;
++  // Events/elements of the iframe belong to its own JS realm.
++  // `instanceof HTMLElement` / `new PointerEvent` of this window don't match.
++  const view = (elm: Element) =>
++    elm.ownerDocument.defaultView as Window & typeof globalThis;
++  const isElement = (value: unknown): value is HTMLElement =>
++    !!value && typeof (value as Element).getBoundingClientRect === "function";
++
+   async function* goBack() {
+-    for (const modal of doc.getElementsByTagName("dialog")) {
++    for (const modal of Array.from(doc().getElementsByTagName("dialog"))) {
+       if (modal.hasAttribute("open")) {
+         modal.close();
+         await wait(300);
+       }
+     }
+-    if (doc.location){
+-      while (doc.location.pathname !== "/pwa") {
+-        const elm = yield* whenLoaded(
+-          () =>
+-            doc.querySelector("header button[name='back']") as HTMLButtonElement,
+-        );
+-        yield* goto(elm);
+-        yield* press(elm);
+-      }
+-    } else {
+-      console.log(doc.location)
++    for (let hops = 0; hops < 10; ++hops) {
++      const path = win().location.pathname.replace(/\/+$/, "");
++      if (path === "/pwa") break;
++      const elm = yield* whenLoaded(
++        () =>
++          doc().querySelector("header button[name='back']") as HTMLButtonElement,
++      );
++      yield* goto(elm);
++      yield* press(elm);
++      yield await wait(400); // let the route change settle
+     }
+   }
+-  // function swipe(dir: "left" | "right") {
+-  //   const m = dir === "left" ? -1 : 1;
+-  //   const init: PointerEventInit = {
+-  //     cancelable: false,
+-  //     bubbles: true,
+-  //     pressure: 1,
+-  //     pointerId: 1,
+-  //     pointerType: "touch",
+-  //     isPrimary: true,
+-  //     composed: true,
+-  //   };
+-  //   const move = (x: number) => {
+-  //     const newInit: PointerEventInit = {
+-  //       ...init,
+-  //       movementX: x * m,
+-  //       clientX: x * m,
+-  //       screenX: x * m,
+-  //     };
+-  //     return newInit;
+-  //   };
+ 
+-  //   return async function* (elm: HTMLElement) {
+-  //     yield elm.dispatchEvent(new PointerEvent("pointerdown", init));
+-  //     for (let i = 0; i < 70; ++i) {
+-  //       yield await wait(3);
+-  //       yield elm.dispatchEvent(new PointerEvent("pointermove", move(i * 5)));
+-  //     }
+-  //     yield await wait(2);
+-  //     return elm.dispatchEvent(new PointerEvent("pointerup", move(70 * 5)));
+-  //   };
+-  // }
+   function write(text: string) {
+     return async function* (elm: HTMLInputElement) {
+-      yield elm.dispatchEvent(
+-        new FocusEvent("focus", { bubbles: true, cancelable: false }),
+-      );
+-      const n = text.length;
+-      for (let i = 1; i <= n; ++i) {
++      const w = view(elm);
++      // React listens to focusin/focusout (onFocus/onBlur).
++      yield elm.dispatchEvent(new w.FocusEvent("focus"));
++      yield elm.dispatchEvent(new w.FocusEvent("focusin", { bubbles: true }));
++      // Assign through the native setter and fire `input`, otherwise React's
++      // value tracking swallows the change and `onChange` never runs.
++      const setValue = Object.getOwnPropertyDescriptor(
++        Object.getPrototypeOf(elm),
++        "value",
++      )?.set;
++      for (let i = 1; i <= text.length; ++i) {
+         yield await wait(100);
+         const char = text.slice(0, i);
+-        yield (elm.value = char);
++        if (setValue) setValue.call(elm, char);
++        else elm.value = char;
++        yield elm.dispatchEvent(new w.Event("input", { bubbles: true }));
+       }
+-      yield elm.dispatchEvent(
+-        new FocusEvent("focusout", { bubbles: true, cancelable: false }),
+-      );
++      yield elm.dispatchEvent(new w.Event("change", { bubbles: true }));
++      yield elm.dispatchEvent(new w.FocusEvent("focusout", { bubbles: true }));
+       return elm.blur();
+     };
+   }
++
+   async function* press(elm: HTMLElement) {
++    const w = view(elm);
+     const pointerInit: PointerEventInit = {
+       pointerType: "touch",
+       pressure: 1,
+@@ -151,82 +184,109 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+       cancelable: true,
+     };
+ 
+-    yield elm.dispatchEvent(new PointerEvent("pointerdown", pointerInit));
++    yield elm.dispatchEvent(new w.PointerEvent("pointerdown", pointerInit));
+     yield await wait(250);
+-    yield elm.dispatchEvent(new PointerEvent("pointerup", pointerInit));
++    yield elm.dispatchEvent(new w.PointerEvent("pointerup", pointerInit));
+     yield await wait(5);
+-    yield elm.dispatchEvent(new MouseEvent("click", mouseInit));
++    yield elm.dispatchEvent(new w.MouseEvent("click", mouseInit));
+ 
+     return await wait(5);
+   }
+-  async function* goto<E extends HTMLElement>(elm: E, modal: boolean = false) {
+-    const centerOf = function (rect: DOMRect) {
+-      return {
+-        left: rect.left + rect.width / 2,
+-        top: rect.top + rect.height / 2,
+-      };
+-    };
+-    const distance = function (s0: DOMRect, s1: DOMRect) {
+-      const cs0 = centerOf(s0),
+-        cs1 = centerOf(s1);
+-      return Math.sqrt((cs0.left - cs1.left) ** 2 + (cs0.top - cs1.top) ** 2);
+-    };
+ 
++  async function* goto<E extends HTMLElement>(elm: E, modal: boolean = false) {
+     if (modal) yield await wait(750);
+-    const pp = pointer.getBoundingClientRect(); // Pointer's position
+-    const ep = elm.getBoundingClientRect(); // Element's position
++    // Element rects are relative to the iframe's viewport, the pointer lives in
++    // the parent page, so translate between the two coordinate systems.
++    const frame = iframe.getBoundingClientRect();
++    const origin = (pointer.offsetParent ?? document.body).getBoundingClientRect();
++    const target = elm.getBoundingClientRect();
++    const cx = frame.left + target.left + target.width / 2; // viewport coords
++    const cy = frame.top + target.top + target.height / 2;
++    const from = pointer.getBoundingClientRect();
++    const distance = Math.hypot(
++      from.left + from.width / 2 - cx,
++      from.top + from.height / 2 - cy,
++    );
+     const v = 3; // Pointer's velocity px/ms
+-    const ec = centerOf(ep);
+-    const left = ec.left - 4,
+-      top = ec.top - 4;
+-    yield await new Promise((resolve) => {
+-      pointer.animate([{ left: left + "px", top: top + "px" }], {
+-        duration: distance(pp, ep) / v,
+-        fill: "forwards",
+-        easing: "ease-out",
+-      }).onfinish = resolve;
+-    });
+-    yield await new Promise((resolve) => {
+-      pointer.animate(
+-        { transform: ["scale(1)", "scale(.8)", "scale(1)"] },
+-        { duration: 100 },
+-      ).onfinish = resolve;
++    const left = cx - origin.left - pointer.offsetWidth / 2;
++    const top = cy - origin.top - pointer.offsetHeight / 2;
++    const move = pointer.animate([{ left: left + "px", top: top + "px" }], {
++      duration: distance / v,
++      fill: "forwards",
++      easing: "ease-out",
+     });
+-    if (pp.left === left && pp.top === top) return elm;
++    await move.finished.catch(() => undefined);
++    try {
++      move.commitStyles(); // keep the position without piling up animations
++      move.cancel();
++    } catch {}
++    yield undefined;
++    const tap = pointer.animate(
++      { transform: ["scale(1)", "scale(.8)", "scale(1)"] },
++      { duration: 100 },
++    );
++    await tap.finished.catch(() => undefined);
++    return elm;
+   }
+-  async function* whenLoaded<T>(param: () => T | null) {
++
++  /** Scrolls only inside the iframe (never the page that embeds it). */
++  function reveal(elm: HTMLElement) {
++    const w = view(elm);
++    const r = elm.getBoundingClientRect();
++    for (let p = elm.parentElement; p; p = p.parentElement) {
++      const overflow = w.getComputedStyle(p).overflowY;
++      if (
++        (overflow === "auto" || overflow === "scroll") &&
++        p.scrollHeight > p.clientHeight
++      ) {
++        const pr = p.getBoundingClientRect();
++        if (r.top < pr.top || r.bottom > pr.bottom)
++          p.scrollTop += r.top + r.height / 2 - (pr.top + pr.height / 2);
++      }
++    }
++    if (r.top < 0 || r.bottom > w.innerHeight)
++      w.scrollBy(0, r.top + r.height / 2 - w.innerHeight / 2);
++  }
++
++  async function* whenLoaded<T>(param: () => T | null | undefined) {
+     let itr = 0;
+-    let result = param();
++    const attempt = () => {
++      try {
++        return param();
++      } catch {
++        return null; // e.g. the document is mid-navigation
++      }
++    };
++    let result = attempt();
+     while ((result === null || result === undefined) && itr < 100) {
+       yield await wait(200);
+-      result = param();
++      result = attempt();
+       ++itr;
+     }
+     if (result === null || result === undefined)
+       throw new DOMException("Element was not found");
+-    else {
+-      if (result instanceof HTMLElement) result.scrollIntoView();
+-      return result;
+-    }
++    if (isElement(result)) reveal(result);
++    return result;
+   }
+-  async function wait(dur: number) {
+-    await new Promise<unknown>((res) => setTimeout(res, dur));
++
++  function wait(dur: number) {
++    return new Promise<void>((res) => setTimeout(res, dur));
+   }
+   async function* AddCategory() {
+     yield* goBack();
+-    let elm = yield* whenLoaded(() => doc.getElementById("add-category"));
++    let elm = yield* whenLoaded(() => doc().getElementById("add-category"));
+     yield 0;
+     yield* goto(elm);
+     yield* press(elm);
+-    elm = yield* whenLoaded(() => doc.getElementById("add-btn"));
++    elm = yield* whenLoaded(() => doc().getElementById("add-btn"));
+     yield* goto(elm);
+     yield* press(elm);
+-    elm = yield* whenLoaded(() => doc.getElementById("add-category-btn"));
++    elm = yield* whenLoaded(() => doc().getElementById("add-category-btn"));
+     yield* goto(elm);
+     yield* press(elm);
+     elm = yield* whenLoaded(
+       () =>
+-        doc
++        doc()
+           .getElementById("add-edit-category")!
+           .getElementsByTagName("input")[0],
+     );
+@@ -235,7 +295,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* write("Personal")(elm as HTMLInputElement);
+     elm = yield* whenLoaded(
+       () =>
+-        doc
++        doc()
+           .getElementById("add-edit-category")!
+           .getElementsByTagName("button")[1],
+     );
+@@ -245,13 +305,13 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+   }
+   async function* AddProject() {
+     yield* goBack();
+-    let elm = yield* whenLoaded(() => doc.getElementById("add-project"));
++    let elm = yield* whenLoaded(() => doc().getElementById("add-project"));
+     yield 0;
+     yield* goto(elm);
+     yield* press(elm);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'form[name="project"] input[name="title"]',
+         ) as HTMLInputElement,
+     );
+@@ -260,7 +320,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* write("Uglier2Don't App")(elm as HTMLInputElement);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'form[name="project"] input[name="description"]',
+         ) as HTMLInputElement,
+     );
+@@ -269,7 +329,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* write("Ugly2don't app but uglier")(elm as HTMLInputElement);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'form[name="project"] button[aria-label="calendar"]',
+         ) as HTMLButtonElement,
+     );
+@@ -278,7 +338,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* press(elm);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           '#calendar button[aria-label="next week"]',
+         ) as HTMLButtonElement,
+     );
+@@ -286,7 +346,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* press(elm);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'form[name="project"] button[aria-label="clock"]',
+         ) as HTMLButtonElement,
+     );
+@@ -294,18 +354,18 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* goto(elm);
+     yield* press(elm);
+     elm = yield* whenLoaded(
+-      () => doc.querySelector('#clock input[name="hour"]') as HTMLInputElement,
++      () => doc().querySelector('#clock input[name="hour"]') as HTMLInputElement,
+     );
+     yield* goto(elm, true);
+     yield* write("11")(elm as HTMLInputElement);
+     elm = yield* whenLoaded(
+-      () => doc.querySelector('#clock input[name="min"]') as HTMLInputElement,
++      () => doc().querySelector('#clock input[name="min"]') as HTMLInputElement,
+     );
+     yield* goto(elm);
+     yield* write("30")(elm as HTMLInputElement);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           '#clock button[aria-label="confirm"]',
+         ) as HTMLButtonElement,
+     );
+@@ -313,7 +373,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* press(elm);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'form[name="project"] .menu[aria-label="priority"] .menu-button',
+         ) as HTMLDivElement,
+     );
+@@ -322,7 +382,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* press(elm);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'form[name="project"] .menu[aria-label="priority"] .menu-item',
+         ) as HTMLLIElement,
+     );
+@@ -330,7 +390,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* press(elm);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'header button[name="add-project"]',
+         ) as HTMLButtonElement,
+     );
+@@ -340,13 +400,13 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+   }
+   async function* AddTask() {
+     yield* goBack();
+-    let elm = yield* whenLoaded(() => doc.getElementById("add-task"));
++    let elm = yield* whenLoaded(() => doc().getElementById("add-task"));
+     yield 0;
+     yield* goto(elm);
+     yield* press(elm);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'form[name="task"] input[name="title"]',
+         ) as HTMLInputElement,
+     );
+@@ -355,7 +415,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* write("Sneezing with open eyes")(elm as HTMLInputElement);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'form[name="task"] input[name="description"]',
+         ) as HTMLInputElement,
+     );
+@@ -364,7 +424,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* write("Proving scientists are wrong!")(elm as HTMLInputElement);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'form[name="task"] button[aria-label="calendar"]',
+         ) as HTMLButtonElement,
+     );
+@@ -372,7 +432,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* press(elm);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           '#calendar button[aria-label="tomorrow"]',
+         ) as HTMLButtonElement,
+     );
+@@ -381,7 +441,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* press(elm);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'form[name="task"] button[aria-label="clock"]',
+         ) as HTMLButtonElement,
+     );
+@@ -389,18 +449,18 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* goto(elm);
+     yield* press(elm);
+     elm = yield* whenLoaded(
+-      () => doc.querySelector('#clock input[name="hour"]') as HTMLInputElement,
++      () => doc().querySelector('#clock input[name="hour"]') as HTMLInputElement,
+     );
+     yield* goto(elm, true);
+     yield* write("4")(elm as HTMLInputElement);
+     elm = yield* whenLoaded(
+-      () => doc.querySelector('#clock input[name="min"]') as HTMLInputElement,
++      () => doc().querySelector('#clock input[name="min"]') as HTMLInputElement,
+     );
+     yield* goto(elm);
+     yield* write("20")(elm as HTMLInputElement);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           '#clock button[aria-label="confirm"]',
+         ) as HTMLButtonElement,
+     );
+@@ -408,7 +468,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* press(elm);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'form[name="task"] .menu[aria-label="priority"] .menu-button',
+         ) as HTMLDivElement,
+     );
+@@ -417,7 +477,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* press(elm);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'form[name="task"] .menu[aria-label="priority"] .menu-item:last-child',
+         ) as HTMLLIElement,
+     );
+@@ -425,7 +485,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* press(elm);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'form[name="task"] input[name="subtask-title"]',
+         ) as HTMLInputElement,
+     );
+@@ -434,7 +494,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* write("Buyin green leaves 🌿")(elm as HTMLInputElement);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'form[name="task"] button[name="add-subtask"]',
+         ) as HTMLButtonElement,
+     );
+@@ -442,7 +502,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* press(elm);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'form[name="task"] input[name="subtask-title"]',
+         ) as HTMLInputElement,
+     );
+@@ -450,7 +510,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* write("Steaming the veggies. ♨️")(elm as HTMLInputElement);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'form[name="task"] button[name="add-subtask"]',
+         ) as HTMLButtonElement,
+     );
+@@ -458,7 +518,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* press(elm);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'form[name="task"] input[name="subtask-title"]',
+         ) as HTMLInputElement,
+     );
+@@ -466,7 +526,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* write("Inhaling and forcing a sneeze 😮‍💨")(elm as HTMLInputElement);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'form[name="task"] button[name="add-subtask"]',
+         ) as HTMLButtonElement,
+     );
+@@ -474,7 +534,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield* press(elm);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector(
++        doc().querySelector(
+           'header button[name="verify-task"]',
+         ) as HTMLButtonElement,
+     );
+@@ -484,7 +544,7 @@ export function Tuturial(doc: Document, pointer: HTMLDivElement) {
+     yield await wait(5000);
+     elm = yield* whenLoaded(
+       () =>
+-        doc.querySelector('header button[name="confirm"]') as HTMLButtonElement,
++        doc().querySelector('header button[name="confirm"]') as HTMLButtonElement,
+     );
+     yield 8;
+     yield* goto(elm);
+diff --git a/app/globals.css b/app/globals.css
+index 1c9a35d..2259aca 100644
+--- a/app/globals.css
++++ b/app/globals.css
+@@ -1,6 +1,27 @@
+-@tailwind base;
+-@tailwind components;
+-@tailwind utilities;
++@import "tailwindcss";
++@config "../tailwind.config.ts";
++
++/*
++ * Tailwind v4 compatibility: v3 defaulted borders to gray-200 and gave buttons
++ * a pointer cursor, and preflight reset dialog padding. Keep these so existing markup looks/behaves the same.
++ */
++@layer base {
++  *,
++  ::after,
++  ::before,
++  ::backdrop,
++  ::file-selector-button {
++    border-color: var(--color-gray-200, currentcolor);
++  }
++  button:not(:disabled),
++  [role="button"]:not(:disabled) {
++    cursor: pointer;
++  }
++  /* v3's preflight reset dialog padding; v4's no longer does. */
++  dialog {
++    padding: 0;
++  }
++}
+ 
+ :root,
+ *,
+@@ -50,12 +71,6 @@ body {
+   font-family: Arial, Helvetica, sans-serif;
+ }
+ 
+-@layer utilities {
+-  .text-balance {
+-    text-wrap: balance;
+-  }
+-}
+-
+ @layer components {
+   .menu {
+     @apply w-full min-w-0;
+diff --git a/app/page.tsx b/app/page.tsx
+index b00222e..e9cf9ed 100644
+--- a/app/page.tsx
++++ b/app/page.tsx
+@@ -2,7 +2,7 @@
+ import Image from "next/image";
+ 
+ import Button from "@/app/_components/button";
+-import { useEffect, useRef, useState, Fragment } from "react";
++import { useCallback, useEffect, useRef, useState, Fragment } from "react";
+ import {
+   useScroll,
+   motion,
+@@ -14,12 +14,12 @@ import {
+ } from "framer-motion";
+ 
+ import Link from "next/link";
+-import { debounce } from "./_store/util";
+ import IconButton from "./_components/icon-button";
+ import { GC, Tuturial } from "./_store/mock";
+ import { useRouter } from "next/navigation";
+ 
+ type TuturialName = keyof ReturnType<typeof Tuturial>;
++type Tutorials = { [P in TuturialName]: GC<void> };
+ 
+ export default function DesktopPage() {
+   const iref = useRef<HTMLIFrameElement>(null);
+@@ -27,14 +27,29 @@ export default function DesktopPage() {
+   const phoneRef = useRef<HTMLDivElement>(null);
+   const mainRef = useRef<HTMLElement>(null);
+ 
+-  const [tut, setTut] = useState<{ [P in TuturialName]: GC<void> }>();
+-  const debouced_setTut = debounce((tut: ReturnType<typeof Tuturial>) => {
+-    setTut({
+-      AddCategory: new GC(tut.AddCategory),
+-      AddProject: new GC(tut.AddProject),
+-      AddTask: new GC(tut.AddTask),
+-    });
+-  }, 500);
++  const [tut, setTut] = useState<Tutorials>();
++  const tutRef = useRef<Tutorials>(undefined);
++
++  // (Re)creates the tutorials for whatever document the iframe holds *now*.
++  // The iframe starts out on an empty about:blank document and gets a new one
++  // once /pwa has loaded, so this must run from the iframe's load event rather
++  // than at mount, otherwise the tutorials would drive a document that is gone.
++  const initTutorials = useCallback(() => {
++    const iframe = iref.current;
++    const pointer = pref.current;
++    const win = iframe?.contentWindow;
++    if (!iframe || !pointer || !win) return;
++    if (!win.location.pathname.startsWith("/pwa")) return; // still about:blank
++    if (iframe.contentDocument?.readyState !== "complete") return;
++    const next = Tuturial(iframe, pointer);
++    tutRef.current && Object.values(tutRef.current).forEach((c) => c.cancel());
++    tutRef.current = {
++      AddCategory: new GC(next.AddCategory),
++      AddProject: new GC(next.AddProject),
++      AddTask: new GC(next.AddTask),
++    };
++    setTut(tutRef.current);
++  }, []);
+   const [mainHeight, setHeight] = useState<number>(0);
+   const { scrollYProgress } = useScroll({
+     axis: "y",
+@@ -60,13 +75,15 @@ export default function DesktopPage() {
+   });
+ 
+   useEffect(() => {
+-    const iframe = iref.current;
+-    const doc = iframe?.contentDocument;
+-    const pointer = pref.current;
+-    if (doc && pointer && doc.children.length) {
+-      debouced_setTut(Tuturial(doc, pointer));
+-    }
+-  }, [iref.current, pref.current]);
++    // The iframe may already have finished loading before hydration attached
++    // its onLoad handler.
++    initTutorials();
++    const controllers = tutRef;
++    return () => {
++      if (controllers.current)
++        Object.values(controllers.current).forEach((c) => c.cancel());
++    };
++  }, [initTutorials]);
+ 
+   useEffect(() => {
+     if (mainRef.current) setHeight(mainRef.current.scrollHeight);
+@@ -97,10 +114,12 @@ export default function DesktopPage() {
+           width={300}
+           allowFullScreen={false}
+           onLoad={(e) => {
+-            const style = document.createElement("style");
+-            style.innerText = "::-webkit-scrollbar{width:0px;height:0px;}";
+-            const htmlDoc = e.target as HTMLIFrameElement;
+-            htmlDoc.contentDocument?.head.appendChild(style);
++            const frameDoc = e.currentTarget.contentDocument;
++            if (!frameDoc?.head) return;
++            const style = frameDoc.createElement("style");
++            style.textContent = "::-webkit-scrollbar{width:0px;height:0px;}";
++            frameDoc.head.appendChild(style);
++            initTutorials();
+           }}
+         ></iframe>
+       </motion.div>
+@@ -117,7 +136,7 @@ export default function DesktopPage() {
+       <div
+         ref={pref}
+         id="pointer"
+-        className="absolute inset-1/2 z-10 size-10 rounded-full border-4 border-white border-opacity-50 bg-zinc-900 bg-opacity-50"
++        className="absolute inset-1/2 z-10 size-10 rounded-full border-4 border-white/50 bg-zinc-900/50"
+       ></div>
+       <div ref={phoneRef} className="h-full max-h-fit max-w-fit">
+         {phone}
+@@ -193,7 +212,7 @@ export default function DesktopPage() {
+         </div>
+       </div>
+       <footer>
+-        <section className="relative z-10 h-svh w-full snap-start bg-secondary-600 bg-opacity-60 pb-6 pt-8 backdrop-blur-md">
++        <section className="relative z-10 h-svh w-full snap-start bg-secondary-600/60 pb-6 pt-8 backdrop-blur-md">
+           <h2 className="py-4 text-center text-xl font-medium md:text-2xl lg:text-4xl">
+             What Ugly users say...
+           </h2>
+@@ -265,7 +284,7 @@ export default function DesktopPage() {
+           </div>
+         </section>
+         <section className="h-svh">
+-          <div className="h-full snap-start bg-primary-900 bg-opacity-50 py-8 text-gray-300">
++          <div className="h-full snap-start bg-primary-900/50 py-8 text-gray-300">
+             <div className="container mx-auto grid h-full place-content-evenly place-self-center px-4 md:grid-cols-2">
+               <div className="h-full w-full place-self-center">
+                 <div className="mb-6 items-baseline gap-6 text-3xl leading-relaxed md:mb-0">
+@@ -344,7 +363,7 @@ type CommentProps = {
+   avatar: string;
+   username: string;
+   role: string;
+-  comment: JSX.Element;
++  comment: React.JSX.Element;
+ };
+ function Comment({ avatar, username, role, comment }: CommentProps) {
+   return (
+@@ -421,7 +440,7 @@ function Title() {
+             Ugly2Don’t
+           </motion.span>
+         </div>
+-        <h2 className="text-lg text-white [line-height:1.325!important] *:origin-bottom-left md:text-xl lg:text-3xl">
++        <h2 className="text-lg text-white [line-height:1.325]! *:origin-bottom-left md:text-xl lg:text-3xl">
+           <motion.span
+             key="t1"
+             className="inline-block"
+@@ -561,10 +580,10 @@ function FirstSection(props: { onView?: () => void }) {
+   );
+ }
+ 
+-type Step = [JSX.Element, boolean];
++type Step = [React.JSX.Element, boolean];
+ 
+ type SummaryProps = {
+-  title: JSX.Element | JSX.Element[];
++  title: React.JSX.Element | React.JSX.Element[];
+   description?: string;
+   controller?: GC<void>;
+   onPlay: () => void;
+@@ -588,25 +607,28 @@ function Summary(props: SummaryProps) {
+     }
+   }, [inView]);
+ 
++  // A new controller means a new document/tutorial run: start from scratch.
++  useEffect(() => {
++    setPlayState("Pause");
++    setSteps((s) => s.map(([step]) => [step, false] as Step));
++  }, [props.controller]);
++
+   // Setting Event handler on Generator Controller
+   if (props.controller) {
+-    props.controller.then = () => setPlayState("Finish");
++    props.controller.when("finish", () => setPlayState("Finish"));
+     // When one generator executing others restart if not finished
+-    props.controller.when("restart", () =>
+-      setSteps((s) =>
+-        s.map((item) => {
+-          item[1] = false;
+-          return item;
+-        }),
+-      ),
+-    );
++    const reset = () => {
++      setPlayState("Pause");
++      setSteps((s) => s.map(([step]) => [step, false] as Step));
++    };
++    props.controller.when("restart", reset);
++    props.controller.when("error", reset);
+     // Each marked yield in generators fires an event with it mark as value
+     for (let i = 0; i < steps.length; ++i)
+       props.controller.when(i, () =>
+-        setSteps((s) => {
+-          s[i][1] = true;
+-          return Array.from(s);
+-        }),
++        setSteps((s) =>
++          s.map((item, idx) => (idx === i ? ([item[0], true] as Step) : item)),
++        ),
+       );
+   }
+ 
+@@ -616,6 +638,8 @@ function Summary(props: SummaryProps) {
+         <h2
+           className="flex items-center gap-2 text-xl font-medium lg:gap-4 lg:text-3xl"
+           onClick={() => {
++            // Nothing to play until the embedded app has finished loading.
++            if (!props.controller) return;
+             if (playState !== "Finish") {
+               setPlayState(playState == "Pause" ? "Play" : "Pause");
+               if (playState == "Pause") props.onPlay();
+@@ -642,7 +666,7 @@ function Summary(props: SummaryProps) {
+                   ? "Play"
+                   : "Pause"
+             }
+-            className="tap-primary-200 ico-md hidden bg-white text-[--tw-color] md:block"
++            className="tap-primary-200 ico-md hidden bg-white text-(--tw-color) md:block"
+             initial={{ opacity: 0, scale: 0.8 }}
+             animate={control}
+             variants={{
+@@ -914,7 +938,7 @@ function MotionWord(props: MotionWordProps) {
+   const { children, ...motionprops } = props;
+   const slices = children.split(/\s+/);
+   const n = slices.length;
+-  const words: JSX.Element[] = new Array(n * 2);
++  const words: React.JSX.Element[] = new Array(n * 2);
+   for (let i = 0; i < n; ++i) {
+     words[i * 2] = (
+       <motion.span
+@@ -976,7 +1000,7 @@ function CategoryPage() {
+             "linear-gradient(-45deg, transparent -30%, rgba(255,255,255,.4) 10%, transparent 110%)",
+         }}
+       >
+-        <div className="rounded-2xl bg-opacity-30 text-primary-400">
++        <div className="rounded-2xl text-primary-400">
+           <header className="grid grid-cols-[3rem_1fr_3rem] items-center justify-center p-4">
+             <div>
+               <button className="ico-lg" name="back">
+@@ -1478,7 +1502,7 @@ function ProjectPage() {
+                 },
+               }}
+               id="p1"
+-              className="relative z-10 inline-flex h-full w-full flex-col whitespace-normal rounded-3xl bg-secondary-400 bg-opacity-40 p-6 pt-2 shadow-sm backdrop-blur"
++              className="relative z-10 inline-flex h-full w-full flex-col whitespace-normal rounded-3xl bg-secondary-400/40 p-6 pt-2 shadow-xs backdrop-blur-sm"
+               draggable="false"
+             >
+               <span className="grid grid-cols-[auto_2rem] text-primary-100">
+@@ -1513,7 +1537,7 @@ function ProjectPage() {
+                     Personal
+                   </a>
+                 </h5>
+-                <label className="float-end rounded-sm bg-secondary-200 px-1 text-xs text-secondary-800">
++                <label className="float-end rounded-xs bg-secondary-200 px-1 text-xs text-secondary-800">
+                   LOW
+                 </label>
+               </span>
+@@ -1589,7 +1613,7 @@ function ProjectPage() {
+               className="relative px-4"
+             >
+               <div
+-                className="rounded-3xl bg-gray-100 bg-opacity-50 p-6 pt-2 backdrop-blur-md"
++                className="rounded-3xl bg-gray-100/50 p-6 pt-2 backdrop-blur-md"
+                 aria-selected="false"
+                 draggable="false"
+               >
+@@ -1676,7 +1700,7 @@ function TaskPage() {
+   return (
+     <motion.div
+       style={{ perspective: "40rem" }}
+-      className="flex flex-col gap-2 text-primary-100 text-opacity-70 md:hidden"
++      className="flex flex-col gap-2 text-primary-100/70 md:hidden"
+       initial="exit"
+       onViewportEnter={() => setPlayState(true)}
+       animate={control}
+@@ -1717,8 +1741,8 @@ function TaskPage() {
+             </a>
+           </h5>
+           <div className="flex w-full gap-1 pb-4 text-sm">
+-            <p className="flex-grow text-xs text-primary-400">Oct 13</p>
+-            <div className="flex aspect-square size-6 items-center justify-center rounded-md bg-zinc-400 bg-opacity-30 text-zinc-400">
++            <p className="grow text-xs text-primary-400">Oct 13</p>
++            <div className="flex aspect-square size-6 items-center justify-center rounded-md bg-zinc-400/30 text-zinc-400">
+               <svg
+                 xmlns="http://www.w3.org/2000/svg"
+                 width="14"
+@@ -1734,7 +1758,7 @@ function TaskPage() {
+                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+               </svg>
+             </div>
+-            <p className="size-6 flex-grow-0 rounded-md bg-error-600 bg-opacity-40 text-center align-middle text-error-300">
++            <p className="size-6 grow-0 rounded-md bg-error-600/40 text-center align-middle text-error-300">
+               H
+             </p>
+           </div>
+@@ -1768,8 +1792,8 @@ function TaskPage() {
+             </a>
+           </h5>
+           <div className="flex w-full gap-1 pb-4 text-sm">
+-            <p className="flex-grow text-xs text-primary-400">Aug 28</p>
+-            <p className="size-6 flex-grow-0 rounded-md bg-error-600 bg-opacity-40 text-center align-middle text-error-300">
++            <p className="grow text-xs text-primary-400">Aug 28</p>
++            <p className="size-6 grow-0 rounded-md bg-error-600/40 text-center align-middle text-error-300">
+               H
+             </p>
+           </div>
+@@ -1803,8 +1827,8 @@ function TaskPage() {
+             </a>
+           </h5>
+           <div className="flex w-full gap-1 pb-4 text-sm">
+-            <p className="flex-grow text-xs text-primary-400">Sep 29</p>
+-            <div className="flex aspect-square size-6 items-center justify-center rounded-md bg-zinc-400 bg-opacity-30 text-zinc-400">
++            <p className="grow text-xs text-primary-400">Sep 29</p>
++            <div className="flex aspect-square size-6 items-center justify-center rounded-md bg-zinc-400/30 text-zinc-400">
+               <svg
+                 xmlns="http://www.w3.org/2000/svg"
+                 width="14"
+@@ -1820,7 +1844,7 @@ function TaskPage() {
+                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+               </svg>
+             </div>
+-            <p className="size-6 flex-grow-0 rounded-md bg-error-600 bg-opacity-40 text-center align-middle text-error-300">
++            <p className="size-6 grow-0 rounded-md bg-error-600/40 text-center align-middle text-error-300">
+               H
+             </p>
+           </div>
+@@ -1854,8 +1878,8 @@ function TaskPage() {
+             </a>
+           </h5>
+           <div className="flex w-full gap-1 pb-4 text-sm">
+-            <p className="flex-grow text-xs text-primary-400">Aug 30, 2025</p>
+-            <div className="flex aspect-square size-6 items-center justify-center rounded-md bg-zinc-400 bg-opacity-30 text-zinc-400">
++            <p className="grow text-xs text-primary-400">Aug 30, 2025</p>
++            <div className="flex aspect-square size-6 items-center justify-center rounded-md bg-zinc-400/30 text-zinc-400">
+               <svg
+                 xmlns="http://www.w3.org/2000/svg"
+                 width="14"
+@@ -1873,7 +1897,7 @@ function TaskPage() {
+                 <line x1="6" y1="9" x2="6" y2="21"></line>
+               </svg>
+             </div>
+-            <p className="size-6 flex-grow-0 rounded-md bg-error-600 bg-opacity-40 text-center align-middle text-error-300">
++            <p className="size-6 grow-0 rounded-md bg-error-600/40 text-center align-middle text-error-300">
+               H
+             </p>
+           </div>
+diff --git a/app/pwa/(pages)/categories/details/[id]/page.tsx b/app/pwa/(pages)/categories/details/[id]/page.tsx
+index 91813b0..25dff04 100644
+--- a/app/pwa/(pages)/categories/details/[id]/page.tsx
++++ b/app/pwa/(pages)/categories/details/[id]/page.tsx
+@@ -1,6 +1,4 @@
+ "use client";
+ import dynamic from "next/dynamic";
+ 
+-export const runtime = "edge";
+-
+ export default dynamic(() => import("../../page"), { ssr: false });
+diff --git a/app/pwa/(pages)/categories/page.tsx b/app/pwa/(pages)/categories/page.tsx
+index 935bda5..b153647 100644
+--- a/app/pwa/(pages)/categories/page.tsx
++++ b/app/pwa/(pages)/categories/page.tsx
+@@ -24,14 +24,19 @@ import { batch } from "@preact/signals-react";
+ import { useLiveQuery } from "dexie-react-hooks";
+ import { AnimatePresence, motion } from "framer-motion";
+ import { useRouter } from "next/navigation";
+-import { useContext, useEffect } from "react";
++import { use, useContext, useEffect } from "react";
+ 
+ export default function CategoryBrowserPage({
+   params,
+ }: {
+-  params: { id?: `${ICategory["id"]}` };
++  // Next.js 15+ passes `params` as a Promise: empty on /categories and
++  // holding `id` on /categories/details/[id].
++  params?: Promise<{ id?: `${ICategory["id"]}` }>;
+ }) {
+-  const id = params.id !== undefined ? parseInt(params.id) : 0;
++  const { id: paramId }: { id?: `${ICategory["id"]}` } = params
++    ? use(params)
++    : {};
++  const id = paramId !== undefined ? parseInt(paramId) : 0;
+   const router = useRouter();
+   const addModal = useContext(AddContext);
+   const addCat = useContext(AddEditCategoryContext);
+diff --git a/app/pwa/(pages)/projects/add/page.tsx b/app/pwa/(pages)/projects/add/page.tsx
+index f1a04da..8fbbe83 100644
+--- a/app/pwa/(pages)/projects/add/page.tsx
++++ b/app/pwa/(pages)/projects/add/page.tsx
+@@ -5,7 +5,7 @@ import { Priority } from "@/app/_store/data";
+ // Hooks
+ import Fuse from "fuse.js";
+ import { useRouter } from "next/navigation";
+-import { useContext, useEffect, useRef, useState } from "react";
++import { use, useContext, useEffect, useRef, useState } from "react";
+ // Components
+ import Menu, { MenuItem } from "@/app/_components/menu";
+ import IconButton from "@/app/_components/icon-button";
+@@ -23,9 +23,14 @@ import { ProjectFormDataSignal } from "@/app/_store/state";
+ export default function AddProjectPage({
+   params,
+ }: {
+-  params: { id: `${IProject["id"]}` };
++  // Next.js 15+ passes `params` as a Promise. It is absent/empty on
++  // /projects/add and holds `id` on /projects/edit/[id].
++  params?: Promise<{ id?: `${IProject["id"]}` }>;
+ }) {
+-  const id = params.id !== undefined ? parseInt(params.id) : undefined;
++  const { id: paramId }: { id?: `${IProject["id"]}` } = params
++    ? use(params)
++    : {};
++  const id = paramId !== undefined ? parseInt(paramId) : undefined;
+   const router = useRouter();
+   const calendar = useContext(CalendarContext);
+   const clock = useContext(ClockContext);
+@@ -162,7 +167,7 @@ export default function AddProjectPage({
+           exit={{ transform: "translate(0,-200%)", opacity: 0 }}
+           className="self-end overflow-hidden text-ellipsis whitespace-nowrap text-center text-3xl font-medium"
+         >
+-          {params.id ? "Edit" : "New"} Project
++          {paramId ? "Edit" : "New"} Project
+         </motion.h1>
+         <div>
+           <IconButton
+@@ -187,8 +192,8 @@ export default function AddProjectPage({
+         className="flex h-full flex-col"
+         onSubmit={(e) => e.preventDefault()}
+       >
+-        {params.id && (
+-          <input type="hidden" name="id" defaultValue={params.id} />
++        {paramId && (
++          <input type="hidden" name="id" defaultValue={paramId} />
+         )}
+         <section className="grid h-fit grid-flow-row gap-4 px-4 pt-10">
+           {/* Title */}
+diff --git a/app/pwa/(pages)/projects/details/[id]/page.tsx b/app/pwa/(pages)/projects/details/[id]/page.tsx
+index 091e795..ca7714e 100644
+--- a/app/pwa/(pages)/projects/details/[id]/page.tsx
++++ b/app/pwa/(pages)/projects/details/[id]/page.tsx
+@@ -3,7 +3,7 @@ import IconButton from "@/app/_components/icon-button";
+ import ProjectTicket from "@/app/_components/project.ticket";
+ import { db, IProject } from "@/app/_store/db";
+ import { ProjectFormDataSignal, TaskFormDataSignal } from "@/app/_store/state";
+-import { useContext, useEffect, useRef, useState } from "react";
++import { use, useContext, useEffect, useRef, useState } from "react";
+ import ProjectsCarousel, {
+   ProjectCarouselRef,
+ } from "@/app/_components/project.carousel";
+@@ -15,13 +15,12 @@ import { useLiveQuery } from "dexie-react-hooks";
+ import { AddContext } from "@/app/_components/add.modal";
+ import { SelectionContext } from "@/app/_components/selection.modal";
+ 
+-export const runtime = "edge";
+-
+ export default function ProjectDetailPage({
+   params,
+ }: {
+-  params: { id?: `${IProject["id"]}` };
++  params: Promise<{ id?: `${IProject["id"]}` }>;
+ }) {
++  const { id: paramId } = use(params);
+   const router = useRouter();
+   const addModal = useContext(AddContext);
+ 
+@@ -30,7 +29,7 @@ export default function ProjectDetailPage({
+   });
+ 
+   const [active, setActive] = useState<IProject["id"] | undefined>(
+-    params.id ? parseInt(params.id) : undefined,
++    paramId ? parseInt(paramId) : undefined,
+   );
+   useEffect(() => {
+     setActive(firstProject ? firstProject.id : undefined);
+@@ -58,9 +57,9 @@ export default function ProjectDetailPage({
+     ]);
+   }, [active]);
+ 
+-  const children: JSX.Element[] =
++  const children: React.JSX.Element[] =
+     childFeatures !== undefined
+-      ? ([] as JSX.Element[]).concat(
++      ? ([] as React.JSX.Element[]).concat(
+           childFeatures[0].map((p) => (
+             <ProjectTicket
+               key={p.id}
+diff --git a/app/pwa/(pages)/projects/edit/[id]/page.tsx b/app/pwa/(pages)/projects/edit/[id]/page.tsx
+index 6ff74b7..04ba0b8 100644
+--- a/app/pwa/(pages)/projects/edit/[id]/page.tsx
++++ b/app/pwa/(pages)/projects/edit/[id]/page.tsx
+@@ -3,12 +3,10 @@
+ import AddProjectPage from "../../add/page";
+ import { IProject } from "@/app/_store/db";
+ 
+-export const runtime = "edge";
+-
+ export default function EditProjectPage({
+   params,
+ }: {
+-  params: { id: `${IProject["id"]}` };
++  params: Promise<{ id: `${IProject["id"]}` }>;
+ }) {
+   return <AddProjectPage params={params} />;
+ }
+diff --git a/app/pwa/(pages)/tasks/add/page.tsx b/app/pwa/(pages)/tasks/add/page.tsx
+index 917eee1..1a6899c 100644
+--- a/app/pwa/(pages)/tasks/add/page.tsx
++++ b/app/pwa/(pages)/tasks/add/page.tsx
+@@ -7,7 +7,7 @@ import { TaskFormDataSignal } from "@/app/_store/state";
+ // Hooks
+ import Fuse from "fuse.js";
+ import { useRouter } from "next/navigation";
+-import { useContext, useEffect, useRef, useState } from "react";
++import { use, useContext, useEffect, useRef, useState } from "react";
+ // Components
+ import Menu, { MenuItem } from "@/app/_components/menu";
+ import IconButton from "@/app/_components/icon-button";
+@@ -24,9 +24,12 @@ import { db } from "@/app/_store/db";
+ export default function AddTaskPage({
+   params,
+ }: {
+-  params: { id: `${ITask["id"]}` };
++  // Next.js 15+ passes `params` as a Promise. It is absent/empty on
++  // /tasks/add and holds `id` on /tasks/edit/[id].
++  params?: Promise<{ id?: `${ITask["id"]}` }>;
+ }) {
+-  const id = params.id !== undefined ? parseInt(params.id) : undefined;
++  const { id: paramId }: { id?: `${ITask["id"]}` } = params ? use(params) : {};
++  const id = paramId !== undefined ? parseInt(paramId) : undefined;
+   const router = useRouter();
+   const calendar = useContext(CalendarContext);
+   const clock = useContext(ClockContext);
+@@ -552,7 +555,7 @@ export default function AddTaskPage({
+                     subtasks,
+                   });
+ 
+-                  subtaskInput.current.value = "";
++                  if (subtaskInput.current) subtaskInput.current.value = "";
+                 }
+               }}
+             />
+diff --git a/app/pwa/(pages)/tasks/edit/[id]/page.tsx b/app/pwa/(pages)/tasks/edit/[id]/page.tsx
+index 82ecdc0..399afc8 100644
+--- a/app/pwa/(pages)/tasks/edit/[id]/page.tsx
++++ b/app/pwa/(pages)/tasks/edit/[id]/page.tsx
+@@ -2,12 +2,10 @@
+ import { ITask } from "@/app/_store/db";
+ import AddTaskPage from "../../add/page";
+ 
+-export const runtime = "edge";
+-
+ export default function EditTaskPage({
+   params,
+ }: {
+-  params: { id: `${ITask["id"]}` };
++  params: Promise<{ id: `${ITask["id"]}` }>;
+ }) {
+   return <AddTaskPage params={params} />;
+ }
+diff --git a/app/pwa/page.tsx b/app/pwa/page.tsx
+index 7126196..3d4d3cd 100644
+--- a/app/pwa/page.tsx
++++ b/app/pwa/page.tsx
+@@ -72,7 +72,7 @@ export default function PWAHomePage() {
+     if (r.matches) {
+       const match = r.matches.find((m) => m.key === "title");
+       if (match) {
+-        const highlightedText: (JSX.Element | string)[] = [];
++        const highlightedText: (React.JSX.Element | string)[] = [];
+         let lastIndex = 0;
+ 
+         match.indices.forEach(([start, end]) => {
+@@ -116,7 +116,7 @@ export default function PWAHomePage() {
+             placeholder="Type here..."
+             onChange={(e) => setSearchString(e.target.value.trim())}
+             onFocus={() => setExpansion(true)}
+-            className="peer w-full bg-transparent placeholder:text-inherit placeholder:transition-colors focus:outline-none group-focus-within:placeholder:text-zinc-400"
++            className="peer w-full bg-transparent placeholder:text-inherit placeholder:transition-colors focus:outline-hidden group-focus-within:placeholder:text-zinc-400"
+           />
+           <IconButton
+             icon="Search"
+@@ -147,7 +147,7 @@ export default function PWAHomePage() {
+                     {highlightMatches(r)}
+                     <div
+                       className={
+-                        "float-end rounded-sm px-1 text-xs " +
++                        "float-end rounded-xs px-1 text-xs " +
+                         (f === 1
+                           ? "bg-error-50 text-error-500"
+                           : f == 2
+@@ -188,7 +188,7 @@ export default function PWAHomePage() {
+               <Link
+                 href={"/pwa/categories/details/" + c.id}
+                 key={c.id}
+-                className="ml-4 flex h-24 flex-shrink-0 flex-col items-center justify-center whitespace-nowrap rounded-xl bg-secondary-600 bg-opacity-15 p-2 [flex-basis:6rem]"
++                className="ml-4 flex h-24 shrink-0 flex-col items-center justify-center whitespace-nowrap rounded-xl bg-secondary-600/15 p-2 [flex-basis:6rem]"
+               >
+                 <p className="h-full font-medium leading-8">{c.title}</p>
+ 
+@@ -208,7 +208,7 @@ export default function PWAHomePage() {
+             key="add"
+             className="mx-4 flex aspect-square h-24 items-center justify-center rounded-xl border-4 border-secondary-600 p-2 opacity-15"
+           >
+-            <div className="relative size-6 before:absolute before:left-1/2 before:block before:h-full before:w-1 before:-translate-x-1/2 before:rounded-sm before:bg-secondary-600 after:absolute after:top-1/2 after:block after:h-1 after:w-full after:-translate-y-1/2 after:rounded-sm after:bg-secondary-600"></div>
++            <div className="relative size-6 before:absolute before:left-1/2 before:block before:h-full before:w-1 before:-translate-x-1/2 before:rounded-xs before:bg-secondary-600 after:absolute after:top-1/2 after:block after:h-1 after:w-full after:-translate-y-1/2 after:rounded-xs after:bg-secondary-600"></div>
+           </Link>
+         </div>
+       </section>
+@@ -230,7 +230,7 @@ export default function PWAHomePage() {
+               <Link
+                 href={"/pwa/projects/details/" + p.id}
+                 key={p.id}
+-                className="ml-4 flex h-24 flex-shrink-0 flex-col items-center justify-center whitespace-nowrap rounded-xl bg-primary-700 p-2 [flex-basis:6rem]"
++                className="ml-4 flex h-24 shrink-0 flex-col items-center justify-center whitespace-nowrap rounded-xl bg-primary-700 p-2 [flex-basis:6rem]"
+               >
+                 <p className="h-full font-medium leading-8">{p.title}</p>
+                 <div className="w-full rounded-lg bg-primary-200 px-2 text-xs text-primary-900">
+@@ -245,7 +245,7 @@ export default function PWAHomePage() {
+             key="add"
+             className="mx-4 flex aspect-square h-24 items-center justify-center rounded-xl border-4 border-primary-700 p-2"
+           >
+-            <div className="relative size-6 before:absolute before:left-1/2 before:block before:h-full before:w-1 before:-translate-x-1/2 before:rounded-sm before:bg-primary-700 after:absolute after:top-1/2 after:block after:h-1 after:w-full after:-translate-y-1/2 after:rounded-sm after:bg-primary-700"></div>
++            <div className="relative size-6 before:absolute before:left-1/2 before:block before:h-full before:w-1 before:-translate-x-1/2 before:rounded-xs before:bg-primary-700 after:absolute after:top-1/2 after:block after:h-1 after:w-full after:-translate-y-1/2 after:rounded-xs after:bg-primary-700"></div>
+           </Link>
+         </div>
+       </section>
+@@ -277,7 +277,7 @@ export default function PWAHomePage() {
+             }
+             className="sticky mx-4 flex h-24 items-center justify-center rounded-xl border-4 border-zinc-200 p-2 [animation-duration:1ms] [animation-name:fadeOut] [animation-timeline:view(block_26rem)] [animation-timing-function:ease-out] aria-disabled:hidden"
+           >
+-            <div className="relative size-6 before:absolute before:left-1/2 before:block before:h-full before:w-1 before:-translate-x-1/2 before:rounded-sm before:bg-zinc-200 after:absolute after:top-1/2 after:block after:h-1 after:w-full after:-translate-y-1/2 after:rounded-sm after:bg-zinc-200"></div>
++            <div className="relative size-6 before:absolute before:left-1/2 before:block before:h-full before:w-1 before:-translate-x-1/2 before:rounded-xs before:bg-zinc-200 after:absolute after:top-1/2 after:block after:h-1 after:w-full after:-translate-y-1/2 after:rounded-xs after:bg-zinc-200"></div>
+           </Link>
+           <AnimatePresence>
+             {tasks?.map((t) => (
+diff --git a/eslint.config.mjs b/eslint.config.mjs
+new file mode 100644
+index 0000000..04cbc40
+--- /dev/null
++++ b/eslint.config.mjs
+@@ -0,0 +1,30 @@
++import { defineConfig, globalIgnores } from "eslint/config";
++import nextVitals from "eslint-config-next/core-web-vitals";
++import nextTs from "eslint-config-next/typescript";
++
++export default defineConfig([
++  ...nextVitals,
++  ...nextTs,
++  {
++    // eslint-plugin-react-hooks v7 added React Compiler rules. The app's state
++    // design (signals + mutable context callbacks) intentionally trips them, so
++    // report them as warnings instead of failing the lint run.
++    rules: {
++      "react-hooks/immutability": "warn",
++      "react-hooks/refs": "warn",
++      "react-hooks/set-state-in-effect": "warn",
++      "react-hooks/use-memo": "warn",
++      "react-hooks/purity": "warn",
++      // app/page.tsx draws a fake phone UI with plain <a> tags on purpose.
++      "@next/next/no-html-link-for-pages": "warn",
++    },
++  },
++  globalIgnores([
++    ".next/**",
++    ".open-next/**",
++    ".wrangler/**",
++    "out/**",
++    "build/**",
++    "next-env.d.ts",
++  ]),
++]);
+diff --git a/next.config.mjs b/next.config.mjs
+index 4678774..9db049f 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -1,4 +1,9 @@
++import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
++
+ /** @type {import('next').NextConfig} */
+ const nextConfig = {};
+ 
+ export default nextConfig;
++
++// Lets `next dev` access Cloudflare bindings (no-op for this app today).
++initOpenNextCloudflareForDev();
+diff --git a/open-next.config.ts b/open-next.config.ts
+new file mode 100644
+index 0000000..f53e660
+--- /dev/null
++++ b/open-next.config.ts
+@@ -0,0 +1,4 @@
++import { defineCloudflareConfig } from "@opennextjs/cloudflare";
++
++// The app keeps all data client-side (Dexie), so no incremental cache is needed.
++export default defineCloudflareConfig();
+diff --git a/package.json b/package.json
+index f0fd885..da172e5 100644
+--- a/package.json
++++ b/package.json
+@@ -1,42 +1,45 @@
+ {
+   "name": "ugly-2-dont-app",
+-  "version": "2.0.1",
++  "version": "3.0.0",
+   "private": true,
+   "scripts": {
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
+-    "lint": "next lint",
+-    "pages:build": "npx @cloudflare/next-on-pages",
+-    "preview": "npm run pages:build && wrangler pages dev --remote",
+-    "deploy": "npm run pages:build && wrangler pages deploy",
+-    "cf-typegen": "wrangler types --env-interface CloudflareEnv env.d.ts"
++    "lint": "eslint .",
++    "typecheck": "tsc --noEmit",
++    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
++    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
++    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
++    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
+   },
+   "dependencies": {
+-    "@preact/signals-react": "^2.2.0",
+-    "dexie": "^4.0.9",
+-    "dexie-react-hooks": "^1.1.7",
+-    "framer-motion": "^11.11.9",
+-    "fuse.js": "^7.0.0",
+-    "next": "^14.2.15",
+-    "react": "^18",
+-    "react-dom": "^18",
++    "@opennextjs/cloudflare": "^1.20.17",
++    "@preact/signals-react": "^3.12.0",
++    "dexie": "^4.4.7",
++    "dexie-react-hooks": "^4.4.0",
++    "framer-motion": "^14.14.0",
++    "fuse.js": "^7.5.0",
++    "next": "^16.4.6",
++    "react": "^19.3.1",
++    "react-dom": "^19.3.1",
+     "react-feather": "^2.0.10"
+   },
+   "devDependencies": {
+-    "@cloudflare/next-on-pages": "^1.13.7",
+-    "@cloudflare/workers-types": "^4.20241205.0",
+-    "@types/node": "^20",
+-    "@types/react": "^18",
+-    "@types/react-dom": "^18",
+-    "eslint": "^8",
+-    "eslint-config-next": "14.2.15",
+-    "postcss": "^8",
+-    "prettier": "^3.3.3",
+-    "prettier-plugin-tailwindcss": "^0.6.8",
+-    "tailwindcss": "^3.4.1",
+-    "typescript": "^5",
+-    "vercel": "^39.2.2",
+-    "wrangler": "^3.95.0"
++    "@tailwindcss/postcss": "^4.3.5",
++    "@types/node": "^22.20.5",
++    "@types/react": "^19.3.0",
++    "@types/react-dom": "^19.3.0",
++    "eslint": "^10.15.0",
++    "eslint-config-next": "^16.4.6",
++    "postcss": "^8.5.33",
++    "prettier": "^3.10.1",
++    "prettier-plugin-tailwindcss": "^0.8.1",
++    "tailwindcss": "^4.3.5",
++    "typescript": "^6.0.3",
++    "wrangler": "^4.162.0"
++  },
++  "engines": {
++    "node": ">=22.12.0"
+   }
+ }
+diff --git a/postcss.config.mjs b/postcss.config.mjs
+index 1a69fd2..61e3684 100644
+--- a/postcss.config.mjs
++++ b/postcss.config.mjs
+@@ -1,7 +1,6 @@
+-/** @type {import('postcss-load-config').Config} */
+ const config = {
+   plugins: {
+-    tailwindcss: {},
++    "@tailwindcss/postcss": {},
+   },
+ };
+ 
+diff --git a/tailwind.config.ts b/tailwind.config.ts
+index 6c5751a..1b524ab 100644
+--- a/tailwind.config.ts
++++ b/tailwind.config.ts
+@@ -1,12 +1,28 @@
+ import type { Config } from "tailwindcss";
+ import plugin from "tailwindcss/plugin";
+ 
++// Tailwind v4 detects template files automatically, so no `content` list is
++// needed. This file is still loaded via `@config` in app/globals.css because it
++// defines the custom `menu-*`, `btn-*`, `ico-*`, `text-input-*`, `tap-*` and
++// `clr-*` utilities.
++type MenuSize = {
++  height: string;
++  radius: string;
++  gap: string;
++  fontSize: string;
++};
++type ButtonSize = { height: string; fontSize: string; gap: string };
++
++// Tailwind's plugin typings declare theme values as `string`, but our custom
++// theme keys (menuSizes, buttonSizes) are objects, so narrow them explicitly.
++type PluginAPI = Parameters<Parameters<typeof plugin>[0]>[0];
++type CssInJs = ReturnType<Parameters<PluginAPI["matchComponents"]>[0][string]>;
++const withValue =
++  <T,>(fn: (value: T) => CssInJs) =>
++  (value: string) =>
++    fn(value as unknown as T);
++
+ const config: Config = {
+-  content: [
+-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+-  ],
+   theme: {
+     extend: {
+       colors: {
+@@ -107,14 +123,23 @@ const config: Config = {
+   },
+   plugins: [
+     plugin(function ({ addComponents, matchComponents, theme }) {
+-      const clr = theme("colors") as any;
++      // `theme("fontSize.x")` resolves to a `[size, { lineHeight }]` tuple in
++      // Tailwind v4, which can't be used as a plain CSS value. Take the size.
++      const fontSize = (name: string): string => {
++        const value = theme("fontSize." + name);
++        return Array.isArray(value) ? value[0] : value;
++      };
++      const clr = theme("colors") as Record<
++        string,
++        string | Record<string, string>
++      >;
+       const color: Record<string, string> = {};
+-      Object.keys(clr).forEach((name) => {
+-        if (typeof clr[name] == "string") {
+-          color[name] = clr[name];
++      Object.entries(clr).forEach(([name, value]) => {
++        if (typeof value === "string") {
++          color[name] = value;
+         } else {
+-          Object.keys(clr[name]).forEach((code) => {
+-            color[`${name}-${code}`] = clr[name][code];
++          Object.entries(value).forEach(([code, hex]) => {
++            color[`${name}-${code}`] = hex;
+           });
+         }
+       });
+@@ -149,8 +174,8 @@ const config: Config = {
+       // menu sizes
+       matchComponents(
+         {
+-          menu: (value) => ({
+-            fontSize: theme("fontSize." + value.fontSize),
++          menu: withValue<MenuSize>((value) => ({
++            fontSize: fontSize(value.fontSize),
+             "& .menu-button": {
+               height: value.height,
+               paddingInline: value.gap,
+@@ -168,18 +193,18 @@ const config: Config = {
+               marginTop: value.gap,
+             },
+             "& svg": {
+-              width: theme("fontSize." + value.fontSize),
+-              height: theme("fontSize." + value.fontSize),
++              width: fontSize(value.fontSize),
++              height: fontSize(value.fontSize),
+             },
+-          }),
++          })),
+         },
+         { values: theme("menuSizes") },
+       );
+       // menu styles
+       matchComponents(
+         {
+-          menu: (value) => {
+-            switch (value) {
++          menu: (value): CssInJs => {
++            switch (Number(value)) {
+               case 0:
+                 return {
+                   "& .menu-button, & .menu-item": {
+@@ -196,7 +221,7 @@ const config: Config = {
+                   },
+                 };
+             }
+-            return {} as any;
++            return {};
+           },
+         },
+         { values: theme("menuStyles") },
+@@ -217,11 +242,11 @@ const config: Config = {
+       // button sizes
+       matchComponents(
+         {
+-          btn: (value) => ({
++          btn: withValue<ButtonSize>((value) => ({
+             width: "100%",
+             minWidth: "0",
+             height: value.height,
+-            fontSize: theme("fontSize." + value.fontSize),
++            fontSize: fontSize(value.fontSize),
+             lineHeight: value.height,
+             borderRadius: parseFloat(value.height) / 2 + "rem",
+             display: "flex",
+@@ -229,19 +254,19 @@ const config: Config = {
+             gap: value.gap,
+             paddingInline: value.gap,
+             "& svg": {
+-              width: theme("fontSize." + value.fontSize),
+-              height: theme("fontSize." + value.fontSize),
++              width: fontSize(value.fontSize),
++              height: fontSize(value.fontSize),
+             },
+-          }),
++          })),
+         },
+         { values: theme("buttonSizes") },
+       );
+       // text-input sizes
+       matchComponents(
+         {
+-          "text-input": (value) => ({
++          "text-input": withValue<MenuSize>((value) => ({
+             boxSizing: "content-box",
+-            fontSize: theme("fontSize." + value.fontSize),
++            fontSize: fontSize(value.fontSize),
+             display: "flex",
+             alignItems: "center",
+             height: value.height,
+@@ -258,10 +283,10 @@ const config: Config = {
+               },
+             },
+             "& svg": {
+-              width: theme("fontSize." + value.fontSize),
+-              height: theme("fontSize." + value.fontSize),
++              width: fontSize(value.fontSize),
++              height: fontSize(value.fontSize),
+             },
+-          }),
++          })),
+         },
+         { values: theme("menuSizes") },
+       );
+diff --git a/tsconfig.json b/tsconfig.json
+index d81d4ee..9e9bbf7 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -14,7 +14,7 @@
+     "moduleResolution": "bundler",
+     "resolveJsonModule": true,
+     "isolatedModules": true,
+-    "jsx": "preserve",
++    "jsx": "react-jsx",
+     "incremental": true,
+     "plugins": [
+       {
+@@ -32,7 +32,8 @@
+     "next-env.d.ts",
+     "**/*.ts",
+     "**/*.tsx",
+-    ".next/types/**/*.ts"
++    ".next/types/**/*.ts",
++    ".next/dev/types/**/*.ts"
+   ],
+   "exclude": [
+     "node_modules"
+diff --git a/wrangler.jsonc b/wrangler.jsonc
+new file mode 100644
+index 0000000..cb4d75a
+--- /dev/null
++++ b/wrangler.jsonc
+@@ -0,0 +1,14 @@
++{
++  "$schema": "node_modules/wrangler/config-schema.json",
++  "main": ".open-next/worker.js",
++  "name": "ugly-2-dont-app",
++  "compatibility_date": "2026-11-01",
++  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
++  "assets": {
++    "directory": ".open-next/assets",
++    "binding": "ASSETS"
++  },
++  "images": {
++    "binding": "IMAGES"
++  }
++}

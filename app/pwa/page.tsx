@@ -72,7 +72,7 @@ export default function PWAHomePage() {
     if (r.matches) {
       const match = r.matches.find((m) => m.key === "title");
       if (match) {
-        const highlightedText: (JSX.Element | string)[] = [];
+        const highlightedText: (React.JSX.Element | string)[] = [];
         let lastIndex = 0;
 
         match.indices.forEach(([start, end]) => {
@@ -116,7 +116,7 @@ export default function PWAHomePage() {
             placeholder="Type here..."
             onChange={(e) => setSearchString(e.target.value.trim())}
             onFocus={() => setExpansion(true)}
-            className="peer w-full bg-transparent placeholder:text-inherit placeholder:transition-colors focus:outline-none group-focus-within:placeholder:text-zinc-400"
+            className="peer w-full bg-transparent placeholder:text-inherit placeholder:transition-colors focus:outline-hidden group-focus-within:placeholder:text-zinc-400"
           />
           <IconButton
             icon="Search"
@@ -147,7 +147,7 @@ export default function PWAHomePage() {
                     {highlightMatches(r)}
                     <div
                       className={
-                        "float-end rounded-sm px-1 text-xs " +
+                        "float-end rounded-xs px-1 text-xs " +
                         (f === 1
                           ? "bg-error-50 text-error-500"
                           : f == 2
@@ -188,7 +188,7 @@ export default function PWAHomePage() {
               <Link
                 href={"/pwa/categories/details/" + c.id}
                 key={c.id}
-                className="ml-4 flex h-24 flex-shrink-0 flex-col items-center justify-center whitespace-nowrap rounded-xl bg-secondary-600 bg-opacity-15 p-2 [flex-basis:6rem]"
+                className="ml-4 flex h-24 shrink-0 flex-col items-center justify-center whitespace-nowrap rounded-xl bg-secondary-600/15 p-2 [flex-basis:6rem]"
               >
                 <p className="h-full font-medium leading-8">{c.title}</p>
 
@@ -208,7 +208,7 @@ export default function PWAHomePage() {
             key="add"
             className="mx-4 flex aspect-square h-24 items-center justify-center rounded-xl border-4 border-secondary-600 p-2 opacity-15"
           >
-            <div className="relative size-6 before:absolute before:left-1/2 before:block before:h-full before:w-1 before:-translate-x-1/2 before:rounded-sm before:bg-secondary-600 after:absolute after:top-1/2 after:block after:h-1 after:w-full after:-translate-y-1/2 after:rounded-sm after:bg-secondary-600"></div>
+            <div className="relative size-6 before:absolute before:left-1/2 before:block before:h-full before:w-1 before:-translate-x-1/2 before:rounded-xs before:bg-secondary-600 after:absolute after:top-1/2 after:block after:h-1 after:w-full after:-translate-y-1/2 after:rounded-xs after:bg-secondary-600"></div>
           </Link>
         </div>
       </section>
@@ -230,7 +230,7 @@ export default function PWAHomePage() {
               <Link
                 href={"/pwa/projects/details/" + p.id}
                 key={p.id}
-                className="ml-4 flex h-24 flex-shrink-0 flex-col items-center justify-center whitespace-nowrap rounded-xl bg-primary-700 p-2 [flex-basis:6rem]"
+                className="ml-4 flex h-24 shrink-0 flex-col items-center justify-center whitespace-nowrap rounded-xl bg-primary-700 p-2 [flex-basis:6rem]"
               >
                 <p className="h-full font-medium leading-8">{p.title}</p>
                 <div className="w-full rounded-lg bg-primary-200 px-2 text-xs text-primary-900">
@@ -245,7 +245,7 @@ export default function PWAHomePage() {
             key="add"
             className="mx-4 flex aspect-square h-24 items-center justify-center rounded-xl border-4 border-primary-700 p-2"
           >
-            <div className="relative size-6 before:absolute before:left-1/2 before:block before:h-full before:w-1 before:-translate-x-1/2 before:rounded-sm before:bg-primary-700 after:absolute after:top-1/2 after:block after:h-1 after:w-full after:-translate-y-1/2 after:rounded-sm after:bg-primary-700"></div>
+            <div className="relative size-6 before:absolute before:left-1/2 before:block before:h-full before:w-1 before:-translate-x-1/2 before:rounded-xs before:bg-primary-700 after:absolute after:top-1/2 after:block after:h-1 after:w-full after:-translate-y-1/2 after:rounded-xs after:bg-primary-700"></div>
           </Link>
         </div>
       </section>
@@ -277,7 +277,7 @@ export default function PWAHomePage() {
             }
             className="sticky mx-4 flex h-24 items-center justify-center rounded-xl border-4 border-zinc-200 p-2 [animation-duration:1ms] [animation-name:fadeOut] [animation-timeline:view(block_26rem)] [animation-timing-function:ease-out] aria-disabled:hidden"
           >
-            <div className="relative size-6 before:absolute before:left-1/2 before:block before:h-full before:w-1 before:-translate-x-1/2 before:rounded-sm before:bg-zinc-200 after:absolute after:top-1/2 after:block after:h-1 after:w-full after:-translate-y-1/2 after:rounded-sm after:bg-zinc-200"></div>
+            <div className="relative size-6 before:absolute before:left-1/2 before:block before:h-full before:w-1 before:-translate-x-1/2 before:rounded-xs before:bg-zinc-200 after:absolute after:top-1/2 after:block after:h-1 after:w-full after:-translate-y-1/2 after:rounded-xs after:bg-zinc-200"></div>
           </Link>
           <AnimatePresence>
             {tasks?.map((t) => (

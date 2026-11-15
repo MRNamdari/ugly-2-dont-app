@@ -12,7 +12,8 @@ import {
 import { isSelectionStarted, isMovingStarted, store } from "../_store/state";
 import IconButton from "./icon-button";
 import { DeleteContext } from "./delete.modal";
-import { db, IProject, ICategory } from "../_store/db";
+import type { UpdateSpec } from "dexie";
+import { db, IProject, ICategory, ITask } from "../_store/db";
 
 type SelectionDestination = {
   feature?: "category" | "project";
@@ -84,15 +85,15 @@ export default function SelectionModal(props: { children: React.ReactNode }) {
         db.categories.bulkUpdate(
           cat.value.map((c) => ({
             key: c,
-            changes: { [feature]: id },
+            changes: { [feature]: id } as UpdateSpec<ICategory>,
           })),
         );
       }
       if (prj.value.length > 0) {
         db.projects.bulkUpdate(
-          cat.value.map((p) => ({
+          prj.value.map((p) => ({
             key: p,
-            changes: { [feature]: id },
+            changes: { [feature]: id } as UpdateSpec<IProject>,
           })),
         );
       }
@@ -100,7 +101,7 @@ export default function SelectionModal(props: { children: React.ReactNode }) {
         db.tasks.bulkUpdate(
           task.value.map((t) => ({
             key: t,
-            changes: { [feature]: id },
+            changes: { [feature]: id } as unknown as UpdateSpec<ITask>,
           })),
         );
       }

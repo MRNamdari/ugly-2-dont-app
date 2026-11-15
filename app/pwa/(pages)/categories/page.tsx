@@ -24,14 +24,19 @@ import { batch } from "@preact/signals-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useContext, useEffect } from "react";
+import { use, useContext, useEffect } from "react";
 
 export default function CategoryBrowserPage({
   params,
 }: {
-  params: { id?: `${ICategory["id"]}` };
+  // Next.js 15+ passes `params` as a Promise: empty on /categories and
+  // holding `id` on /categories/details/[id].
+  params?: Promise<{ id?: `${ICategory["id"]}` }>;
 }) {
-  const id = params.id !== undefined ? parseInt(params.id) : 0;
+  const { id: paramId }: { id?: `${ICategory["id"]}` } = params
+    ? use(params)
+    : {};
+  const id = paramId !== undefined ? parseInt(paramId) : 0;
   const router = useRouter();
   const addModal = useContext(AddContext);
   const addCat = useContext(AddEditCategoryContext);

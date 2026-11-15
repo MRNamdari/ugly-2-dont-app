@@ -2,7 +2,7 @@
 import Image from "next/image";
 
 import Button from "@/app/_components/button";
-import { useEffect, useRef, useState, Fragment } from "react";
+import { useCallback, useEffect, useRef, useState, Fragment } from "react";
 import {
   useScroll,
   motion,
@@ -14,12 +14,12 @@ import {
 } from "framer-motion";
 
 import Link from "next/link";
-import { debounce } from "./_store/util";
 import IconButton from "./_components/icon-button";
 import { GC, Tuturial } from "./_store/mock";
 import { useRouter } from "next/navigation";
 
 type TuturialName = keyof ReturnType<typeof Tuturial>;
+type Tutorials = { [P in TuturialName]: GC<void> };
 
 export default function DesktopPage() {
   const iref = useRef<HTMLIFrameElement>(null);
@@ -27,14 +27,29 @@ export default function DesktopPage() {
   const phoneRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLElement>(null);
 
-  const [tut, setTut] = useState<{ [P in TuturialName]: GC<void> }>();
-  const debouced_setTut = debounce((tut: ReturnType<typeof Tuturial>) => {
-    setTut({
-      AddCategory: new GC(tut.AddCategory),
-      AddProject: new GC(tut.AddProject),
-      AddTask: new GC(tut.AddTask),
-    });
-  }, 500);
+  const [tut, setTut] = useState<Tutorials>();
+  const tutRef = useRef<Tutorials>(undefined);
+
+  // (Re)creates the tutorials for whatever document the iframe holds *now*.
+  // The iframe starts out on an empty about:blank document and gets a new one
+  // once /pwa has loaded, so this must run from the iframe's load event rather
+  // than at mount, otherwise the tutorials would drive a document that is gone.
+  const initTutorials = useCallback(() => {
+    const iframe = iref.current;
+    const pointer = pref.current;
+    const win = iframe?.contentWindow;
+    if (!iframe || !pointer || !win) return;
+    if (!win.location.pathname.startsWith("/pwa")) return; // still about:blank
+    if (iframe.contentDocument?.readyState !== "complete") return;
+    const next = Tuturial(iframe, pointer);
+    tutRef.current && Object.values(tutRef.current).forEach((c) => c.cancel());
+    tutRef.current = {
+      AddCategory: new GC(next.AddCategory),
+      AddProject: new GC(next.AddProject),
+      AddTask: new GC(next.AddTask),
+    };
+    setTut(tutRef.current);
+  }, []);
   const [mainHeight, setHeight] = useState<number>(0);
   const { scrollYProgress } = useScroll({
     axis: "y",
@@ -60,13 +75,15 @@ export default function DesktopPage() {
   });
 
   useEffect(() => {
-    const iframe = iref.current;
-    const doc = iframe?.contentDocument;
-    const pointer = pref.current;
-    if (doc && pointer && doc.children.length) {
-      debouced_setTut(Tuturial(doc, pointer));
-    }
-  }, [iref.current, pref.current]);
+    // The iframe may already have finished loading before hydration attached
+    // its onLoad handler.
+    initTutorials();
+    const controllers = tutRef;
+    return () => {
+      if (controllers.current)
+        Object.values(controllers.current).forEach((c) => c.cancel());
+    };
+  }, [initTutorials]);
 
   useEffect(() => {
     if (mainRef.current) setHeight(mainRef.current.scrollHeight);
@@ -97,10 +114,12 @@ export default function DesktopPage() {
           width={300}
           allowFullScreen={false}
           onLoad={(e) => {
-            const style = document.createElement("style");
-            style.innerText = "::-webkit-scrollbar{width:0px;height:0px;}";
-            const htmlDoc = e.target as HTMLIFrameElement;
-            htmlDoc.contentDocument?.head.appendChild(style);
+            const frameDoc = e.currentTarget.contentDocument;
+            if (!frameDoc?.head) return;
+            const style = frameDoc.createElement("style");
+            style.textContent = "::-webkit-scrollbar{width:0px;height:0px;}";
+            frameDoc.head.appendChild(style);
+            initTutorials();
           }}
         ></iframe>
       </motion.div>
@@ -117,7 +136,7 @@ export default function DesktopPage() {
       <div
         ref={pref}
         id="pointer"
-        className="absolute inset-1/2 z-10 size-10 rounded-full border-4 border-white border-opacity-50 bg-zinc-900 bg-opacity-50"
+        className="absolute inset-1/2 z-10 size-10 rounded-full border-4 border-white/50 bg-zinc-900/50"
       ></div>
       <div ref={phoneRef} className="h-full max-h-fit max-w-fit">
         {phone}
@@ -193,7 +212,7 @@ export default function DesktopPage() {
         </div>
       </div>
       <footer>
-        <section className="relative z-10 h-svh w-full snap-start bg-secondary-600 bg-opacity-60 pb-6 pt-8 backdrop-blur-md">
+        <section className="relative z-10 h-svh w-full snap-start bg-secondary-600/60 pb-6 pt-8 backdrop-blur-md">
           <h2 className="py-4 text-center text-xl font-medium md:text-2xl lg:text-4xl">
             What Ugly users say...
           </h2>
@@ -265,7 +284,7 @@ export default function DesktopPage() {
           </div>
         </section>
         <section className="h-svh">
-          <div className="h-full snap-start bg-primary-900 bg-opacity-50 py-8 text-gray-300">
+          <div className="h-full snap-start bg-primary-900/50 py-8 text-gray-300">
             <div className="container mx-auto grid h-full place-content-evenly place-self-center px-4 md:grid-cols-2">
               <div className="h-full w-full place-self-center">
                 <div className="mb-6 items-baseline gap-6 text-3xl leading-relaxed md:mb-0">
@@ -344,7 +363,7 @@ type CommentProps = {
   avatar: string;
   username: string;
   role: string;
-  comment: JSX.Element;
+  comment: React.JSX.Element;
 };
 function Comment({ avatar, username, role, comment }: CommentProps) {
   return (
@@ -421,7 +440,7 @@ function Title() {
             Ugly2Don’t
           </motion.span>
         </div>
-        <h2 className="text-lg text-white [line-height:1.325!important] *:origin-bottom-left md:text-xl lg:text-3xl">
+        <h2 className="text-lg text-white [line-height:1.325]! *:origin-bottom-left md:text-xl lg:text-3xl">
           <motion.span
             key="t1"
             className="inline-block"
@@ -561,10 +580,10 @@ function FirstSection(props: { onView?: () => void }) {
   );
 }
 
-type Step = [JSX.Element, boolean];
+type Step = [React.JSX.Element, boolean];
 
 type SummaryProps = {
-  title: JSX.Element | JSX.Element[];
+  title: React.JSX.Element | React.JSX.Element[];
   description?: string;
   controller?: GC<void>;
   onPlay: () => void;
@@ -588,25 +607,28 @@ function Summary(props: SummaryProps) {
     }
   }, [inView]);
 
+  // A new controller means a new document/tutorial run: start from scratch.
+  useEffect(() => {
+    setPlayState("Pause");
+    setSteps((s) => s.map(([step]) => [step, false] as Step));
+  }, [props.controller]);
+
   // Setting Event handler on Generator Controller
   if (props.controller) {
-    props.controller.then = () => setPlayState("Finish");
+    props.controller.when("finish", () => setPlayState("Finish"));
     // When one generator executing others restart if not finished
-    props.controller.when("restart", () =>
-      setSteps((s) =>
-        s.map((item) => {
-          item[1] = false;
-          return item;
-        }),
-      ),
-    );
+    const reset = () => {
+      setPlayState("Pause");
+      setSteps((s) => s.map(([step]) => [step, false] as Step));
+    };
+    props.controller.when("restart", reset);
+    props.controller.when("error", reset);
     // Each marked yield in generators fires an event with it mark as value
     for (let i = 0; i < steps.length; ++i)
       props.controller.when(i, () =>
-        setSteps((s) => {
-          s[i][1] = true;
-          return Array.from(s);
-        }),
+        setSteps((s) =>
+          s.map((item, idx) => (idx === i ? ([item[0], true] as Step) : item)),
+        ),
       );
   }
 
@@ -616,6 +638,8 @@ function Summary(props: SummaryProps) {
         <h2
           className="flex items-center gap-2 text-xl font-medium lg:gap-4 lg:text-3xl"
           onClick={() => {
+            // Nothing to play until the embedded app has finished loading.
+            if (!props.controller) return;
             if (playState !== "Finish") {
               setPlayState(playState == "Pause" ? "Play" : "Pause");
               if (playState == "Pause") props.onPlay();
@@ -642,7 +666,7 @@ function Summary(props: SummaryProps) {
                   ? "Play"
                   : "Pause"
             }
-            className="tap-primary-200 ico-md hidden bg-white text-[--tw-color] md:block"
+            className="tap-primary-200 ico-md hidden bg-white text-(--tw-color) md:block"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={control}
             variants={{
@@ -914,7 +938,7 @@ function MotionWord(props: MotionWordProps) {
   const { children, ...motionprops } = props;
   const slices = children.split(/\s+/);
   const n = slices.length;
-  const words: JSX.Element[] = new Array(n * 2);
+  const words: React.JSX.Element[] = new Array(n * 2);
   for (let i = 0; i < n; ++i) {
     words[i * 2] = (
       <motion.span
@@ -976,7 +1000,7 @@ function CategoryPage() {
             "linear-gradient(-45deg, transparent -30%, rgba(255,255,255,.4) 10%, transparent 110%)",
         }}
       >
-        <div className="rounded-2xl bg-opacity-30 text-primary-400">
+        <div className="rounded-2xl text-primary-400">
           <header className="grid grid-cols-[3rem_1fr_3rem] items-center justify-center p-4">
             <div>
               <button className="ico-lg" name="back">
@@ -1478,7 +1502,7 @@ function ProjectPage() {
                 },
               }}
               id="p1"
-              className="relative z-10 inline-flex h-full w-full flex-col whitespace-normal rounded-3xl bg-secondary-400 bg-opacity-40 p-6 pt-2 shadow-sm backdrop-blur"
+              className="relative z-10 inline-flex h-full w-full flex-col whitespace-normal rounded-3xl bg-secondary-400/40 p-6 pt-2 shadow-xs backdrop-blur-sm"
               draggable="false"
             >
               <span className="grid grid-cols-[auto_2rem] text-primary-100">
@@ -1513,7 +1537,7 @@ function ProjectPage() {
                     Personal
                   </a>
                 </h5>
-                <label className="float-end rounded-sm bg-secondary-200 px-1 text-xs text-secondary-800">
+                <label className="float-end rounded-xs bg-secondary-200 px-1 text-xs text-secondary-800">
                   LOW
                 </label>
               </span>
@@ -1589,7 +1613,7 @@ function ProjectPage() {
               className="relative px-4"
             >
               <div
-                className="rounded-3xl bg-gray-100 bg-opacity-50 p-6 pt-2 backdrop-blur-md"
+                className="rounded-3xl bg-gray-100/50 p-6 pt-2 backdrop-blur-md"
                 aria-selected="false"
                 draggable="false"
               >
@@ -1676,7 +1700,7 @@ function TaskPage() {
   return (
     <motion.div
       style={{ perspective: "40rem" }}
-      className="flex flex-col gap-2 text-primary-100 text-opacity-70 md:hidden"
+      className="flex flex-col gap-2 text-primary-100/70 md:hidden"
       initial="exit"
       onViewportEnter={() => setPlayState(true)}
       animate={control}
@@ -1717,8 +1741,8 @@ function TaskPage() {
             </a>
           </h5>
           <div className="flex w-full gap-1 pb-4 text-sm">
-            <p className="flex-grow text-xs text-primary-400">Oct 13</p>
-            <div className="flex aspect-square size-6 items-center justify-center rounded-md bg-zinc-400 bg-opacity-30 text-zinc-400">
+            <p className="grow text-xs text-primary-400">Oct 13</p>
+            <div className="flex aspect-square size-6 items-center justify-center rounded-md bg-zinc-400/30 text-zinc-400">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="14"
@@ -1734,7 +1758,7 @@ function TaskPage() {
                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
               </svg>
             </div>
-            <p className="size-6 flex-grow-0 rounded-md bg-error-600 bg-opacity-40 text-center align-middle text-error-300">
+            <p className="size-6 grow-0 rounded-md bg-error-600/40 text-center align-middle text-error-300">
               H
             </p>
           </div>
@@ -1768,8 +1792,8 @@ function TaskPage() {
             </a>
           </h5>
           <div className="flex w-full gap-1 pb-4 text-sm">
-            <p className="flex-grow text-xs text-primary-400">Aug 28</p>
-            <p className="size-6 flex-grow-0 rounded-md bg-error-600 bg-opacity-40 text-center align-middle text-error-300">
+            <p className="grow text-xs text-primary-400">Aug 28</p>
+            <p className="size-6 grow-0 rounded-md bg-error-600/40 text-center align-middle text-error-300">
               H
             </p>
           </div>
@@ -1803,8 +1827,8 @@ function TaskPage() {
             </a>
           </h5>
           <div className="flex w-full gap-1 pb-4 text-sm">
-            <p className="flex-grow text-xs text-primary-400">Sep 29</p>
-            <div className="flex aspect-square size-6 items-center justify-center rounded-md bg-zinc-400 bg-opacity-30 text-zinc-400">
+            <p className="grow text-xs text-primary-400">Sep 29</p>
+            <div className="flex aspect-square size-6 items-center justify-center rounded-md bg-zinc-400/30 text-zinc-400">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="14"
@@ -1820,7 +1844,7 @@ function TaskPage() {
                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
               </svg>
             </div>
-            <p className="size-6 flex-grow-0 rounded-md bg-error-600 bg-opacity-40 text-center align-middle text-error-300">
+            <p className="size-6 grow-0 rounded-md bg-error-600/40 text-center align-middle text-error-300">
               H
             </p>
           </div>
@@ -1854,8 +1878,8 @@ function TaskPage() {
             </a>
           </h5>
           <div className="flex w-full gap-1 pb-4 text-sm">
-            <p className="flex-grow text-xs text-primary-400">Aug 30, 2025</p>
-            <div className="flex aspect-square size-6 items-center justify-center rounded-md bg-zinc-400 bg-opacity-30 text-zinc-400">
+            <p className="grow text-xs text-primary-400">Aug 30, 2025</p>
+            <div className="flex aspect-square size-6 items-center justify-center rounded-md bg-zinc-400/30 text-zinc-400">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="14"
@@ -1873,7 +1897,7 @@ function TaskPage() {
                 <line x1="6" y1="9" x2="6" y2="21"></line>
               </svg>
             </div>
-            <p className="size-6 flex-grow-0 rounded-md bg-error-600 bg-opacity-40 text-center align-middle text-error-300">
+            <p className="size-6 grow-0 rounded-md bg-error-600/40 text-center align-middle text-error-300">
               H
             </p>
           </div>

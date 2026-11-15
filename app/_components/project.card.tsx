@@ -138,7 +138,7 @@ export default function ProjectCard(props: ProjectCardProps) {
         {props.priority !== undefined && (
           <label
             className={
-              "float-end rounded-sm px-1 text-xs " +
+              "float-end rounded-xs px-1 text-xs " +
               (props.priority === 0
                 ? "bg-error-100 text-error-600"
                 : props.priority === 1

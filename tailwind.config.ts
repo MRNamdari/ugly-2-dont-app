@@ -1,12 +1,28 @@
 import type { Config } from "tailwindcss";
 import plugin from "tailwindcss/plugin";
 
+// Tailwind v4 detects template files automatically, so no `content` list is
+// needed. This file is still loaded via `@config` in app/globals.css because it
+// defines the custom `menu-*`, `btn-*`, `ico-*`, `text-input-*`, `tap-*` and
+// `clr-*` utilities.
+type MenuSize = {
+  height: string;
+  radius: string;
+  gap: string;
+  fontSize: string;
+};
+type ButtonSize = { height: string; fontSize: string; gap: string };
+
+// Tailwind's plugin typings declare theme values as `string`, but our custom
+// theme keys (menuSizes, buttonSizes) are objects, so narrow them explicitly.
+type PluginAPI = Parameters<Parameters<typeof plugin>[0]>[0];
+type CssInJs = ReturnType<Parameters<PluginAPI["matchComponents"]>[0][string]>;
+const withValue =
+  <T,>(fn: (value: T) => CssInJs) =>
+  (value: string) =>
+    fn(value as unknown as T);
+
 const config: Config = {
-  content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
   theme: {
     extend: {
       colors: {
@@ -107,14 +123,23 @@ const config: Config = {
   },
   plugins: [
     plugin(function ({ addComponents, matchComponents, theme }) {
-      const clr = theme("colors") as any;
+      // `theme("fontSize.x")` resolves to a `[size, { lineHeight }]` tuple in
+      // Tailwind v4, which can't be used as a plain CSS value. Take the size.
+      const fontSize = (name: string): string => {
+        const value = theme("fontSize." + name);
+        return Array.isArray(value) ? value[0] : value;
+      };
+      const clr = theme("colors") as Record<
+        string,
+        string | Record<string, string>
+      >;
       const color: Record<string, string> = {};
-      Object.keys(clr).forEach((name) => {
-        if (typeof clr[name] == "string") {
-          color[name] = clr[name];
+      Object.entries(clr).forEach(([name, value]) => {
+        if (typeof value === "string") {
+          color[name] = value;
         } else {
-          Object.keys(clr[name]).forEach((code) => {
-            color[`${name}-${code}`] = clr[name][code];
+          Object.entries(value).forEach(([code, hex]) => {
+            color[`${name}-${code}`] = hex;
           });
         }
       });
@@ -149,8 +174,8 @@ const config: Config = {
       // menu sizes
       matchComponents(
         {
-          menu: (value) => ({
-            fontSize: theme("fontSize." + value.fontSize),
+          menu: withValue<MenuSize>((value) => ({
+            fontSize: fontSize(value.fontSize),
             "& .menu-button": {
               height: value.height,
               paddingInline: value.gap,
@@ -168,18 +193,18 @@ const config: Config = {
               marginTop: value.gap,
             },
             "& svg": {
-              width: theme("fontSize." + value.fontSize),
-              height: theme("fontSize." + value.fontSize),
+              width: fontSize(value.fontSize),
+              height: fontSize(value.fontSize),
             },
-          }),
+          })),
         },
         { values: theme("menuSizes") },
       );
       // menu styles
       matchComponents(
         {
-          menu: (value) => {
-            switch (value) {
+          menu: (value): CssInJs => {
+            switch (Number(value)) {
               case 0:
                 return {
                   "& .menu-button, & .menu-item": {
@@ -196,7 +221,7 @@ const config: Config = {
                   },
                 };
             }
-            return {} as any;
+            return {};
           },
         },
         { values: theme("menuStyles") },
@@ -217,11 +242,11 @@ const config: Config = {
       // button sizes
       matchComponents(
         {
-          btn: (value) => ({
+          btn: withValue<ButtonSize>((value) => ({
             width: "100%",
             minWidth: "0",
             height: value.height,
-            fontSize: theme("fontSize." + value.fontSize),
+            fontSize: fontSize(value.fontSize),
             lineHeight: value.height,
             borderRadius: parseFloat(value.height) / 2 + "rem",
             display: "flex",
@@ -229,19 +254,19 @@ const config: Config = {
             gap: value.gap,
             paddingInline: value.gap,
             "& svg": {
-              width: theme("fontSize." + value.fontSize),
-              height: theme("fontSize." + value.fontSize),
+              width: fontSize(value.fontSize),
+              height: fontSize(value.fontSize),
             },
-          }),
+          })),
         },
         { values: theme("buttonSizes") },
       );
       // text-input sizes
       matchComponents(
         {
-          "text-input": (value) => ({
+          "text-input": withValue<MenuSize>((value) => ({
             boxSizing: "content-box",
-            fontSize: theme("fontSize." + value.fontSize),
+            fontSize: fontSize(value.fontSize),
             display: "flex",
             alignItems: "center",
             height: value.height,
@@ -258,10 +283,10 @@ const config: Config = {
               },
             },
             "& svg": {
-              width: theme("fontSize." + value.fontSize),
-              height: theme("fontSize." + value.fontSize),
+              width: fontSize(value.fontSize),
+              height: fontSize(value.fontSize),
             },
-          }),
+          })),
         },
         { values: theme("menuSizes") },
       );

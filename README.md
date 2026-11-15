@@ -7,6 +7,28 @@ Although i've desgined it for mobile, some components aren't really for mobile s
 Previously i made it using page router but now it's using app router and the codebase is now way more readable.
 This app is made as a step to make something else, bigger and more ambitious so go easy on it.
 
+## Development
+
+```bash
+npm install
+npm run dev        # http://localhost:3000
+npm run typecheck  # tsc --noEmit
+npm run lint       # eslint .
+```
+
+Requires Node.js 22.12 or newer.
+
+## Deployment (Cloudflare Workers)
+
+The app is deployed with the [OpenNext Cloudflare adapter](https://opennext.js.org/cloudflare)
+(`@cloudflare/next-on-pages` is deprecated and does not support Next.js 16).
+Configuration lives in `wrangler.jsonc` and `open-next.config.ts`.
+
+```bash
+npm run preview   # build and run locally in the Workers runtime
+npm run deploy    # build and deploy
+```
+
 Some apparently vital message on behalf of real content goes here to fill the void:
 
 ## Manage & categorize your projects & tasks

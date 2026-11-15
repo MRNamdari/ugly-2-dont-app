@@ -265,7 +265,7 @@ export default forwardRef<HTMLElement, ITask>(function TaskTicket(
                   <div className="inline-flex size-5 items-center justify-center rounded-full bg-primary-600 text-xs font-medium text-primary-50">
                     {i + 1}
                   </div>
-                  <p className="flex-grow">{st.title}</p>
+                  <p className="grow">{st.title}</p>
                   <span className="relative">
                     <input
                       type="checkbox"
@@ -296,7 +296,7 @@ export default forwardRef<HTMLElement, ITask>(function TaskTicket(
           </span>
         </span>
         <div className="flex w-full gap-1 text-sm">
-          {/* <p className="flex-grow text-xs text-primary-600">
+          {/* <p className="grow text-xs text-primary-600">
             {props.date && date2display(new Date(props.date))}
           </p> */}
           <DynamicDue date={props.date} time={props.time} />
@@ -316,7 +316,7 @@ export default forwardRef<HTMLElement, ITask>(function TaskTicket(
           )}
           <p
             className={
-              "size-6 flex-grow-0 rounded-md text-center align-middle " +
+              "size-6 grow-0 rounded-md text-center align-middle " +
               (props.priority === 0
                 ? "bg-error-100 text-error-600"
                 : props.priority === 1
@@ -393,5 +393,5 @@ function DynamicDue({ time, date }: { time: Date; date: Date }) {
     return () => clearInterval(timeout);
   }, [time, date, content]);
 
-  return <p className="flex-grow text-xs text-primary-600">{content}</p>;
+  return <p className="grow text-xs text-primary-600">{content}</p>;
 }

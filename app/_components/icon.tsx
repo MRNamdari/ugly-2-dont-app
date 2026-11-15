@@ -24,7 +24,7 @@ export default function Icon({
   label,
   className,
   ...props
-}: IconProps): JSX.Element {
+}: IconProps): React.JSX.Element {
   const SpecifiedIcon = FeatherIcon[label];
   return (
     <div

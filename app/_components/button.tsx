@@ -12,7 +12,7 @@ export type ButtonProps = HTMLMotionProps<"button"> & {
 export default forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   props: ButtonProps,
   ref,
-): JSX.Element {
+): React.JSX.Element {
   const { children, leadingIcon, trailingIcon, className, disabled, ...rest } =
     props;
   const whileTap = !disabled

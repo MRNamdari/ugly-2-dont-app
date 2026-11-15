@@ -5,7 +5,7 @@ import { Priority } from "@/app/_store/data";
 // Hooks
 import Fuse from "fuse.js";
 import { useRouter } from "next/navigation";
-import { useContext, useEffect, useRef, useState } from "react";
+import { use, useContext, useEffect, useRef, useState } from "react";
 // Components
 import Menu, { MenuItem } from "@/app/_components/menu";
 import IconButton from "@/app/_components/icon-button";
@@ -23,9 +23,14 @@ import { ProjectFormDataSignal } from "@/app/_store/state";
 export default function AddProjectPage({
   params,
 }: {
-  params: { id: `${IProject["id"]}` };
+  // Next.js 15+ passes `params` as a Promise. It is absent/empty on
+  // /projects/add and holds `id` on /projects/edit/[id].
+  params?: Promise<{ id?: `${IProject["id"]}` }>;
 }) {
-  const id = params.id !== undefined ? parseInt(params.id) : undefined;
+  const { id: paramId }: { id?: `${IProject["id"]}` } = params
+    ? use(params)
+    : {};
+  const id = paramId !== undefined ? parseInt(paramId) : undefined;
   const router = useRouter();
   const calendar = useContext(CalendarContext);
   const clock = useContext(ClockContext);
@@ -162,7 +167,7 @@ export default function AddProjectPage({
           exit={{ transform: "translate(0,-200%)", opacity: 0 }}
           className="self-end overflow-hidden text-ellipsis whitespace-nowrap text-center text-3xl font-medium"
         >
-          {params.id ? "Edit" : "New"} Project
+          {paramId ? "Edit" : "New"} Project
         </motion.h1>
         <div>
           <IconButton
@@ -187,8 +192,8 @@ export default function AddProjectPage({
         className="flex h-full flex-col"
         onSubmit={(e) => e.preventDefault()}
       >
-        {params.id && (
-          <input type="hidden" name="id" defaultValue={params.id} />
+        {paramId && (
+          <input type="hidden" name="id" defaultValue={paramId} />
         )}
         <section className="grid h-fit grid-flow-row gap-4 px-4 pt-10">
           {/* Title */}

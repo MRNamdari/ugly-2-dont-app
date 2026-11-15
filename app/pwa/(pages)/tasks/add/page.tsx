@@ -7,7 +7,7 @@ import { TaskFormDataSignal } from "@/app/_store/state";
 // Hooks
 import Fuse from "fuse.js";
 import { useRouter } from "next/navigation";
-import { useContext, useEffect, useRef, useState } from "react";
+import { use, useContext, useEffect, useRef, useState } from "react";
 // Components
 import Menu, { MenuItem } from "@/app/_components/menu";
 import IconButton from "@/app/_components/icon-button";
@@ -24,9 +24,12 @@ import { db } from "@/app/_store/db";
 export default function AddTaskPage({
   params,
 }: {
-  params: { id: `${ITask["id"]}` };
+  // Next.js 15+ passes `params` as a Promise. It is absent/empty on
+  // /tasks/add and holds `id` on /tasks/edit/[id].
+  params?: Promise<{ id?: `${ITask["id"]}` }>;
 }) {
-  const id = params.id !== undefined ? parseInt(params.id) : undefined;
+  const { id: paramId }: { id?: `${ITask["id"]}` } = params ? use(params) : {};
+  const id = paramId !== undefined ? parseInt(paramId) : undefined;
   const router = useRouter();
   const calendar = useContext(CalendarContext);
   const clock = useContext(ClockContext);
@@ -552,7 +555,7 @@ export default function AddTaskPage({
                     subtasks,
                   });
 
-                  subtaskInput.current.value = "";
+                  if (subtaskInput.current) subtaskInput.current.value = "";
                 }
               }}
             />
